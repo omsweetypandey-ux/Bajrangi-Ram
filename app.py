@@ -1,11 +1,10 @@
 import streamlit as st
 from datetime import date
-from gtts import gTTS
+from gtts import import gTTS
 import base64
 import time
-import uuid  
-import os    
-import streamlit as st
+import uuid
+import os
 
 # १. साइडबार को हमेशा खुला रखने के लिए
 st.set_page_config(page_title="बजरंगी राम ज्योतिष", initial_sidebar_state="expanded")
