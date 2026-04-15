@@ -5,26 +5,32 @@ import base64
 import time
 import uuid
 import os
-# १. पेज की सेटिंग
-st.set_page_config(page_title="बजरंगी राम ज्योतिष", layout="centered")
+import streamlit as st
 
-# २. फ्रंट पेज पर ही विवरण भरने का बॉक्स
-st.title("🕉️ बजरंगी राम ज्योतिष केंद्र")
-st.subheader("कृपया अपना विवरण यहाँ भरें")
+# १. पेज की सेटिंग (मोबाइल के लिए सबसे सही)
+st.set_page_config(page_title="बजरंगी राम न्यूमेरोलॉजी", layout="centered")
 
+# २. फ्रंट पेज पर ही विवरण (Front Page Form)
+st.title("🔢 न्यूमेरोलॉजी केंद्र")
+st.write("कृपया अपना विवरण यहाँ भरें:")
+
+# एक बॉक्स के अंदर साफ़-सुथरा फॉर्म
 with st.container():
+    u_name = st.text_input("आपका पूरा नाम (Full Name)")
+    
     col1, col2 = st.columns(2)
     with col1:
-        name = st.text_input("आपका नाम (Name)")
-        dob = st.date_input("जन्म तिथि (DOB)", value=date(1986, 4, 18))
+        u_dob = st.date_input("जन्म तिथि (DOB)", value=date(1986, 4, 18))
     with col2:
-        tob = st.time_input("जन्म समय (Time)")
-        pob = st.text_input("जन्म स्थान (Place)")
+        u_gender = st.selectbox("लिंग (Gender)", ["पुरुष (Male)", "महिला (Female)", "अन्य (Other)"])
 
-# ३. गणना शुरू करने का बटन
-if st.button("अपनी कुंडली देखें (View Horoscope)"):
-    st.success(f"धन्यवाद {name} जी! आपकी गणना की जा रही है...")
-    # यहाँ आपका पुराना ज्योतिष वाला फंक्शन (faladesh) कॉल होगा
+# ३. गणना का बटन
+if st.button("अपनी न्यूमेरोलॉजी रिपोर्ट देखें"):
+    if u_name:
+        st.success(f"नमस्ते {u_name} जी! आपकी न्यूमेरोलॉजी गणना तैयार की जा रही है...")
+        # यहाँ आपका लो-शू ग्रिड या भाग्यांक वाला कोड चलेगा
+    else:
+        st.warning("कृपया अपना नाम भरें।")
 # १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
     try:
