@@ -5,40 +5,38 @@ import base64
 import time
 import uuid
 import os
-# लाल बटन को ही 'ओपन बटन' बनाने के लिए कोड
+# यह कोड उस छोटे तीर (Arrow) को बड़ा और लाल कर देगा
 st.markdown("""
     <style>
-    @keyframes blinker { 50% { opacity: 0.7; } }
-    .floating-button {
-        position: fixed;
-        top: 60px;
-        left: 10px;
-        z-index: 999999;
-        background-color: #FF4B4B;
-        color: white;
-        padding: 12px 18px;
-        border-radius: 30px;
-        font-weight: bold;
-        font-size: 14px;
-        animation: blinker 1.5s linear infinite;
-        box-shadow: 4px 4px 15px rgba(0,0,0,0.4);
-        cursor: pointer;
-        border: 2px solid white;
+    /* तीर वाले बटन को बड़ा और रंगीन बनाने के लिए */
+    [data-testid="sidebar-expand-back"], [aria-label="Open sidebar"] {
+        background-color: #FF4B4B !important;
+        color: white !important;
+        width: 60px !important;
+        height: 60px !important;
+        border-radius: 50% !important;
+        position: fixed !important;
+        top: 20px !important;
+        left: 10px !important;
+        z-index: 999999 !important;
+        box-shadow: 0px 0px 15px rgba(255, 75, 75, 0.8) !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    
+    /* तीर के पास निर्देश दिखाने के लिए */
+    [aria-label="Open sidebar"]::after {
+        content: "👈 Click for Details";
+        position: absolute;
+        left: 70px;
+        background: #FF4B4B;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        white-space: nowrap;
     }
     </style>
-    <script>
-    function openSidebar() {
-        var buttons = window.parent.document.getElementsByTagName('button');
-        for (var i = 0; i < buttons.length; i++) {
-            if (buttons[i].getAttribute('aria-label') == 'Open sidebar') {
-                buttons[i].click();
-            }
-        }
-    }
-    </script>
-    <div class="floating-button" onclick="openSidebar()">
-        🚀 Click Here to Fill Details / यहाँ क्लिक करें
-    </div>
 """, unsafe_allow_html=True)
 # १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
