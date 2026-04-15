@@ -7,10 +7,47 @@ import uuid
 import os
 # १. पेज की सेटिंग और साइडबार को हमेशा खुला रखने के लिए
 st.set_page_config(page_title="बजरंगी राम ज्योतिष", initial_sidebar_state="expanded")
+# १. तीर (Arrow) को बड़ा, रंगीन और चमकता हुआ बनाने के लिए
+st.markdown("""
+    <style>
+    /* असली तीर वाले बटन को बड़ा और रंगीन बनाना */
+    [data-testid="sidebar-expand-back"], [aria-label="Open sidebar"] {
+        background-color: #FF4B4B !important; /* लाल रंग */
+        color: white !important;
+        width: 80px !important;
+        height: 80px !important;
+        border-radius: 50% !important;
+        position: fixed !important;
+        top: 15px !important;
+        left: 10px !important;
+        z-index: 999999 !important;
+        box-shadow: 0px 0px 20px rgba(255, 75, 75, 0.9) !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        border: 3px solid white !important;
+    }
 
-# २. मुख्य पेज पर साइडबार खोलने का बड़ा बटन
-if st.button("👉 अपना विवरण भरने के लिए यहाँ क्लिक करें (Click Here) 👈"):
-    st.sidebar.markdown('<p style="color:red; font-weight:bold;">कृपया यहाँ अपनी जानकारी भरें 👇</p>', unsafe_allow_html=True)
+    /* तीर के अंदर "Click" शब्द जोड़ने के लिए */
+    [aria-label="Open sidebar"]::after {
+        content: "CLICK";
+        position: absolute;
+        bottom: 10px;
+        font-size: 10px;
+        font-weight: bold;
+    }
+
+    /* तीर को बड़ा करने के लिए */
+    [aria-label="Open sidebar"] svg {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# २. साइडबार को हमेशा खुला रखने की सेटिंग (यह लाइन ज़रूरी है)
+st.set_page_config(page_title="बजरंगी राम ज्योतिष", initial_sidebar_state="expanded")
+
 # १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
     try:
