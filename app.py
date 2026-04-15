@@ -5,29 +5,39 @@ import base64
 import time
 import uuid
 import os
-# मोबाइल पर तीर के पास इशारा दिखाने के लिए 'Floating Indicator'
+# लाल बटन को ही 'ओपन बटन' बनाने के लिए कोड
 st.markdown("""
     <style>
-    @keyframes blinker {  
-        50% { opacity: 0; }
-    }
-    .floating-arrow-hint {
+    @keyframes blinker { 50% { opacity: 0.7; } }
+    .floating-button {
         position: fixed;
-        top: 50px;
+        top: 60px;
         left: 10px;
         z-index: 999999;
         background-color: #FF4B4B;
         color: white;
-        padding: 8px 15px;
-        border-radius: 20px;
+        padding: 12px 18px;
+        border-radius: 30px;
         font-weight: bold;
         font-size: 14px;
         animation: blinker 1.5s linear infinite;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+        box-shadow: 4px 4px 15px rgba(0,0,0,0.4);
+        cursor: pointer;
+        border: 2px solid white;
     }
     </style>
-    <div class="floating-arrow-hint">
-        ⬅️ Click Arrow to Fill Details / यहाँ क्लिक करें
+    <script>
+    function openSidebar() {
+        var buttons = window.parent.document.getElementsByTagName('button');
+        for (var i = 0; i < buttons.length; i++) {
+            if (buttons[i].getAttribute('aria-label') == 'Open sidebar') {
+                buttons[i].click();
+            }
+        }
+    }
+    </script>
+    <div class="floating-button" onclick="openSidebar()">
+        🚀 Click Here to Fill Details / यहाँ क्लिक करें
     </div>
 """, unsafe_allow_html=True)
 # १. आवाज़ वाला इंजन
