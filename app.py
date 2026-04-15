@@ -5,36 +5,26 @@ import base64
 import time
 import uuid
 import os
-st.markdown("""
-    <style>
-    /* असली तीर वाले बटन को बड़ा और लाल करना */
-    [data-testid="sidebar-expand-back"], [aria-label="Open sidebar"] {
-        background-color: #FF4B4B !important;
-        color: white !important;
-        width: 80px !important;
-        height: 80px !important;
-        border-radius: 50% !important;
-        position: fixed !important;
-        top: 20px !important;
-        left: 10px !important;
-        z-index: 999999 !important;
-        box-shadow: 0px 0px 20px rgba(255, 75, 75, 0.9) !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        border: 3px solid white !important;
-    }
-    [aria-label="Open sidebar"]::after {
-        content: "CLICK";
-        position: absolute;
-        bottom: 10px;
-        font-size: 10px;
-        font-weight: bold;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# १. पेज की सेटिंग
+st.set_page_config(page_title="बजरंगी राम ज्योतिष", layout="centered")
 
-st.set_page_config(page_title="बजरंगी राम ज्योतिष", initial_sidebar_state="expanded")
+# २. फ्रंट पेज पर ही विवरण भरने का बॉक्स
+st.title("🕉️ बजरंगी राम ज्योतिष केंद्र")
+st.subheader("कृपया अपना विवरण यहाँ भरें")
+
+with st.container():
+    col1, col2 = st.columns(2)
+    with col1:
+        name = st.text_input("आपका नाम (Name)")
+        dob = st.date_input("जन्म तिथि (DOB)", value=date(1986, 4, 18))
+    with col2:
+        tob = st.time_input("जन्म समय (Time)")
+        pob = st.text_input("जन्म स्थान (Place)")
+
+# ३. गणना शुरू करने का बटन
+if st.button("अपनी कुंडली देखें (View Horoscope)"):
+    st.success(f"धन्यवाद {name} जी! आपकी गणना की जा रही है...")
+    # यहाँ आपका पुराना ज्योतिष वाला फंक्शन (faladesh) कॉल होगा
 # १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
     try:
