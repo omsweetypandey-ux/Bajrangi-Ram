@@ -5,39 +5,12 @@ import base64
 import time
 import uuid
 import os
-# यह कोड उस छोटे तीर (Arrow) को बड़ा और लाल कर देगा
-st.markdown("""
-    <style>
-    /* तीर वाले बटन को बड़ा और रंगीन बनाने के लिए */
-    [data-testid="sidebar-expand-back"], [aria-label="Open sidebar"] {
-        background-color: #FF4B4B !important;
-        color: white !important;
-        width: 60px !important;
-        height: 60px !important;
-        border-radius: 50% !important;
-        position: fixed !important;
-        top: 20px !important;
-        left: 10px !important;
-        z-index: 999999 !important;
-        box-shadow: 0px 0px 15px rgba(255, 75, 75, 0.8) !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-    }
-    
-    /* तीर के पास निर्देश दिखाने के लिए */
-    [aria-label="Open sidebar"]::after {
-        content: "👈 Click for Details";
-        position: absolute;
-        left: 70px;
-        background: #FF4B4B;
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 12px;
-        white-space: nowrap;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# १. पेज की सेटिंग और साइडबार को हमेशा खुला रखने के लिए
+st.set_page_config(page_title="बजरंगी राम ज्योतिष", initial_sidebar_state="expanded")
+
+# २. मुख्य पेज पर साइडबार खोलने का बड़ा बटन
+if st.button("👉 अपना विवरण भरने के लिए यहाँ क्लिक करें (Click Here) 👈"):
+    st.sidebar.markdown('<p style="color:red; font-weight:bold;">कृपया यहाँ अपनी जानकारी भरें 👇</p>', unsafe_allow_html=True)
 # १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
     try:
