@@ -5,7 +5,8 @@ import base64
 import time
 import uuid
 import os
-
+# १. सिर्फ यह एक लाइन रखें (Sidebar को खुला रखने के लिए)
+st.set_page_config(page_title="बजरंगी राम ज्योतिष", initial_sidebar_state="expanded")
 # १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
     try:
