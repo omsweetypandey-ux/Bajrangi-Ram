@@ -5,16 +5,30 @@ import base64
 import time
 import uuid
 import os
-# १. सिर्फ यह एक लाइन रखें (Sidebar को खुला रखने के लिए)
-st.set_page_config(page_title="बजरंगी राम ज्योतिष", initial_sidebar_state="expanded")
-# --- यहाँ नया कोड पेस्ट करें ---
-st.sidebar.markdown("""
-    <div style="background-color: #FF4B4B; padding: 10px; border-radius: 5px; text-align: center;">
-        <p style="color: white; font-weight: bold; margin: 0;">
-            👉 Click here to fill your details / अपना विवरण यहाँ भरें
-        </p>
+# मोबाइल पर तीर के पास इशारा दिखाने के लिए 'Floating Indicator'
+st.markdown("""
+    <style>
+    @keyframes blinker {  
+        50% { opacity: 0; }
+    }
+    .floating-arrow-hint {
+        position: fixed;
+        top: 50px;
+        left: 10px;
+        z-index: 999999;
+        background-color: #FF4B4B;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 14px;
+        animation: blinker 1.5s linear infinite;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+    }
+    </style>
+    <div class="floating-arrow-hint">
+        ⬅️ Click Arrow to Fill Details / यहाँ क्लिक करें
     </div>
-    <br>
 """, unsafe_allow_html=True)
 # १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
