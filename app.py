@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import date
-from gtts import import gTTS
+from gtts import gTTS
 import base64
 import time
 import uuid
