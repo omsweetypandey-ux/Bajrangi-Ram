@@ -5,10 +5,12 @@ import base64
 import time
 import uuid  
 import os    
-# १. साइडबार को हमेशा खुला रखने के लिए और मेनू छिपाने के लिए
+import streamlit as st
+
+# १. साइडबार को हमेशा खुला रखने के लिए
 st.set_page_config(page_title="बजरंगी राम ज्योतिष", initial_sidebar_state="expanded")
 
-# २. फालतू GitHub और Streamlit मेनू को पूरी तरह से गायब करने का कोड
+# २. फालतू मेनू छिपाने के लिए
 hide_menu_style = """
     <style>
     #MainMenu {visibility: hidden;}
