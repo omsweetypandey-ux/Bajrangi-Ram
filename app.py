@@ -5,18 +5,17 @@ import base64
 import time
 import uuid
 import os
-# १. तीर (Arrow) को बड़ा, रंगीन और चमकता हुआ बनाने के लिए
 st.markdown("""
     <style>
-    /* असली तीर वाले बटन को बड़ा और रंगीन बनाना */
+    /* असली तीर वाले बटन को बड़ा और लाल करना */
     [data-testid="sidebar-expand-back"], [aria-label="Open sidebar"] {
-        background-color: #FF4B4B !important; /* लाल रंग */
+        background-color: #FF4B4B !important;
         color: white !important;
         width: 80px !important;
         height: 80px !important;
         border-radius: 50% !important;
         position: fixed !important;
-        top: 15px !important;
+        top: 20px !important;
         left: 10px !important;
         z-index: 999999 !important;
         box-shadow: 0px 0px 20px rgba(255, 75, 75, 0.9) !important;
@@ -25,8 +24,6 @@ st.markdown("""
         align-items: center !important;
         border: 3px solid white !important;
     }
-
-    /* तीर के अंदर "Click" शब्द जोड़ने के लिए */
     [aria-label="Open sidebar"]::after {
         content: "CLICK";
         position: absolute;
@@ -34,18 +31,10 @@ st.markdown("""
         font-size: 10px;
         font-weight: bold;
     }
-
-    /* तीर को बड़ा करने के लिए */
-    [aria-label="Open sidebar"] svg {
-        width: 40px !important;
-        height: 40px !important;
-    }
     </style>
 """, unsafe_allow_html=True)
 
-# २. साइडबार को हमेशा खुला रखने की सेटिंग (यह लाइन ज़रूरी है)
 st.set_page_config(page_title="बजरंगी राम ज्योतिष", initial_sidebar_state="expanded")
-
 # १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
     try:
