@@ -5,8 +5,6 @@ import base64
 import time
 import uuid
 import os
-# १. पेज की सेटिंग और साइडबार को हमेशा खुला रखने के लिए
-st.set_page_config(page_title="बजरंगी राम ज्योतिष", initial_sidebar_state="expanded")
 # १. तीर (Arrow) को बड़ा, रंगीन और चमकता हुआ बनाने के लिए
 st.markdown("""
     <style>
