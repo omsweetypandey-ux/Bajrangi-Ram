@@ -16,7 +16,8 @@ hide_menu_style = """
     footer {visibility: hidden;}
     header {visibility: hidden;}
     </style>
-    """
+    """ 
+# यहाँ शुरू और अंत में तीन-तीन बार """ हैं
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 # १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
