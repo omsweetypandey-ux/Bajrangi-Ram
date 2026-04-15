@@ -7,6 +7,15 @@ import uuid
 import os
 # १. सिर्फ यह एक लाइन रखें (Sidebar को खुला रखने के लिए)
 st.set_page_config(page_title="बजरंगी राम ज्योतिष", initial_sidebar_state="expanded")
+# --- यहाँ नया कोड पेस्ट करें ---
+st.sidebar.markdown("""
+    <div style="background-color: #FF4B4B; padding: 10px; border-radius: 5px; text-align: center;">
+        <p style="color: white; font-weight: bold; margin: 0;">
+            👉 Click here to fill your details / अपना विवरण यहाँ भरें
+        </p>
+    </div>
+    <br>
+""", unsafe_allow_html=True)
 # १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
     try:
