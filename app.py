@@ -145,12 +145,27 @@ remedies_dict = {
 
 # ६. मुख्य यूज़र इंटरफेस (फ्रंट पेज)
 st.markdown("<h1 style='text-align: center; color: #E74C3C;'>🔢 बजरंगी राम अंक ज्योतिष केंद्र</h1>", unsafe_allow_html=True)
-
+# --- मुख्य यूज़र इंटरफेस ---
 st.header("📋 विवरण भरें")
-u_name = st.text_input("पूरा नाम", "vishal")
-u_dob = st.date_input("जन्म तिथि", date(1986, 4, 18))
-u_gender = st.selectbox("लिंग", ["Male", "Female"])
-submit = st.button("फलादेश देखेंगे")
+
+u_name = st.text_input("Name", placeholder="अपना नाम लिखें") 
+
+u_dob = st.date_input(
+    "Date of Birth", 
+    value=date.today(), 
+    min_value=date(1900, 1, 1), 
+    max_value=date(2100, 12, 31)
+)
+
+u_gender = st.selectbox("Gender", ["Male", "Female"])
+
+# ध्यान दें: इस 'submit' के आगे कोई ज्यादा स्पेस (Space) न हो
+submit = st.button("कुंडली देखें")
+
+# 'if submit:' वाली लाइन भी बिल्कुल लेफ्ट से शुरू होनी चाहिए
+if submit:
+    # इसके नीचे की सारी लाइनें (d, m, y आदि) एक टैब (Tab) आगे रहेंगी
+    d, m, y = u_dob.day, u_dob.month, u_dob.year
 
 if submit:
     d, m, y = u_dob.day, u_dob.month, u_dob.year
