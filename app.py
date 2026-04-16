@@ -150,7 +150,7 @@ st.header("📋 विवरण भरें")
 u_name = st.text_input("पूरा नाम", "vishal")
 u_dob = st.date_input("जन्म तिथि", date(1986, 4, 18))
 u_gender = st.selectbox("लिंग", ["Male", "Female"])
-submit = st.button("कुंडली देखें")
+submit = st.button("फलादेश देखेंगे")
 
 if submit:
     d, m, y = u_dob.day, u_dob.month, u_dob.year
