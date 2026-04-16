@@ -145,12 +145,12 @@ remedies_dict = {
 
 # ६. मुख्य यूज़र इंटरफेस (फ्रंट पेज)
 st.markdown("<h1 style='text-align: center; color: #E74C3C;'>🔢 बजरंगी राम अंक ज्योतिष केंद्र</h1>", unsafe_allow_html=True)
-with st.sidebar:
-    st.header("📋 विवरण भरें")
-    u_name = st.text_input("पूरा नाम", "vishal")
-    u_dob = st.date_input("जन्म तिथि", date(1986, 4, 18))
-    u_gender = st.selectbox("लिंग", ["Male", "Female"])
-    submit = st.button("कुंडली देखें")
+
+st.header("📋 विवरण भरें")
+u_name = st.text_input("पूरा नाम", "vishal")
+u_dob = st.date_input("जन्म तिथि", date(1986, 4, 18))
+u_gender = st.selectbox("लिंग", ["Male", "Female"])
+submit = st.button("कुंडली देखें")
 
 if submit:
     d, m, y = u_dob.day, u_dob.month, u_dob.year
