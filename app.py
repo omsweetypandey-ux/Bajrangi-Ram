@@ -5,72 +5,46 @@ import base64
 import time
 import uuid
 import os
-import streamlit as st
 
-# १. पेज की सेटिंग (मोबाइल के लिए सबसे सही)
-st.set_page_config(page_title="बजरंगी राम न्यूमेरोलॉजी", layout="centered")
+# १. पेज सेटिंग्स और स्टाइल
+st.set_page_config(page_title="बजरंगी राम ज्योतिष", layout="centered")
 
-# २. फ्रंट पेज पर ही विवरण (Front Page Form)
-st.title("🔢 न्यूमेरोलॉजी केंद्र")
-st.write("कृपया अपना विवरण यहाँ भरें:")
-
-# एक बॉक्स के अंदर साफ़-सुथरा फॉर्म
-with st.container():
-    u_name = st.text_input("आपका पूरा नाम (Full Name)")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        u_dob = st.date_input("जन्म तिथि (DOB)", value=date(1986, 4, 18))
-    with col2:
-        u_gender = st.selectbox("लिंग (Gender)", ["पुरुष (Male)", "महिला (Female)", "अन्य (Other)"])
-
-# ३. गणना का बटन
-if st.button("अपनी न्यूमेरोलॉजी रिपोर्ट देखें"):
-    if u_name:
-        st.success(f"नमस्ते {u_name} जी! आपकी न्यूमेरोलॉजी गणना तैयार की जा रही है...")
-        # यहाँ आपका लो-शू ग्रिड या भाग्यांक वाला कोड चलेगा
-    else:
-        st.warning("कृपया अपना नाम भरें।")
-# १. आवाज़ वाला इंजन
+# --- भाग १: ऑडियो स्लाइडर इंजन (स्लाइडर सबसे ऊपर) ---
 def bol_web(text, part_id):
     try:
         clean_text = text.replace("*", "").replace("#", "").replace("\n", " ")
         tts = gTTS(text=clean_text, lang='hi', tld='co.in')
         
-        unique_id = str(uuid.uuid4())[:8] 
+        unique_id = str(uuid.uuid4())[:8]
         filename = f"temp_{part_id}_{unique_id}.mp3"
         tts.save(filename)
         
-        with open(filename, "rb") as f:
-            data = f.read()
-            b64 = base64.b64encode(data).decode()
-            
-        # --- बिल्कुल यही HTML कोड इस्तेमाल करें ---
-        audio_html = f"""
-            <div style="margin: 20px 0; padding: 15px; background: #f1f3f4; border-radius: 10px; border-left: 5px solid #1a73e8;">
-                <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a73e8;">🎤 रिपोर्ट ऑडियो:</p>
-                <button onclick="var a=document.getElementById('aud_{unique_id}'); a.paused?a.play():a.pause()" 
-                    style="background:#1a73e8; color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer; margin-right:5px;">
-                    ⏯️ बजाएं / रोकें
-                </button>
-                <button onclick="var a=document.getElementById('aud_{unique_id}'); a.currentTime=0; a.play()" 
-                    style="background:#5f6368; color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer;">
-                    🔄 फिर से सुनें
-                </button>
-                <audio id="aud_{unique_id}" autoplay>
-                    <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-                </audio>
+        # स्लाइडर को एक सुंदर बॉक्स में दिखाना
+        st.markdown(f"""
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 10px; border-left: 5px solid #E74C3C; margin-bottom: 20px;">
+                <p style="color: #E74C3C; font-weight: bold; margin: 0;">🔊 रिपोर्ट ऑडियो प्लेयर:</p>
             </div>
-        """
-        # ध्यान दें: यह लाइन सबसे जरूरी है
-        st.markdown(audio_html, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+        
+        # पायथन का स्टैण्डर्ड ऑडियो प्लेयर (इसमें प्ले/पॉज और स्लाइडर सब होता है)
+        with open(filename, "rb") as f:
+            audio_bytes = f.read()
+            st.audio(audio_bytes, format="audio/mp3")
         
         if os.path.exists(filename):
             os.remove(filename)
-
+            
     except Exception as e:
-        st.error(f"ऑडियो में समस्या: {e}")
-    
+        st.error(f"ऑडियो प्लेयर में समस्या: {e}")
+        
+        # फाइल चलाने के बाद उसे डिलीट कर देना ताकि कचरा न जमा हो
+        if os.path.exists(filename):
+            os.remove(filename)
+            
+    except Exception as e:
+        st.error(f"आवाज़ निकालने में समस्या: {e}")
+
+# ३. गणना फंक्शन    
 def get_single_digit(n):
     while n > 9:
         n = sum(int(d) for d in str(n))
@@ -169,10 +143,8 @@ remedies_dict = {
     9: "Hanuman Chalisa ka paath karein."
 }
 
-# ५. ऐप इंटरफेस
-st.set_page_config(page_title="बजरंगी राम", layout="wide")
-st.markdown("<h1 style='text-align: center; color: #E74C3C;'>Ψ बजरंगी राम अंक ज्योतिष केंद्र</h1>", unsafe_allow_html=True)
-
+# ६. मुख्य यूज़र इंटरफेस (फ्रंट पेज)
+st.markdown("<h1 style='text-align: center; color: #E74C3C;'>🔢 बजरंगी राम अंक ज्योतिष केंद्र</h1>", unsafe_allow_html=True)
 with st.sidebar:
     st.header("📋 विवरण भरें")
     u_name = st.text_input("पूरा नाम", "vishal")
@@ -285,12 +257,7 @@ if submit:
             for n in missing_nums:
                 upay = remedies_dict.get(n, "इस अंक की ऊर्जा बढ़ाएं।")
                 report_parts.append(f"- अंक {n}: {upay}")
-
-        # ५. स्क्रीन पर पूरी रिपोर्ट दिखाना
-        full_display_text = "\n\n".join(report_parts)
-        st.info(full_display_text)
-
-        # ६. 🎤 ऑडियो स्क्रिप्ट (जो सब कुछ बोलकर बताएगा)
+# ६. 🎤 ऑडियो स्क्रिप्ट (जो सब कुछ बोलकर बताएगा)
         audio_script = f"जय बजरंगबली {u_name} जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है  "
         audio_script += f"आपका मूलांक {mulank} और भाग्यांक {bhagyank} है। "
         audio_script += f"नामांक {name_num} और कुआ नंबर {kua} है। "
@@ -304,3 +271,9 @@ if submit:
 
         # ७. आवाज़ चालू करना (Collapse Fix के साथ)
         bol_web(audio_script, "full_report_vFinal")
+
+        # ५. स्क्रीन पर पूरी रिपोर्ट दिखाना
+        full_display_text = "\n\n".join(report_parts)
+        st.info(full_display_text)
+
+        
