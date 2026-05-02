@@ -3,13 +3,10 @@ from datetime import date
 from gtts import gTTS
 import base64
 import time
-import uuid
-import os
+import uuid  
+import os    
 
-# १. पेज सेटिंग्स और स्टाइल
-st.set_page_config(page_title="बजरंगी राम ज्योतिष", layout="centered")
-
-# --- भाग १: ऑडियो स्लाइडर इंजन (स्लाइडर सबसे ऊपर) ---
+# १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
     try:
         clean_text = text.replace("*", "").replace("#", "").replace("\n", " ")
@@ -18,33 +15,21 @@ def bol_web(text, part_id):
         unique_id = str(uuid.uuid4())[:8]
         filename = f"temp_{part_id}_{unique_id}.mp3"
         tts.save(filename)
-        
-        # स्लाइडर को एक सुंदर बॉक्स में दिखाना
-        st.markdown(f"""
-            <div style="background: #f8f9fa; padding: 10px; border-radius: 10px; border-left: 5px solid #E74C3C; margin-bottom: 20px;">
-                <p style="color: #E74C3C; font-weight: bold; margin: 0;">🔊 रिपोर्ट ऑडियो प्लेयर:</p>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # पायथन का स्टैण्डर्ड ऑडियो प्लेयर (इसमें प्ले/पॉज और स्लाइडर सब होता है)
+
+        # फाइल को पढ़ना
         with open(filename, "rb") as f:
             audio_bytes = f.read()
-            st.audio(audio_bytes, format="audio/mp3")
         
-        if os.path.exists(filename):
-            os.remove(filename)
-            
-    except Exception as e:
-        st.error(f"ऑडियो प्लेयर में समस्या: {e}")
-        
-        # फाइल चलाने के बाद उसे डिलीट कर देना ताकि कचरा न जमा हो
-        if os.path.exists(filename):
-            os.remove(filename)
-            
-    except Exception as e:
-        st.error(f"आवाज़ निकालने में समस्या: {e}")
+        # स्क्रीन पर ऑडियो प्लेयर दिखाना
+        st.markdown("#### 🎙️ भविष्य रिपोर्ट सुनने के लिए यहाँ नीचे क्लिक करें:")
+        st.audio(audio_bytes, format="audio/mp3")
 
-# ३. गणना फंक्शन    
+        # पुरानी फाइल डिलीट करना ताकि कंप्यूटर न भरे
+        if os.path.exists(filename):
+            os.remove(filename)
+
+    except Exception as e:
+        st.error(f"ऑडियो में समस्या: {e}")
 def get_single_digit(n):
     while n > 9:
         n = sum(int(d) for d in str(n))
@@ -143,31 +128,46 @@ remedies_dict = {
     9: "Hanuman Chalisa ka paath karein."
 }
 
-# ६. मुख्य यूज़र इंटरफेस (फ्रंट पेज)
-st.markdown("<h1 style='text-align: center; color: #E74C3C;'>🔢 बजरंगी राम अंक ज्योतिष केंद्र</h1>", unsafe_allow_html=True)
-# --- मुख्य यूज़र इंटरफेस ---
+# ५. ऐप इंटरफेस
+st.set_page_config(page_title="बजरंगी राम", layout="wide")
+st.markdown("<h1 style='text-align: center; color: #E74C3C;'>Ψ बजरंगी राम अंक ज्योतिष केंद्र</h1>", unsafe_allow_html=True)
+
 st.header("📋 विवरण भरें")
+import datetime
 
-u_name = st.text_input("Name", placeholder="अपना नाम लिखें") 
+# --- इनपुट विभाग (Input Section) ---
 
+# १. नाम के लिए (Placeholder के साथ)
+u_name = st.text_input("आपका शुभ नाम", placeholder="यहाँ अपना पूरा नाम भरें...")
+
+# २. आज की तारीख और रेंज सेट करना
+today = datetime.date.today()
+hundred_years_ago = today.year - 100
+hundred_years_ahead = today.year + 100
+
+# ३. डेट पिकर (१०० साल पीछे और १०० साल आगे की रेंज के साथ)
 u_dob = st.date_input(
-    "Date of Birth", 
-    value=date.today(), 
-    min_value=date(1900, 1, 1), 
-    max_value=date(2100, 12, 31)
+    "अपनी जन्म तिथि चुनें",
+    value=today, # डिफ़ॉल्ट रूप से आज की तारीख दिखाएगा
+    min_value=datetime.date(hundred_years_ago, 1, 1), # १०० साल पीछे
+    max_value=datetime.date(hundred_years_ahead, 12, 31) # १०० साल आगे
 )
 
-u_gender = st.selectbox("Gender", ["Male", "Female"])
-
-# ध्यान दें: इस 'submit' के आगे कोई ज्यादा स्पेस (Space) न हो
+u_gender = st.selectbox("लिंग", ["Male", "Female"])
 submit = st.button("कुंडली देखें")
 
-# 'if submit:' वाली लाइन भी बिल्कुल लेफ्ट से शुरू होनी चाहिए
 if submit:
-    # इसके नीचे की सारी लाइनें (d, m, y आदि) एक टैब (Tab) आगे रहेंगी
-    d, m, y = u_dob.day, u_dob.month, u_dob.year
+    
+    st.balloons()
+    placeholder = st.empty()
+    welcome_text = f"🚩 जय श्री राम {u_name} जी! आपकी ज्योतिषीय गणना की जा रही है..."
+    typed = ""
+    for char in welcome_text:
+        typed += char
+        placeholder.markdown(f"<div style='background-color: #FDEDEC; padding: 15px; border-radius: 10px; border: 1px solid #E74C3C; text-align: center;'><h3>{typed}</h3></div>", unsafe_allow_html=True)
+        time.sleep(0.02)
 
-if submit:
+        # --- स्टेज २: गणना (Calculations) ---
     d, m, y = u_dob.day, u_dob.month, u_dob.year
     mulank = get_single_digit(d)
     bhagyank = get_single_digit(d + m + y)
@@ -176,6 +176,23 @@ if submit:
     
     y_sum = get_single_digit(y)
     kua = get_single_digit(11 - y_sum) if u_gender == "Male" else get_single_digit(y_sum + 4)
+
+# --- अंक ज्योतिष मैत्री गणना (1 से 9 अंक) ---
+    friendship_logic = {
+            1: {'friends': [2, 3, 5, 9], 'enemies': [8], 'neutral': [4, 6, 7]},
+            2: {'friends': [1, 3, 5], 'enemies': [4, 8, 9], 'neutral': [6, 7]},
+            3: {'friends': [1, 2, 5, 7, 9], 'enemies': [6], 'neutral': [4, 8]},
+            4: {'friends': [5, 6, 7, 8], 'enemies': [1, 2, 9], 'neutral': [3]},
+            5: {'friends': [1, 2, 3, 4, 6, 7, 8, 9], 'enemies': [], 'neutral': []},
+            6: {'friends': [4, 5, 7, 8], 'enemies': [3], 'neutral': [1, 2, 9]},
+            7: {'friends': [3, 4, 5, 6], 'enemies': [1, 2, 9], 'neutral': [8]},
+            8: {'friends': [4, 5, 6, 7], 'enemies': [1, 2, 9], 'neutral': [3]},
+            9: {'friends': [1, 2, 3, 5], 'enemies': [4, 7, 8], 'neutral': [6]}
+        }
+
+        # मूलांक और भाग्यांक का संबंध निकालना
+    m_rel = friendship_logic.get(mulank, {}).get('friends', [])
+    m_enm = friendship_logic.get(mulank, {}).get('enemies', [])    
 
     # डुप्लिकेट्स को संभालने के लिए लिस्ट का उपयोग
     dob_digits = [int(n) for n in u_dob.strftime('%d%m%Y') if n != '0']
@@ -209,17 +226,6 @@ if submit:
         for num, color in special_nums:
             r, c = grid_pos[num]
             display_grid[r][c].append(f"<span style='color:{color};'>{num}</span>")
-
-        # ग्रिड बनाना
-        html_grid = "<table style='width:100%; border-collapse: collapse; text-align:center; font-size:24px; font-weight:bold;'>"
-        for row in display_grid:
-            html_grid += "<tr style='height:110px;'>"
-            for cell_list in row:
-                content = " ".join(cell_list) if cell_list else ""
-                html_grid += f"<td style='border:2px solid #E74C3C; width:33%; background-color:#FFF9F0;'>{content}</td>"
-            html_grid += "</tr>"
-        html_grid += "</table>"
-        st.markdown(html_grid, unsafe_allow_html=True)
 
     with col2:
         st.subheader("📜 भविष्य रिपोर्ट एवं उपाय")
@@ -266,13 +272,8 @@ if submit:
             report_parts.append("\n👑 **आपके ग्रिड के राजयोग:**")
             for ry in active_rajyog:
                 report_parts.append(f"⭐ {ry}")
-        # 5. उपाय जोड़ना
-        if missing_nums:
-            report_parts.append("\n🛠️ **मिसिंग नंबर के उपाय:**")
-            for n in missing_nums:
-                upay = remedies_dict.get(n, "इस अंक की ऊर्जा बढ़ाएं।")
-                report_parts.append(f"- अंक {n}: {upay}")
-# ६. 🎤 ऑडियो स्क्रिप्ट (जो सब कुछ बोलकर बताएगा)
+        
+                # ६. 🎤 ऑडियो स्क्रिप्ट (जो सब कुछ बोलकर बताएगा)
         audio_script = f"जय बजरंगबली {u_name} जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है  "
         audio_script += f"आपका मूलांक {mulank} और भाग्यांक {bhagyank} है। "
         audio_script += f"नामांक {name_num} और कुआ नंबर {kua} है। "
@@ -281,14 +282,133 @@ if submit:
             audio_script += " आपके ग्रिड में विशेष राजयोग भी बन रहे हैं। "
             for ry in active_rajyog:
                 audio_script += f"{ry} "
-        if missing_nums:
-            audio_script += " आपके ग्रिड में कुछ अंक कम हैं, जिनके उपाय रिपोर्ट में दिए गए हैं। कृपया उन्हें देखें।"
+                # --- यहाँ से कैटेगरी (Tabs) शुरू होती हैं ---
+       # --- ३ श्रेणियों (Tabs) में सुंदर सजावट ---
+        tab1, tab2, tab3 = st.tabs(["📊 मूलांक-भाग्यांक फल", "⚖️ नाम-भाग्य विचार", "🔮 ग्रिड एवं उपाय"])
 
-        # ७. आवाज़ चालू करना (Collapse Fix के साथ)
-        bol_web(audio_script, "full_report_vFinal")
+        with tab1:
+            st.markdown("### 🌟 आपके व्यक्तित्व का मुख्य आधार")
+            
+            # मूलांक और भाग्यांक को सुंदर कार्ड में दिखाना
+            st.markdown(f"""
+            <div style="background-color: #fdf2e9; padding: 20px; border-radius: 15px; border-left: 8px solid #e67e22; margin-bottom: 20px;">
+                <h4 style="color: #e67e22; margin: 0;">मूलांक: {mulank} | भाग्यांक: {bhagyank}</h4>
+                <p style="color: #6e2c00; font-size: 16px; margin-top: 10px;">
+                आपका <b>मूलांक</b> आपकी आंतरिक शक्ति है, और <b>भाग्यांक</b> आपका कर्म मार्ग।
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # मैत्री लॉजिक का परिणाम दिखाना
+            if bhagyank in m_rel:
+                st.success(f"✅ **अद्भुत तालमेल!** मूलांक {mulank} और भाग्यांक {bhagyank} आपस में **परम मित्र** हैं। यह सफलता के मार्ग को सुगम बनाता है।")
+            elif bhagyank in m_enm:
+                st.warning(f"⚠️ **सतर्कता की आवश्यकता:** मूलांक {mulank} और भाग्यांक {bhagyank} में **शत्रुता** का भाव है। निरंतर प्रयास और धैर्य से ही बड़ी सफलता मिलेगी।")
+            else:
+                st.info(f"⚖️ **संतुलित संबंध:** मूलांक {mulank} और भाग्यांक {bhagyank} आपस में **सम (Neutral)** हैं। आपकी मेहनत ही आपके भाग्य का निर्माण करेगी।")
+
+        with tab2:
+            st.markdown("### ⚖️ नामांक (Name Number) विश्लेषण एवं परामर्श")
+            
+            # नामांक कार्ड
+            st.markdown(f"""
+            <div style="background-color: #ebf5fb; padding: 20px; border-radius: 15px; border-left: 8px solid #2e86c1; margin-bottom: 20px; text-align: center;">
+                <h2 style="color: #2e86c1; margin: 0;">आपका नामांक: {name_num}</h2>
+                <p style="color: #1b4f72; font-size: 16px; margin-top: 10px;">
+                (चूकि आपका नाम '{u_name}' है, जिसका अंक ज्योतिष मूल्य {name_num} आता है)
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # --- क्रांतिकारी परामर्श लॉजिक (The Revolutionary Logic) ---
+            
+            # १. चेक करें कि क्या नामांक पहले से ग्रिड में मौजूद है?
+            # 'all_present_nums' वह सेट है जिसमें DOB के अंक शामिल हैं
+            count_in_dob = dob_digits.count(name_num)
+            
+            if count_in_dob >= 1:
+                # चेतावनी: अगर अंक पहले से मौजूद है
+                st.error(f"⚠️ **अंकों की अति (Overload) की चेतावनी!**")
+                st.write(f"आपका नामांक **{name_num}** आपकी जन्मतिथि में पहले से ही मौजूद है। नाम के माध्यम से इस अंक की पुनरावृत्ति हो रही है, जो इस ग्रह की ऊर्जा को 'असंतुलित' कर सकती है।")
+                
+                st.markdown("---")
+                st.subheader("💡 गुरु का परामर्श (Name Correction Suggestion)")
+                st.info("बेहतर सफलता और राजयोग के लिए आपको अपना नाम उस अंक पर लाना चाहिए जो आपके ग्रिड में अनुपस्थित (Missing) है।")
+
+                # २. राजयोग के लिए सबसे बेहतर सुझाव ढूंढना
+                suggestions = []
+                if 5 in missing_nums:
+                    suggestions.append(("5 (बुध)", "यह आपके 'स्वर्ण राजयोग' (4-5-6) को पूर्ण करेगा। व्यापार और संवाद में जबरदस्त सफलता मिलेगी।"))
+                elif 6 in missing_nums:
+                    suggestions.append(("6 (शुक्र)", "यह सुख-समृद्धि और पारिवारिक सुख के द्वार खोलेगा।"))
+                elif 1 in missing_nums:
+                    suggestions.append(("1 (सूर्य)", "यह सरकारी लाभ और मान-सम्मान में वृद्धि करेगा।"))
+                
+                if suggestions:
+                    for title, desc in suggestions:
+                        st.success(f"✅ **सुझाव: नाम को अंक {title} पर ले जाएं।**")
+                        st.write(f"👉 {desc}")
+                else:
+                    # यदि ऊपर वाले मुख्य अंक नहीं हैं, तो कोई भी पहला मिसिंग नंबर बताएं
+                    st.success(f"✅ **सुझाव:** अपने नाम को अंक **{missing_nums[0]}** पर सेट करना आपके लिए हितकारी होगा।")
+
+            elif name_num in missing_nums:
+                # यदि नामांक किसी कमी को पूरा कर रहा है
+                st.success(f"✨ **शुभ योग:** आपका वर्तमान नामांक **{name_num}** आपके ग्रिड की एक कमी को पूरा कर रहा है। यह आपके लिए बहुत ही अनुकूल और प्रगतिशील है।")
+            
+            st.markdown("---")
+            st.warning("📣 **विशेष सलाह:** नाम की स्पेलिंग में बदलाव करने से पहले **विशाल विक्रम पांडे जी** से परामर्श अवश्य लें ताकि सूक्ष्म गणना सही हो सके। mo. 6392311093")
+            # --- टैब २ के लिए आवाज़ का हिस्सा ---
+            # पहले एक स्क्रिप्ट तैयार करते हैं
+            tab2_audio = f"नामांक विश्लेषण के अनुसार, आपका नामांक {name_num} है। "
+            
+            if count_in_dob >= 1:
+                tab2_audio = f"नमस्कार {u_name} जी। नामांक विश्लेषण के अनुसार, आपका नामांक {name_num} है। "
+
+            if count_in_dob >= 1:
+                tab2_audio += f"सावधान! आपका नामांक {name_num} आपकी जन्मतिथि के अंकों के साथ रिपीट हो रहा है। "
+    
+    # राजयोग की गणना (अंक ५ या ६ के आधार पर)
+            if 5 in missing_nums:
+                tab2_audio += "गुरु का परामर्श है कि आप अपना नाम अंक 5 पर लाने का प्रयास करें। इससे स्वर्ण राजयोग बनेगा। "
+            elif 6 in missing_nums:
+                tab2_audio += "बेहतर होगा कि आप अपना नाम अंक 6 पर ले जाएं, जिससे संपत्ति राजयोग की प्राप्ति होगी। "
+            else:
+                tab2_audio += f"सुझाव है कि आप अपने नाम को अंक {missing_nums[0] if missing_nums else 1} पर सेट करें। "
+            
+# --- आपकी पर्ची वाली विशेष सलाह जोड़ना ---
+                tab2_audio += "विशेष सलाह: नाम की स्पेलिंग में बदलाव करने हेतु और सूक्ष्म गणना के लिए विशाल विक्रम पाण्डेय जी से संपर्क करें। धन्यवाद। जय श्री राम।"
+            bol_web(tab2_audio, "tab2_advice_voice")
+            # अब मशीन को बोलने का आदेश दें
+            st.markdown("---")
+            st.write("🎙️ **गुरु का परामर्श सुनें:**")
+           
+        with tab3:
+            st.markdown("### 🔮 लो-शू ग्रिड और विस्तृत भविष्य फल")
+            st.write("### 🔲 आपका लो-शू ग्रिड चार्ट")
+            
+            # ग्रिड की पंक्तियाँ (Rows) बनाना
+            for row in display_grid:
+                cols = st.columns(3)
+                for i in range(3):
+                    cell_content = "".join(map(str, row[i])) if row[i] else " "
+                    cols[i].markdown(f"""
+                        <div style="border:2px solid #E74C3C; height:80px; display:flex; 
+                        align-items:center; justify-content:center; font-size:28px; 
+                        font-weight:bold; background-color:#FEF9E7; border-radius:15px;
+                        color: #2C3E50; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
+                            {cell_content}
+                        </div>
+                    """, unsafe_allow_html=True)
+            # इसके नीचे अपना पुराना 'col1, col2' वाला ग्रिड कोड रखें
+
+         # ७. आवाज़ चालू करना (Collapse Fix के साथ)
+        bol_web(audio_script, "full_report_vFinal")        
 
         # ५. स्क्रीन पर पूरी रिपोर्ट दिखाना
         full_display_text = "\n\n".join(report_parts)
         st.info(full_display_text)
 
         
+
+
