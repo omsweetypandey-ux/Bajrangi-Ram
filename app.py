@@ -384,22 +384,33 @@ if submit:
             st.write("🎙️ **गुरु का परामर्श सुनें:**")
            
         with tab3:
-            st.markdown("### 🔮 लो-शू ग्रिड और विस्तृत भविष्य फल")
-            st.write("### 🔲 आपका लो-शू ग्रिड चार्ट")
-            
-            # ग्रिड की पंक्तियाँ (Rows) बनाना
-            for row in display_grid:
-                cols = st.columns(3)
-                for i in range(3):
-                    cell_content = "".join(map(str, row[i])) if row[i] else " "
-                    cols[i].markdown(f"""
-                        <div style="border:2px solid #E74C3C; height:80px; display:flex; 
-                        align-items:center; justify-content:center; font-size:28px; 
-                        font-weight:bold; background-color:#FEF9E7; border-radius:15px;
-                        color: #2C3E50; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
-                            {cell_content}
-                        </div>
-                    """, unsafe_allow_html=True)
+            st.markdown("### 🔮 लो-शु ग्रिड (मोबाइल फ्रेंडली)")
+        
+       # डेटा को साफ़ करने वाला लॉजिक
+        # डेटा को साफ़ करने वाला लॉजिक
+        grid_data = [item for sublist in display_grid for item in sublist]
+
+        # क्लीनिंग फंक्शन: जो ब्रैकेट और कोट्स हटा दे
+        def clean_num(n):
+            if not n: return ""
+            s = str(n).replace("[", "").replace("]", "").replace("'", "").replace('"', "")
+            return s.replace(",", "<br>")
+
+        # HTML ग्रिड कोड
+        cells_html = ""
+        for num in grid_data:
+            val = clean_num(num)
+            cells_html += f'<div style="border: 2px solid #E74C3C; height: 75px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; background-color: #FEF9E7; border-radius: 10px; color: #2C3E50; text-align: center;">{val}</div>'
+
+        grid_final = f"""
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 250px; margin: 15px auto;">
+            {cells_html}
+        </div>
+        """
+        
+        st.markdown(grid_final, unsafe_allow_html=True)
+        st.write("---")
+        # --- यहाँ से आपका पुराना नीचे वाला कोड (आवाज़ और रिपोर्ट) शुरू होगा ---
             # इसके नीचे अपना पुराना 'col1, col2' वाला ग्रिड कोड रखें
 
          # ७. आवाज़ चालू करना (Collapse Fix के साथ)
