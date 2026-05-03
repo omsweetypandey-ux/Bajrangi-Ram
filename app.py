@@ -228,7 +228,7 @@ if submit:
             display_grid[r][c].append(f"<span style='color:{color};'>{num}</span>")
 
     with col2:
-        st.subheader("📜 भविष्य रिपोर्ट एवं उपाय")
+        st.subheader("📜 click bellow to chooes  category")
         
         # १. ८१ कॉम्बिनेशन का फल निकालना
         comb_key = f"{mulank}-{bhagyank}"
@@ -283,8 +283,34 @@ if submit:
             for ry in active_rajyog:
                 audio_script += f"{ry} "
                 # --- यहाँ से कैटेगरी (Tabs) शुरू होती हैं ---
-       # --- ३ श्रेणियों (Tabs) में सुंदर सजावट ---
-        tab1, tab2, tab3 = st.tabs(["📊 मूलांक-भाग्यांक फल", "⚖️ नाम-भाग्य विचार", "🔮 ग्रिड एवं उपाय"])
+ # --- Category Tabs ko bada aur attractive banane ke liye CSS ---
+        st.markdown("""
+            <style>
+            /* Tabs ke font ko bada karne ke liye */
+            .stTabs [data-baseweb="tab-list"] {
+                gap: 10px;
+            }
+            .stTabs [data-baseweb="tab"] {
+                height: 60px; 
+                background-color: #F0F2F6; 
+                border-radius: 10px 10px 0px 0px; 
+                padding: 10px 20px;
+                font-weight: bold;
+                font-size: 18px; /* Text bada karne ke liye */
+                color: #2C3E50;
+            }
+            /* Jab tab select ho (Color change logic) */
+            .stTabs [aria-selected="true"] {
+                background-color: #E74C3C !important; /* Bajrangi Lal Color */
+                color: white !important;
+                border-bottom: 3px solid #FFD700 !important;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+
+            # Ab aapke purane tabs yahan se shuru honge
+        tab1, tab2, tab3 = st.tabs(["📑 मूलांक-भाग्यांक फल", "🔮 नाम-भाग्य विचार", "🎡 ग्रिड एवं उपाय"])      
+                    
 
         with tab1:
             st.markdown("### 🌟 आपके व्यक्तित्व का मुख्य आधार")
@@ -410,9 +436,40 @@ if submit:
         
         st.markdown(grid_final, unsafe_allow_html=True)
         st.write("---")
-        # --- यहाँ से आपका पुराना नीचे वाला कोड (आवाज़ और रिपोर्ट) शुरू होगा ---
-            # इसके नीचे अपना पुराना 'col1, col2' वाला ग्रिड कोड रखें
+        # १. मिसिंग नंबर पहचानना
+        all_numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+        present_numbers = set()
+        for x in grid_data:
+            num_str = str(x).replace("[", "").replace("]", "").replace("'", "").replace('"', "").split(",")[0]
+            if num_str.strip().isdigit():
+                present_numbers.add(int(num_str))
+        
+        missing_nums = sorted(list(all_numbers - present_numbers))
 
+        # २. ग्रहों और उपायों का डेटाबेस (जो मैंने अभी दिया)
+        remedy_info = {
+            1: {"grah": "सूर्य", "upay": "तांबे के लोटे से जल दें और पिता का सम्मान करें।"},
+            2: {"grah": "चंद्रमा", "upay": "माता का आशीर्वाद लें और चांदी का चौकोर टुकड़ा पास रखें।"},
+            # ... (बाकी 9 तक यहाँ लिखें) ...
+        }
+
+        if missing_nums:
+            st.markdown("### ⚠️ ग्रह-दोष निवारण एवं उपाय")
+            intro_speech = f"{u_name} जी, आपके चार्ट में कुछ अंक लुप्त हैं। गुरु के अनुसार इनके उपाय सुनें। "
+            remedy_details = ""
+
+            for n in missing_nums:
+                if n in remedy_info:
+                    g = remedy_info[n]["grah"]
+                    u = remedy_info[n]["upay"]
+                    st.info(f"✨ **अंक {n} ({g}):** {u}") # स्क्रीन पर दिखेगा
+                    remedy_details += f"अंक {n}, जो कि {g} देव का प्रतीक है, इसके लिए उपाय है: {u} "
+
+            full_speech = intro_speech + remedy_details + " जय श्री राम।"
+
+            # ३. आवाज़ वाला बटन
+            if st.button("🎙️ गुरु से पूर्ण मार्गदर्शन सुनें"):
+                bol_web(full_speech, "graha_voice")
          # ७. आवाज़ चालू करना (Collapse Fix के साथ)
         bol_web(audio_script, "full_report_vFinal")        
 
