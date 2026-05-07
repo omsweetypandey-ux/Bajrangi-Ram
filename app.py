@@ -120,14 +120,45 @@ faladesh_dict = {
     "9-8": "Mangal aur Shani. Sangharsh ke baad sthayi safalta. Property mein labh.",
     "9-9": "Double Mangal. Aseem urja. Hanuman ji ki bhakti se sab safal hoga."
 }
-remedies_dict = {
-    1: "Surya ko jal chadhayein.", 2: "Chandi ka glass istemal karein.",
-    3: "Kesar ka tilak lagayein.", 4: "Tulsi ka paudha lagayein.",
-    5: "Gai ko hara chara khilayein.", 6: "Itr (perfume) lagayein.",
-    7: "Kutte ko roti khilayein.", 8: "Shani dev ki puja karein.",
-    9: "Hanuman Chalisa ka paath karein."
+# २. ग्रहों और उपायों का डेटाबेस (जो मैंने अभी दिया)
+remedy_info = {
+    1: {
+        "grah": "सूर्य (Sun)", 
+        "upay": "प्रतिदिन सूर्योदय के समय तांबे के लोटे से जल अर्पित करें। आदित्य हृदय स्तोत्र का पाठ करें और पिता का सम्मान करें। रविवार को गुड़ और गेहूं का दान करना अत्यंत शुभ होगा।"
+    },
+    2: {
+        "grah": "चंद्रमा (Moon)", 
+        "upay": "भगवान शिव का दूध से अभिषेक करें। प्रत्येक सोमवार को सफेद वस्तुओं जैसे चावल या दूध का दान करें। माता का आशीर्वाद लें और प्रतिदिन चांदी के पात्र में जल पिएं।"
+    },
+    3: {
+        "grah": "गुरु (Jupiter)", 
+        "upay": "गुरुवार को माथे पर केसर या हल्दी का तिलक लगाएं। विष्णु सहस्रनाम का श्रवण करें। चने की दाल और पीले वस्त्रों का दान करें और अपने गुरुजनों की सेवा करें।"
+    },
+    4: {
+        "grah": "राहु (Rahu)", 
+        "upay": "भगवान गणेश की आराधना करें और उन्हें दूर्वा अर्पित करें। पक्षियों को सात प्रकार का अनाज (सतनाजा) डालें। अपने पास चांदी का एक चौकोर टुकड़ा रखना आपके लिए कल्याणकारी होगा।"
+    },
+    5: {
+        "grah": "बुध (Mercury)", 
+        "upay": "बुधवार को गाय को हरा चारा या पालक खिलाएं। छोटी कन्याओं को उपहार दें। तुलसी के पौधे की नियमित सेवा करें और 'ॐ बुं बुधाय नमः' मंत्र का जाप करें।"
+    },
+    6: {
+        "grah": "शुक्र (Venus)", 
+        "upay": "शुक्रवार को सफेद मिठाई या कपूर का दान करें। लक्ष्मी चालीसा का पाठ करें। अपने परिवेश को सुगंधित रखें और इत्र का प्रयोग करें। महिलाओं का सम्मान करना भाग्य जगाएगा।"
+    },
+    7: {
+        "grah": "केतु (Ketu)", 
+        "upay": "स्ट्रीट डॉग्स (गलियों के कुत्तों) को मीठी रोटी या बिस्किट खिलाएं। मंदिर के शिखर पर दोरंगी ध्वजा (झंडा) लगाएं। गणेश जी को मोदक का भोग लगाना आपके लिए श्रेष्ठ है।"
+    },
+    8: {
+        "grah": "शनि (Saturn)", 
+        "upay": "शनिवार को पीपल के वृक्ष के नीचे सरसों के तेल का दीपक जलाएं। हनुमान चालीसा का पाठ करें। जरूरतमंदों और सफाई कर्मचारियों को काली उड़द या काले वस्त्रों का दान करें।"
+    },
+    9: {
+        "grah": "मंगल (Mars)", 
+        "upay": "मंगलवार को हनुमान जी को चोला चढ़ाएं और बूंदी का प्रसाद बांटें। भाइयों के साथ संबंध मधुर रखें। सुंदरकांड का पाठ करना आपके साहस और ऊर्जा में वृद्धि करेगा।"
+    }
 }
-
 # ५. ऐप इंटरफेस
 st.set_page_config(page_title="बजरंगी राम", layout="wide")
 st.markdown("<h1 style='text-align: center; color: #E74C3C;'>Ψ बजरंगी राम अंक ज्योतिष केंद्र</h1>", unsafe_allow_html=True)
@@ -325,14 +356,25 @@ if submit:
             </div>
             """, unsafe_allow_html=True)
 
-            # मैत्री लॉजिक का परिणाम दिखाना
+            # 2. Audio script ki shuruat karein
+            tab1_audio = f"Namaste! Aapka Mulaank {mulank} hai aur Bhagyaank {bhagyank} hai. "
+        # मैत्री लॉजिक का परिणाम दिखाना
             if bhagyank in m_rel:
-                st.success(f"✅ **अद्भुत तालमेल!** मूलांक {mulank} और भाग्यांक {bhagyank} आपस में **परम मित्र** हैं। यह सफलता के मार्ग को सुगम बनाता है।")
+                st.success(f"✔️ **Aapka sambandh:** Mulaank {mulank} aur Bhagyaank {bhagyank} ke beech sambandh **Mitravat (Friendly)** hai.")
+                tab1_audio += f"In dono ke beech bahut hi mitravat sambandh hai, jo aapko har kaam mein safalta dilayega."
             elif bhagyank in m_enm:
-                st.warning(f"⚠️ **सतर्कता की आवश्यकता:** मूलांक {mulank} और भाग्यांक {bhagyank} में **शत्रुता** का भाव है। निरंतर प्रयास और धैर्य से ही बड़ी सफलता मिलेगी।")
+                st.warning(f"⚠️ **Aapka sambandh:** Mulaank {mulank} aur Bhagyaank {bhagyank} ke beech sambandh **Shatruvat (Enemy)** hai.")
+                tab1_audio += f"In dono ke beech shatruvat sambandh hone ke karan, aapko thoda sangharsh karna pad sakta hai."
             else:
-                st.info(f"⚖️ **संतुलित संबंध:** मूलांक {mulank} और भाग्यांक {bhagyank} आपस में **सम (Neutral)** हैं। आपकी मेहनत ही आपके भाग्य का निर्माण करेगी।")
+                st.info(f"ℹ️ **Aapka sambandh:** Mulaank {mulank} aur Bhagyaank {bhagyank} ke beech sambandh **Sam (Neutral)** hai.")
+                tab1_audio += f"In dono ke beech sam sambandh hai, jo aapke jeevan ko santulit banaye rakhega."
 
+            # 3. Tab 1 ke liye audio button (Sabse niche lagayein)
+            if tab1_audio:
+                st.write("---")
+                # केवल एक स्लाइडर बनेगा जो राजयोग और उपाय दोनों बोलेगा
+                bol_web(tab1_audio, "graha_voice")
+            
         with tab2:
             st.markdown("### ⚖️ नामांक (Name Number) विश्लेषण एवं परामर्श")
             
@@ -410,73 +452,55 @@ if submit:
             st.write("🎙️ **गुरु का परामर्श सुनें:**")
            
         with tab3:
-            st.markdown("### 🔮 लो-शु ग्रिड (मोबाइल फ्रेंडली)")
-        
-       # डेटा को साफ़ करने वाला लॉजिक
-        # डेटा को साफ़ करने वाला लॉजिक
-        grid_data = [item for sublist in display_grid for item in sublist]
+            
 
-        # क्लीनिंग फंक्शन: जो ब्रैकेट और कोट्स हटा दे
-        def clean_num(n):
-            if not n: return ""
-            s = str(n).replace("[", "").replace("]", "").replace("'", "").replace('"', "")
-            return s.replace(",", "<br>")
+            # २. लो-शु ग्रिड दिखाना (फोटो 478cc4f2 के वेरिएबल्स के अनुसार)
+            st.markdown("### 🔮 लो-शू ग्रिड और विस्तृत भविष्य फल")
+            st.write("### 🔲 आपका लो-शू ग्रिड चार्ट")
+            
+            # ग्रिड की पंक्तियाँ (Rows) बनाना
+            for row in display_grid:
+                cols = st.columns(3)
+                for i in range(3):
+                    cell_content = "".join(map(str, row[i])) if row[i] else " "
+                    cols[i].markdown(f"""
+                        <div style="border:2px solid #E74C3C; height:80px; display:flex; 
+                        align-items:center; justify-content:center; font-size:28px; 
+                        font-weight:bold; background-color:#FEF9E7; border-radius:15px;
+                        color: #2C3E50; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
+                            {cell_content}
+                        </div>
+                    """, unsafe_allow_html=True)
 
-        # HTML ग्रिड कोड
-        cells_html = ""
-        for num in grid_data:
-            val = clean_num(num)
-            cells_html += f'<div style="border: 2px solid #E74C3C; height: 75px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; background-color: #FEF9E7; border-radius: 10px; color: #2C3E50; text-align: center;">{val}</div>'
+            # १. ऑडियो स्क्रिप्ट को यहाँ एक बार शुरू करें
+            tab3_audio = "प्रणाम! आपके चार्ट का विशेष विश्लेषण यहाँ दिया गया है। "
 
-        grid_final = f"""
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 250px; margin: 15px auto;">
-            {cells_html}
-        </div>
-        """
-        
-        st.markdown(grid_final, unsafe_allow_html=True)
-        st.write("---")
-        # १. मिसिंग नंबर पहचानना
-        all_numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9}
-        present_numbers = set()
-        for x in grid_data:
-            num_str = str(x).replace("[", "").replace("]", "").replace("'", "").replace('"', "").split(",")[0]
-            if num_str.strip().isdigit():
-                present_numbers.add(int(num_str))
-        
-        missing_nums = sorted(list(all_numbers - present_numbers))
+            # २. राजयोगों को ऑडियो में जोड़ना
+            if 'active_rajyog' in locals() and active_rajyog:
+                tab3_audio += "सबसे पहले आपके चार्ट के राजयोगों की बात करते हैं। आपके चार्ट में ये विशेष राजयोग बन रहे हैं: "
+                for ry in active_rajyog:
+                    st.success(f"✔️ {ry}") # स्क्रीन पर दिखाएँ
+                    tab3_audio += f"{ry}। " # ऑडियो में जोड़ें
+            else:
+                st.info("फिलहाल इस चार्ट में कोई विशेष राजयोग नहीं बन रहा है।")
+                tab3_audio += "फिलहाल इस चार्ट में कोई विशेष राजयोग नहीं है। "
 
-        # २. ग्रहों और उपायों का डेटाबेस (जो मैंने अभी दिया)
-        remedy_info = {
-            1: {"grah": "सूर्य", "upay": "तांबे के लोटे से जल दें और पिता का सम्मान करें।"},
-            2: {"grah": "चंद्रमा", "upay": "माता का आशीर्वाद लें और चांदी का चौकोर टुकड़ा पास रखें।"},
-            # ... (बाकी 9 तक यहाँ लिखें) ...
-        }
+            st.write("---")
 
-        if missing_nums:
-            st.markdown("### ⚠️ ग्रह-दोष निवारण एवं उपाय")
-            intro_speech = f"{u_name} जी, आपके चार्ट में कुछ अंक लुप्त हैं। गुरु के अनुसार इनके उपाय सुनें। "
-            remedy_details = ""
+            # ३. उपायों को ऑडियो में जोड़ना
+            if 'missing_nums' in locals():
+                tab3_audio += "अब लुप्त अंकों के उपायों की चर्चा करते हैं। "
+                for n in missing_nums:
+                    if n in remedy_info:
+                        g = remedy_info[n]["grah"]
+                        u = remedy_info[n]["upay"]
+                        
+                        st.info(f"**अंक {n} ({g}):** {u}") # स्क्रीन पर दिखाएँ
+                        # ऑडियो स्क्रिप्ट में जोड़ें
+                        tab3_audio += f"अंक {n} जो {g} का है, उसके लिए उपाय है: {u}। "
 
-            for n in missing_nums:
-                if n in remedy_info:
-                    g = remedy_info[n]["grah"]
-                    u = remedy_info[n]["upay"]
-                    st.info(f"✨ **अंक {n} ({g}):** {u}") # स्क्रीन पर दिखेगा
-                    remedy_details += f"अंक {n}, जो कि {g} देव का प्रतीक है, इसके लिए उपाय है: {u} "
-
-            full_speech = intro_speech + remedy_details + " जय श्री राम।"
-
-            # ३. आवाज़ वाला बटन
-            if st.button("🎙️ गुरु से पूर्ण मार्गदर्शन सुनें"):
-                bol_web(full_speech, "graha_voice")
-         # ७. आवाज़ चालू करना (Collapse Fix के साथ)
-        bol_web(audio_script, "full_report_vFinal")        
-
-        # ५. स्क्रीन पर पूरी रिपोर्ट दिखाना
-        full_display_text = "\n\n".join(report_parts)
-        st.info(full_display_text)
-
-        
-
-
+            # ४. मुख्य सुधार: बोल_वेब (bol_web) को लूप के बिल्कुल बाहर रखें
+            if tab3_audio:
+                st.write("---")
+                # केवल एक स्लाइडर बनेगा जो राजयोग और उपाय दोनों बोलेगा
+                bol_web(tab3_audio, "graha_voice")
