@@ -257,6 +257,16 @@ if submit:
         for num, color in special_nums:
             r, c = grid_pos[num]
             display_grid[r][c].append(f"<span style='color:{color};'>{num}</span>")
+ # ग्रिड बनाना
+        html_grid = "<table style='width:100%; border-collapse: collapse; text-align:center; font-size:24px; font-weight:bold;'>"
+        for row in display_grid:
+            html_grid += "<tr style='height:110px;'>"
+            for cell_list in row:
+                content = " ".join(cell_list) if cell_list else ""
+                html_grid += f"<td style='border:2px solid #E74C3C; width:33%; background-color:#FFF9F0;'>{content}</td>"
+            html_grid += "</tr>"
+        html_grid += "</table>"
+        st.markdown(html_grid, unsafe_allow_html=True)
 
     with col2:
         st.subheader("📜 click bellow to chooes  category")
@@ -458,20 +468,7 @@ if submit:
             st.markdown("### 🔮 लो-शू ग्रिड और विस्तृत भविष्य फल")
             st.write("### 🔲 आपका लो-शू ग्रिड चार्ट")
             
-            # ग्रिड की पंक्तियाँ (Rows) बनाना
-            for row in display_grid:
-                cols = st.columns(3)
-                for i in range(3):
-                    cell_content = "".join(map(str, row[i])) if row[i] else " "
-                    cols[i].markdown(f"""
-                        <div style="border:2px solid #E74C3C; height:80px; display:flex; 
-                        align-items:center; justify-content:center; font-size:28px; 
-                        font-weight:bold; background-color:#FEF9E7; border-radius:15px;
-                        color: #2C3E50; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
-                            {cell_content}
-                        </div>
-                    """, unsafe_allow_html=True)
-
+            
             # १. ऑडियो स्क्रिप्ट को यहाँ एक बार शुरू करें
             tab3_audio = "प्रणाम! आपके चार्ट का विशेष विश्लेषण यहाँ दिया गया है। "
 
