@@ -307,48 +307,41 @@ if submit:
             f"🔸 आपका **मूलांक {mulank}** और **भाग्यांक {bhagyank}** है।",
             f"🔸 आपका **नामांक {name_num}** और **कुआ नंबर {kua}** है।",
             f"🔮 **विशेष फल:** {comb_fal}"
-        ]
-# ४. राजयोग का फल जोड़ना
-        if active_rajyog:
-            report_parts.append("\n👑 **आपके ग्रिड के राजयोग:**")
-            for ry in active_rajyog:
-                report_parts.append(f"⭐ {ry}")
-        
-                # ६. 🎤 ऑडियो स्क्रिप्ट (जो सब कुछ बोलकर बताएगा)
-        audio_script = f"जय बजरंगबली {u_name} जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है  "
-        audio_script += f"आपका मूलांक {mulank} और भाग्यांक {bhagyank} है। "
-        audio_script += f"नामांक {name_num} और कुआ नंबर {kua} है। "
-        audio_script += f"आपके ग्रहों का फल कहता है कि {comb_fal}। "
-        if active_rajyog:
-            audio_script += " आपके ग्रिड में विशेष राजयोग भी बन रहे हैं। "
-            for ry in active_rajyog:
-                audio_script += f"{ry} "
-                # --- यहाँ से कैटेगरी (Tabs) शुरू होती हैं ---
- # --- Category Tabs ko bada aur attractive banane ke liye CSS ---
+                ]
+        # ४. राजयोग का फल जोड़ना
+                # टैब्स को मोबाइल फ्रेंडली और सुंदर बनाने के लिए नया CSS
         st.markdown("""
-            <style>
-            /* Tabs ke font ko bada karne ke liye */
+        <style>
+            /* टैब्स के पूरे कंटेनर को मोबाइल स्क्रीन पर फिट करना */
             .stTabs [data-baseweb="tab-list"] {
-                gap: 10px;
+                display: flex;
+                flex-wrap: wrap; /* यह लाइन मोबाइल पर टैब्स को टूटने से बचाएगी */
+                gap: 8px;
+                width: 100%;
+                justify-content: center;
             }
+
+            /* हर टैब बटन का स्टाइल */
             .stTabs [data-baseweb="tab"] {
-                height: 60px; 
-                background-color: #F0F2F6; 
-                border-radius: 10px 10px 0px 0px; 
-                padding: 10px 20px;
+                flex: 1 1 auto; /* टैब नाम के हिसाब से अपनी चौड़ाई लेगा */
+                min-width: 80px; 
+                height: auto; /* फिक्स हाइट हटा दी ताकि मोबाइल पर समस्या न हो */
+                padding: 8px 12px;
+                background-color: #F0F2F6;
+                border-radius: 10px 10px 0px 0px;
                 font-weight: bold;
-                font-size: 18px; /* Text bada karne ke liye */
+                font-size: 14px; /* मोबाइल के लिए सही साइज */
                 color: #2C3E50;
             }
-            /* Jab tab select ho (Color change logic) */
+
+            /* जब कोई टैब सिलेक्ट हो (Active Tab) */
             .stTabs [aria-selected="true"] {
-                background-color: #E74C3C !important; /* Bajrangi Lal Color */
+                background-color: #E74C3C !important; /* बजरंग लाल रंग */
                 color: white !important;
                 border-bottom: 3px solid #FFD700 !important;
             }
-            </style>
-            """, unsafe_allow_html=True)
-
+        </style>
+        """, unsafe_allow_html=True)
             # Ab aapke purane tabs yahan se shuru honge
         tab1, tab2, tab3 = st.tabs(["📑 मूलांक-भाग्यांक फल", "🔮 नाम-भाग्य विचार", "🎡 ग्रिड एवं उपाय"])      
                     
