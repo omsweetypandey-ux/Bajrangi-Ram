@@ -530,78 +530,78 @@ if submit:
 
             # Mulank aur Bhagyank ke liye grah ka naam
             n_g, m_g, b_g = get_g_n(name_num), get_g_n(mulank), get_g_n(bhagyank)
-            t2_audio = f"Namaste! Aapka namank {name_num} hai jo {n_g} ka ank hai. "
+            tab2_audio = f"Namaste! Aapka namank {name_num} hai jo {n_g} ka ank hai. "
 
             # 1. Sanyukt Namank ka Phal (Compound Number Logic)
-            if name_sum > 9:
-                st.subheader(f"🔢 संयुक्त नामांक {name_sum} का फल")
-                f_d, s_d = int(str(name_sum)[0]), int(str(name_sum)[1])
+            if name_sum > 0:
+                # अंकों को अलग करने का सही तरीका
+                s_name_sum = str(name_sum)
+                f_d = int(s_name_sum[0])
+                s_d = int(s_name_sum[1]) if len(s_name_sum) > 1 else 0
                 g1, g2 = get_g_n(f_d), get_g_n(s_d)
                 
                 # Sanyukt ank ke aapas ka sambandh
                 rel = "मित्र" if s_d in friendship_logic.get(f_d, {}).get('friends', []) else "शत्रु" if s_d in friendship_logic.get(f_d, {}).get('enemies', []) else "सम"
                 inf_msg = f"आपका संयुक्त नामांक {name_sum}, {g1} ({f_d}) और {g2} ({s_d}) के योग से बना है। ये आपस में {rel} हैं।"
                 st.info(inf_msg)
-                t2_audio += f"Aapka sanyukt namank {name_sum}, {g1} aur {g2} ke yog se bana hai, jo aapas mein {rel} hain. "
+                tab2_audio += f"Aapka sanyukt namank {name_sum}, {g1} aur {g2} ke yog se bana hai, jo aapas mein {rel} hain. "
                 
                 c_f = compound_master_81.get(int(name_sum), "यह विशिष्ट ऊर्जा वाला अंक है।")
                 st.success(f"**फल:** {c_f}")
-                t2_audio += f"Iska phal hai: {c_f}. "
+                tab2_audio += f"Iska phal hai: {c_f}. "
 
-            st.write("---")
+                st.write("---")
 
-            # 2. Maitree Analysis (Grah aur Ank ke Naam ke Saath)
-            st.subheader(f"📊 अंक मैत्री विवरण: {name_num} ({n_g})")
-            m_en = friendship_logic.get(int(mulank), {}).get('enemies', [])
-            b_en = friendship_logic.get(int(bhagyank), {}).get('enemies', [])
+                # 2. Maitree Analysis (Grah aur Ank ke Naam ke Saath)
+                st.subheader(f"📊 अंक मैत्री विवरण: {name_num} ({n_g})")
+                m_en = friendship_logic.get(int(mulank), {}).get('enemies', [])
+                b_en = friendship_logic.get(int(bhagyank), {}).get('enemies', [])
 
-            shatru_list = []
-            if name_num in m_en: shatru_list.append(f"मूलांक {mulank} ({m_g})")
-            if name_num in b_en: shatru_list.append(f"भाग्यांक {bhagyank} ({b_g})")
+                shatru_list = []
+                if name_num in m_en: shatru_list.append(f"मूलांक {mulank} ({m_g})")
+                if name_num in b_en: shatru_list.append(f"भाग्यांक {bhagyank} ({b_g})")
 
-            if not shatru_list:
-                msg = f"नामांक {name_num} ({n_g}), मूलांक {mulank} ({m_g}) और भाग्यांक {bhagyank} ({b_g}) दोनों का मित्र है।"
-                st.success(f"✅ {msg}")
-                t2_audio += f"{msg} "
-            else:
-                msg = f"नामांक {name_num} ({n_g}) आपके {' और '.join(shatru_list)} का शत्रु है।"
-                st.error(f"❌ {msg}")
-                t2_audio += f"{msg} "
+                if not shatru_list:
+                    msg = f"नामांक {name_num} ({n_g}), मूलांक {mulank} ({m_g}) और भाग्यांक {bhagyank} ({b_g}) दोनों का मित्र है।"
+                    st.success(f"✅ {msg}")
+                    tab2_audio += f"{msg} "
+                else:
+                    msg = f"नामांक {name_num} ({n_g}) आपके {' और '.join(shatru_list)} का शत्रु है।"
+                    st.error(f"❌ {msg}")
+                    tab2_audio += f"{msg} "
 
-            st.write("---")
+                st.write("---")
 
-            # 3. Rajyog Logic (Mangal 9 ko prathmikta)
-            st.subheader("💡 गुरु का विशेष राजयोग सुझाव")
-            priorities = [
-                {'t': 9, 'others': [3, 6], 'name': "आध्यात्मिक प्लेन (3-6-9)"},
-                {'t': 4, 'others': [5, 6], 'name': "गोल्डन राजयोग (4-5-6)"}
-            ]
+                # 3. Rajyog Logic (Mangal 9 ko prathmikta)
+                st.subheader("💡 गुरु का विशेष राजयोग सुझाव")
+                priorities = [
+                    {'t': 9, 'others': [3, 6], 'name': "आध्यात्मिक प्लेन (3-6-9)"},
+                    {'t': 4, 'others': [5, 6], 'name': "गोल्डन राजयोग (4-5-6)"}
+                ]
 
-            for p in priorities:
-                target = p['t']
-                if target in missing_nums and all(x in grid_pos for x in p['others']):
-                    t_grah = get_g_n(target)
-                    # Check if it's safe (not enemy of mulank or bhagyank)
-                    if target not in m_en and target not in b_en:
-                        msg = f"{p['name']} पूरा करने हेतु {target} ({t_grah}) अपनाएं, यह आपके मूलांक {mulank} और भाग्यांक {bhagyank} का मित्र है।"
-                        st.success(f"🌟 {msg}")
-                        t2_audio += f"Sujhav hai ki {msg} "
-                        break
-                    else:
-                        shatru_of = "मूलांक" if target in m_en else "भाग्यांक"
-                        msg = f"अंक {target} ({t_grah}) {p['name']} बना सकता है, पर यह आपके {shatru_of} का शत्रु है, अतः न अपनाएं।"
-                        st.warning(f"⚠️ {msg}")
-                        t2_audio += f"Chetavni! {msg} "
-                # ३. ऑडियो प्ले करना
-                    if 'bol_web' in locals():
-                        bol_web(tab1_audio, "graha_voice")
+                for p in priorities:
+                    target = p['t']
+                    if target in missing_nums and all(x in grid_pos for x in p['others']):
+                        t_grah = get_g_n(target)
+                        # Check if it's safe (not enemy of mulank or bhagyank)
+                        if target not in m_en and target not in b_en:
+                            msg = f"{p['name']} पूरा करने हेतु {target} ({t_grah}) अपनाएं, यह आपके मूलांक {mulank} और भाग्यांक {bhagyank} का मित्र है।"
+                            st.success(f"🌟 {msg}")
+                            tab2_audio += f"Sujhav hai ki {msg} "
+                            break
+                else:
+                    shatru_of = "मूलांक" if target in m_en else "भाग्यांक"
+                    msg = f"अंक {target} ({t_grah}) {p['name']} बना सकता है, पर यह आपके {shatru_of} का शत्रु है, अतः न अपनाएं।"
+                    st.warning(f"⚠️ {msg}")
+                    tab2_audio += f"Chetavni! {msg} "
+            # ३. ऑडियो प्ले करना
+               
             # Contact Info [cite: 2025-06-12]
             st.write("---")
             contact_msg = "सुक्ष्म गाडना हेतु Vishal Vikram Pandey ji se संपर्क करे ."
             st.info(f"📍 {contact_msg}")
-            t2_audio += f" {contact_msg}"
-            
-            bol_web(t2_audio, "tab2_voice")
+            tab2_audio += f" {contact_msg}"
+            bol_web(tab2_audio, "tab2_voice")
             st.markdown("<p style='text-align: center; color: gray;'>आचार्य विशाल विक्रम पांडे</p>", unsafe_allow_html=True)
 
      
