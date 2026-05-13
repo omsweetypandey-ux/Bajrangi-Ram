@@ -446,6 +446,7 @@ if submit:
                     
 
         with tab1:
+
             # १. डेटा को सुरक्षित रूप से निकालें
             m_data = grah_deta.get(mulank, {})
             b_data = grah_deta.get(bhagyank, {})
@@ -509,7 +510,25 @@ if submit:
                 f"आपका शुभ ग्रह {m_grah} है, शुभ दिन {m_din} है और आपका सबसे अनुकूल रंग {m_rang} है। "
                 f"वहीं आपके भाग्यांक {bhagyank} के अनुसार, आपका स्वामी ग्रह {b_grah} है। शुभ दिन {b_din} है और आपका सबसे अनुकूल रंग {b_rang} है।"
             )
+                
+                # एक लाइन खींचने के लिएst.divider() 
+                
+                # १. फल के लिए 'Key' तैयार करें
+            combination_key = f"{mulank}-{bhagyank}"
 
+                # २. डिक्शनरी से फल प्राप्त करें
+                # faladesh_dict वही है जो आपने फोटो 7ff1cf19-9461-4913-944a-fdb1c349e391 में बनाई है
+            result_fal = faladesh_dict.get(combination_key, "इस विशेष कॉम्बिनेशन का विश्लेषण अभी तैयार किया जा रहा है।")
+
+                # ३. स्क्रीन पर प्रदर्शित करें
+            st.markdown(f"### 🚩 व्यक्तित्व विश्लेषण (कॉम्बिनेशन {combination_key})")
+                
+                # एक सुंदर कार्ड के रूप में दिखाने के लिए
+            st.info(f"**मूलांक {mulank} और भाग्यांक {bhagyank}:**\n\n{result_fal}")
+
+                # ४. ऑडियो के लिए स्क्रिप्ट में जोड़ें
+                # यहाँ tab1_audio का इस्तेमाल करें
+            tab1_audio += f" आपके मूलांक और भाग्यांक का मेल {combination_key} है। ज्योतिष के अनुसार, {result_fal}"
             # ५. व्यक्तित्व का मुख्य आधार सेक्शन
             st.markdown("---")
             st.markdown(f"### 🌟 आपके व्यक्तित्व का मुख्य आधार")
@@ -606,71 +625,69 @@ if submit:
 
      
         with tab3:
-            st.markdown("### 🌟 लो-शू ग्रिड और विस्तृत भविष्य फल")
-            
-            # 1. सबसे पहले ऑडियो वेरिएबल को परिभाषित (Define) करें
+            # १. ऑडियो वेरिएबल को शुरू करें
             tab3_audio = "प्रणाम! आपके चार्ट का विशेष विश्लेषण यहाँ दिया गया है। "
 
-            # 2. अब grid_counts को परिभाषित करें ताकि पिछला Error न आए
-            from collections import Counter
-            grid_counts = Counter(dob_digits)
-            for num in [mulank, bhagyank, name_num, kua]:
-                grid_counts[num] += 1
-
-            # 3. अब राजयोग की गणना (Calculation)
+            # २. राजयोग की गणना (Calculation)
             active_rajyog = []
             planes = [
                 ([4, 9, 2], "मानसिक शक्ति राजयोग (4-9-2)"),
                 ([3, 5, 7], "इच्छा शक्ति राजयोग (3-5-7)"),
                 ([8, 1, 6], "कर्म शक्ति राजयोग (8-1-6)"),
+                ([4, 3, 8], "विचार शक्ति राजयोग (4-3-8)"),
+                ([9, 5, 1], "सफलता राजयोग (9-5-1)"),
+                ([2, 7, 6], "संतान और संपन्नता (2-7-6)"),
                 ([4, 5, 6], "गोल्डन राजयोग (4-5-6)"),
                 ([2, 5, 8], "सिल्वर राजयोग (2-5-8)")
             ]
 
-            for plane_nums, plane_name in planes:
-                if all(grid_counts.get(num, 0) > 0 for num in plane_nums):
-                    active_rajyog.append(plane_name)
+            # चेक करें कि कौन से राजयोग बन रहे हैं
+            for p_nums, p_name in planes:
+                if all(num in all_present_nums for num in p_nums):
+                    active_rajyog.append(p_name)
 
-            # 4. अब आपका पुराना ऑडियो वाला हिस्सा (जो फोटो fe7396e7 में है)
+            # ३. राजयोग का फल दिखाना (Display)
+            st.subheader("✨ आपके लो-शू ग्रिड के राजयोग")
             if active_rajyog:
                 tab3_audio += "सबसे पहले आपके चार्ट के राजयोगों की बात करते हैं। "
                 for ry in active_rajyog:
-                    st.success(f"✅ {ry}")
-                    tab3_audio += f"{ry}. "
-            # 1. Sabse pehle audio variable ko start karein (Taki Error na aaye)
-            tab3_audio = "प्रणाम! आपके चार्ट का विशेष विश्लेषण यहाँ दिया गया है। "
+                    # डिक्शनरी से फल उठाना
+                    fal = rajyog_fal.get(ry, "यह एक अत्यंत शुभ राजयोग है जो जीवन में प्रगति लाता है।")
+                    
+                    # स्क्रीन पर दिखाना
+                    st.success(f"✅ **{ry}**")
+                    st.info(f"📜 **फल:** {fal}")
+                    
+                    # ऑडियो में जोड़ना
+                    tab3_audio += f"{ry}. {fal} "
+            else:
+                st.write("वर्तमान ग्रिड में कोई पूर्ण राजयोग नहीं बन रहा है।")
 
-            # 2. Missing Numbers ki list taiyaar karein
+            st.divider()
+
+            # ४. मिसिंग नंबर्स (Missing Numbers) की गणना और उपाय
+            st.subheader("🔍 मिसिंग नंबर्स और उपाय")
+            
+            # वर्तमान में मौजूद अंकों की लिस्ट
             all_present_nums = set(dob_digits) | {mulank, bhagyank, name_num, kua}
             missing_nums = [n for n in range(1, 10) if n not in all_present_nums]
 
-            # 3. Rajyog ka logic (Jo humne pehle discuss kiya tha)
-            active_rajyog = []
-            # ... (Yahan aapka planes wala loop rahega)
-
-            # 4. Missing Numbers ka Audio aur Display
             if missing_nums:
                 tab3_audio += "अब आपके चार्ट में मौजूद मिसिंग नंबरों के उपायों की चर्चा करते हैं। "
                 for n in missing_nums:
                     if n in remedy_info:
                         g = remedy_info[n]['grah']
                         u = remedy_info[n]['upay']
-                        st.info(f"🚩 **अंक {n} ({g}):** {u}") # Screen par dikhane ke liye
-                        tab3_audio += f"अंक {n} जो {g} का है, उसके लिए उपाय है: {u}। " # Audio mein jodne ke liye        
-                                
-            # ३. उपायों को ऑडियो में जोड़ना
-            if 'missing_nums' in locals():
-                tab3_audio += "अब missing number के उपायों की चर्चा करते हैं। "
-                for n in missing_nums:
-                    if n in remedy_info:
-                        g = remedy_info[n]["grah"]
-                        u = remedy_info[n]["upay"]
                         
-                        st.info(f"**अंक {n} ({g}):** {u}") # स्क्रीन पर दिखाएँ
-                        # ऑडियो स्क्रिप्ट में जोड़ें
+                        # स्क्रीन पर दिखाना
+                        st.warning(f"अंक {n} ({g}) अनुपस्थित है")
+                        st.write(f"💡 **उपाय:** {u}")
+                        
+                        # ऑडियो में जोड़ना
                         tab3_audio += f"अंक {n} जो {g} का है, उसके लिए उपाय है: {u}। "
 
-            # ४. मुख्य सुधार: बोल_वेब (bol_web) को लूप के बिल्कुल बाहर रखें
+    # ५. अंत में ऑडियो प्लेयर (Optional)
+    # st.audio(generate_audio(tab3_audio))
             if tab3_audio:
                 st.write("---")
                 # केवल एक स्लाइडर बनेगा जो राजयोग और उपाय दोनों बोलेगा
