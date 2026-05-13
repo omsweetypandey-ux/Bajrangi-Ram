@@ -5,7 +5,7 @@ import base64
 import time
 import uuid  
 import os    
-
+from io import BytesIO
 # १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
     try:
@@ -38,7 +38,7 @@ def get_single_digit(n):
 chaldean_table = {'A':1,'I':1,'J':1,'Q':1,'Y':1,'B':2,'K':2,'R':2,'C':3,'G':3,'L':3,'S':3,'D':4,'M':4,'T':4,'E':5,'H':5,'N':5,'X':5,'U':6,'V':6,'W':6,'O':7,'Z':7,'F':8,'P':8}
 # ४. ८१ कॉम्बिनेशन (उदाहरण के लिए)
 faladesh_dict = {
-    "1-1": " 1 no. jo surya ka hai, Surya aur Surya ka yog. Aap ek janmjaat neta hain. Shasan aur prashasan mein safalta milegi.",
+    "1-1": " 1 no. jo surya ka hai, Surya aur Surya ka yog. Aap ek janmjaat neta hain. Shasan aur prashasan mein safalta mile. समाज में प्रतिष्ठा बढ़ती है और लोग आपकी बात मानते हैं।करियर में सफलता: सरकारी नौकरी के योग बनते हैं और नौकरी-व्यवसाय में उच्च पद की प्राप्ति होती है।",
     "1-2": "Surya aur Chandra. Creative kshamatayein achhi hain, par mann thoda chanchal reh sakta hai.",
     "1-3": "Surya aur Guru. Yeh gyaan aur adhikaar ka adbhut sangam hai. Aap ek achhe shikshak ban sakte hain.",
     "1-4": "Surya aur Rahu. Sangharsh ke baad badi safalta milti hai. Rajneeti mein ruchi ho sakti hai.",
@@ -115,11 +115,87 @@ faladesh_dict = {
     "9-3": "Mangal aur Guru. Gyaan aur shakti ka mel. Ek mahan margdarshak.",
     "9-4": "Mangal aur Rahu. Angarak yog. Gusse se bachein, urja ko sahi jagah lagayein.",
     "9-5": "Mangal aur Budh. Zameen aur hisab-kitab mein nipun.",
-    "9-6": "Mangal aur Shukra. Akarshan aur junoon. Media ya luxury mein safal.",
+    "9-6": "Mangal aur Shukra. Akarshan aur junoon. Media ya luxury mein safal. मूलांक 9 के कारण आप निर्भीक, साहसी और ऊर्जा से भरपूर हैं।आकर्षक और कलात्मक: भाग्यांक 6 आपको रचनात्मक, कलात्मक और लोगों को आकर्षित करने वाला व्यक्तित्व देता है। आप दूसरों की मदद करने के लिए हमेशा तत्पर रहते हैं और मानवतावादी दृष्टिकोण रखते हैं।",
     "9-7": "Mangal aur Ketu. Doctor ya Engineer banne ke yog. Sahas bahut zyada.",
     "9-8": "Mangal aur Shani. Sangharsh ke baad sthayi safalta. Property mein labh.",
     "9-9": "Double Mangal. Aseem urja. Hanuman ji ki bhakti se sab safal hoga."
 }
+
+compound_master_81 = {
+    10: "अंक 10 'भाग्य चक्र' है। यह मान-सम्मान और सफलता का प्रतीक है। आपकी योजनाएँ सफल होंगी।",
+    11: "यह मास्टर नंबर है। यह महान अंतर्ज्ञान देता है, लेकिन छिपे हुए शत्रुओं से सावधान रहना चाहिए।",
+    12: "यह अंक बलिदान और चिंता दर्शाता है। दूसरों के षड्यंत्र से बचने के लिए सतर्क रहें।",
+    13: "यह बदलाव और सत्ता का अंक है। सही दिशा में मेहनत करने पर यह अपार शक्ति देता है।",
+    14: "संचार और व्यापार के लिए उत्तम। यात्रा के योग बनते हैं, लेकिन जोखिम से बचें।",
+    15: "आकर्षण और भौतिक सुखों का अंक। कला और व्यक्तित्व में जादुई प्रभाव देता है।",
+    16: "यह अंक भविष्य के प्रति सचेत रहने की चेतावनी देता है। अचानक बदलाव संभव हैं।",
+    17: "मूलांक 1 (सूर्य) और भाग्यांक 7 (केतु) का संयोजन नेतृत्व और आध्यात्मिकता का एक दुर्लभ और शक्तिशाली मिश्रण है। आप आत्मविश्वासी और महत्वाकांक्षी होने के साथ-साथ गहरी सोच, अनुसंधान (research) और अंतर्ज्ञान (intuition) में निपुण होते हैं। यह संयोजन जीवन में करियर के लिए उत्कृष्ट है, लेकिन मानसिक स्पष्टता के लिए संतुलन की आवश्यकता होती है। यह 'सितारा' अंक है। संघर्ष के बाद अमर प्रसिद्धि और शांति दिलाने वाला अंक।",
+    18: "कठिन संघर्ष और वैचारिक मतभेद का संकेत। मानसिक मजबूती आवश्यक है।",
+    19: "यह 'सूर्य का अंक' है। विजय, सफलता और सौभाग्य का सबसे शुभ प्रतीक।",
+    20: "नई योजनाओं और मानसिक जाग्रति का अंक। आध्यात्मिक विकास के लिए श्रेष्ठ।",
+    21: "लंबी लड़ाई के बाद अंतिम विजय और उन्नति को दर्शाता है। अत्यंत शुभ।",
+    22: "भ्रम और गलत निर्णयों के प्रति चेतावनी। अपनी शक्तियों का प्रयोग सोच-समझकर करें।",
+    23: "'शाही सफलता' का अंक। वरिष्ठों से मदद और बाधाओं का नाश करने वाला।",
+    24: "प्रेम, धन और सहायता का अंक। प्रभावशाली मित्रों से लाभ मिलता है।",
+    25: "अनुभव से प्राप्त ज्ञान। सफलता शुरुआती संघर्ष के बाद स्थायी रूप से आती है।",
+    26: "भविष्य की सुरक्षा के प्रति चेतावनी। दूसरों की सलाह पर आँख मूँदकर भरोसा न करें।",
+    27: "शक्ति और अधिकार का प्रतीक। नेतृत्व क्षमता और रचनात्मक विचार प्रदान करता है।",
+    28: "महान क्षमता लेकिन बड़े जोखिम का अंक। सावधानी न बरतने पर नुकसान संभव है।",
+    29: "अनिश्चितता और विश्वासघात का संकेत। रिश्तों और साझेदारी में सावधानी बरतें।",
+    30: "मानसिक श्रेष्ठता और विचारशीलता का अंक। यह सामाजिक मेलजोल से दूर रख सकता है।",
+    31: "एकाकीपन और आत्मनिरीक्षण का अंक। भौतिक सफलता में थोड़ी देरी हो सकती है।",
+    32: "व्यापार और लोकप्रियता के लिए जादुई अंक। वाणी में गजब का आकर्षण देता है।",
+    33: "यह सौभाग्य और सुरक्षा का अंक है। प्रेम और व्यापार में सफलता सुनिश्चित करता है।",
+    34: "यह 25 की तरह है। मेहनत का फल देर से मिलता है, पर स्थायी होता है।",
+    35: "वित्तीय लाभ और संचय का अंक। विरासत या व्यापार से धन लाभ के योग बनाता है।",
+    36: "साहस और विजय का अंक। यह व्यक्ति को अपने विरोधियों पर जीत दिलाता है।",
+    37: "प्रेम और मित्रता में सौभाग्य। सामाजिक प्रतिष्ठा और मित्रों का सहयोग मिलता है।",
+    38: "सावधानी का अंक। स्वास्थ्य और कानूनी मामलों में सतर्कता बरतनी चाहिए।",
+    39: "बौद्धिक क्षमता का अंक। यह व्यक्ति को किसी विशेष कला में निपुण बनाता है।",
+    40: "परिवर्तन और उन्नति का अंक। पुराने को छोड़कर नए को अपनाने से लाभ होगा।",
+    41: "लेखन और व्यापारिक विस्तार के लिए बहुत ही ऊर्जावान और शुभ अंक।",
+    42: "शुक्र की ऊर्जा। कला, सौंदर्य और विलासिता के क्षेत्र में अपार प्रसिद्धि।",
+    43: "संघर्ष और उतार-चढ़ाव का अंक। अनुशासन से ही सफलता प्राप्त होगी।",
+    44: "गंभीरता और जिम्मेदारी का अंक। यह थोड़े भारी परिणाम दे सकता है।",
+    45: "संगठन और शक्ति का अंक। बड़े व्यापारिक साम्राज्य बनाने के लिए शुभ।",
+    46: "ज्ञान और बौद्धिक विजय। यह समाज में एक विशेष पहचान दिलाता है।",
+    47: "अचानक आने वाली बाधाएं और उनका समाधान। धैर्य की परीक्षा लेता है।",
+    48: "मानसिक द्वंद्व और चुनौतियों का अंक। शांत रहकर ही निर्णय लें।",
+    49: "अधूरापन महसूस करा सकता है। कार्यों को पूरा करने के लिए दृढ़ संकल्प लें।",
+    50: "बुद्धिमानी और संचार। यह अंक व्यक्ति को बहुमुखी प्रतिभा का धनी बनाता है।",
+    51: "अत्यंत शक्तिशाली! अचानक पद-प्रतिष्ठा और राजनीतिक सफलता दिलाने वाला।",
+    52: "अनुभव और अंतर्ज्ञान। यह 25 का उच्च रूप है, जो गहराई से ज्ञान देता है।",
+    53: "नेतृत्व और साहस। यह अंक आपको भीड़ से अलग खड़ा करने की शक्ति देता है।",
+    54: "स्थिरता और सुरक्षा। यह परिवार और समाज में सम्मान दिलाने वाला अंक है।",
+    55: "स्वतंत्रता और परिवर्तन। यह पुरानी रूढ़ियों को तोड़ने वाला अंक है।",
+    56: "रिश्तों में उतार-चढ़ाव। संतुलन बनाए रखना ही सबसे बड़ी चुनौती होगी।",
+    57: "बुद्धि और शोध। जटिल समस्याओं को सुलझाने की अद्भुत क्षमता देता है।",
+    58: "स्वास्थ्य के प्रति सचेत रहने वाला अंक। खान-पान पर ध्यान देना आवश्यक है।",
+    59: "यात्रा और नए अनुभवों का अंक। यह जीवन में गतिशीलता बनाए रखता है।",
+    60: "कलात्मक सफलता और पारिवारिक सुख। यह शांतिप्रिय जीवन प्रदान करता है।",
+    61: "संघर्ष के बाद मान-सम्मान। यह अंक धीमे लेकिन पक्के परिणाम देता है।",
+    62: "साझेदारी में लाभ। दूसरों के सहयोग से बड़े लक्ष्य प्राप्त होंगे।",
+    63: "धार्मिक और आध्यात्मिक उन्नति। यह व्यक्ति को मानसिक शांति देता है।",
+    64: "कठिन परिश्रम का अंक। बिना मेहनत के यहाँ कुछ भी हासिल नहीं होगा।",
+    65: "वित्तीय स्थिरता। यह धन को संभालने और निवेश करने की समझ देता है।",
+    66: "प्रेम और रिश्तों में मधुरता। यह एक बहुत ही सौम्य और शुभ अंक है।",
+    67: "अचानक लाभ के योग। यह किस्मत का साथ दिलाने वाला अंक माना जाता है।",
+    68: "जिम्मेदारी और अनुशासन। यह व्यक्ति को कर्तव्यपरायण बनाता है।",
+    69: "पूर्णता और अंत। यह एक चक्र के समाप्त होने और नए के शुरू होने का अंक है।",
+    70: "गहन चिंतन और एकांत। यह दार्शनिक विचारों के लिए श्रेष्ठ अंक है।",
+    71: "प्रसिद्धि और अधिकार। यह व्यक्ति को समाज के उच्च स्तर पर ले जाता है।",
+    72: "सेवा और परोपकार। दूसरों की मदद करने से ही आपका भाग्योदय होगा।",
+    73: "बुद्धि और चातुर्य। व्यापारिक समझौतों में यह अंक बहुत लाभ देता है।",
+    74: "अज्ञात भय और चिंता। आत्मविश्वास बनाए रखना ही एकमात्र उपाय है।",
+    75: "परिवर्तन के माध्यम से लाभ। नई परिस्थितियों में ढलना आपके लिए अच्छा है।",
+    76: "कलात्मक अभिरुचि। यह अंक रचनात्मक कार्यों में सफलता सुनिश्चित करता है।",
+    77: "आध्यात्मिक शक्ति और अंतर्ज्ञान। यह 11 का एक अत्यंत उच्च रूप है।",
+    78: "भौतिकवाद और सफलता। यह सुख-सुविधाओं के साधन जुटाने में मदद करता है।",
+    79: "अंतिम सत्य की खोज। यह अंक व्यक्ति को आत्मज्ञानी बनाता है।",
+    80: "शनि की ऊर्जा। यह कठोर परिश्रम और न्याय का अंक है। देरी संभव है।",
+    81: "विजय का अंतिम अंक! यह 9 (मंगल) का सर्वोच्च रूप है, जो पूर्ण सफलता देता है।"
+}
+
 # २. ग्रहों और उपायों का डेटाबेस (जो मैंने अभी दिया)
 remedy_info = {
     1: {
@@ -220,7 +296,18 @@ if submit:
             8: {'friends': [4, 5, 6, 7], 'enemies': [1, 2, 9], 'neutral': [3]},
             9: {'friends': [1, 2, 3, 5], 'enemies': [4, 7, 8], 'neutral': [6]}
         }
-
+# 1. ग्रहों की जानकारी (रंग और दिन)
+    grah_deta = {
+            1: {"grah": "सूर्य", "day": "रविवार", "color": "नारंगी या सुनहरा"},
+            2: {"grah": "चंद्रमा", "day": "सोमवार", "color": "सफेद या सिल्वर"},
+            3: {"grah": "गुरु", "day": "गुरुवार", "color": "पीला"},
+            4: {"grah": "राहु", "day": "शनिवार", "color": "नीला या भूरा"},
+            5: {"grah": "बुध", "day": "बुधवार", "color": "हरा"},
+            6: {"grah": "शुक्र", "day": "शुक्रवार", "color": "चमकीला सफेद या गुलाबी"},
+            7: {"grah": "केतु", "day": "मंगलवार", "color": "चितकबरा या स्लेटी"},
+            8: {"grah": "शनि", "day": "शनिवार", "color": "काला या गहरा नीला"},
+            9: {"grah": "मंगल", "day": "मंगलवार", "color": "लाल"}
+        }
         # मूलांक और भाग्यांक का संबंध निकालना
     m_rel = friendship_logic.get(mulank, {}).get('friends', [])
     m_enm = friendship_logic.get(mulank, {}).get('enemies', [])    
@@ -279,17 +366,7 @@ if submit:
         all_present_nums = set(dob_digits) | {mulank, bhagyank, name_num, kua}
         missing_nums = [n for n in range(1, 10) if n not in all_present_nums]
 # --- राजयोग चेक करने का लॉजिक ---
-        rajyog_dict = {
-            "4-9-2": "Mental Plane (मानसिक शक्ति): आपकी याददाश्त और योजना बनाने की शक्ति गजब की है।",
-            "3-5-7": "Emotional Plane (भावनात्मक शक्ति): आप बहुत दयालु हैं और आपकी अंतरात्मा की आवाज़ बहुत सटीक होती है।",
-            "8-1-6": "Practical Plane (व्यावहारिक शक्ति): आप मेहनत और काम करने में विश्वास रखते हैं, सफलता कदम चूमेगी।",
-            "4-3-8": "Thought Plane (विचार शक्ति): आप किसी भी काम को शुरू करने से पहले उसकी गहराई तक जाते हैं।",
-            "9-5-1": "Will Power Plane (इच्छा शक्ति): आपकी संकल्प शक्ति बहुत मजबूत है, आप जो ठान लेते हैं वो पूरा करते हैं।",
-            "2-7-6": "Action Plane (कर्म शक्ति): आप बोलने से ज्यादा करने में विश्वास रखते हैं।",
-            "4-5-6": "Golden Rajyog (स्वर्ण राजयोग): यह सबसे बड़ा राजयोग है, आपको जीवन में धन और सफलता दोनों मिलेगी।",
-            "2-5-8": "Silver Rajyog (रजत राजयोग): आपके पास अपनी प्रॉपर्टी और घर होने के प्रबल योग हैं।"
-        }
-
+       
         active_rajyog = []
         # चेक करने के लिए सभी ८ कॉम्बिनेशन
         planes = [
@@ -297,11 +374,18 @@ if submit:
             ([4, 3, 8], "4-3-8"), ([9, 5, 1], "9-5-1"), ([2, 7, 6], "2-7-6"), # Vertical
             ([4, 5, 6], "4-5-6"), ([2, 5, 8], "2-5-8")                       # Diagonal
         ]
+         
+        rajyog_fal = {
+        "मानसिक शक्ति राजयोग (4-9-2)": " 4  आपकी सोचने की शक्ति और मेमोरी बहुत तेज है। आप मानसिक कार्यों में बहुत सफल होते हैं।",
+        "इच्छा शक्ति राजयोग (3-5-7)": "आपकी संकल्प शक्ति बहुत मजबूत है। आप जो ठान लेते हैं, उसे पूरा करके ही दम लेते हैं।",
+        "कर्म शक्ति राजयोग (8-1-6)": "आप अत्यंत परिश्रमी हैं। आपका कर्म ही आपकी सफलता का मुख्य आधार बनता है।",
+        "विचार शक्ति राजयोग (4-3-8)": "आप योजना बनाने में माहिर हैं। आपकी दूरदर्शिता आपको व्यापार और करियर में लाभ दिलाती है।",
+        "सफलता राजयोग (9-5-1)": "यह एक अत्यंत शुभ योग है जो जीवन के हर क्षेत्र में नाम, प्रसिद्धि और सफलता दिलाता है।",
+        "संतान और संपन्नता (2-7-6)": "यह योग सुखी पारिवारिक जीवन, अच्छी संतान और भौतिक सुख-सुविधाओं का संकेत देता है।",
+        "गोल्डन राजयोग (4-5-6)": "यह लो-शू ग्रिड का सबसे शक्तिशाली योग है, जो अपार धन और भाग्य लेकर आता है।",
+        "सिल्वर राजयोग (2-5-8)": "यह योग संपत्ति और जमीन-जायदाद के मामले में बहुत शुभ फल प्रदान करता है।"
+        }
 
-        for p_nums, p_key in planes:
-            if all(num in all_present_nums for num in p_nums):
-                active_rajyog.append(rajyog_dict[p_key])
-        # ३. रिपोर्ट तैयार करना (स्क्रीन पर दिखाने के लिए)
         report_parts = [
             f"✨ जय बजरंगी! स्वागत है **{u_name}** जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है ",
             f"🔸 आपका **मूलांक {mulank}** और **भाग्यांक {bhagyank}** है।",
@@ -342,144 +426,241 @@ if submit:
             }
         </style>
         """, unsafe_allow_html=True)
+        # ६. 🎤 ऑडियो स्क्रिप्ट (जो सब कुछ बोलकर बताएगा)
+        audio_script = f"जय बजरंगबली {u_name} जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है  "
+        audio_script += f"आपका मूलांक {mulank} और भाग्यांक {bhagyank} है। "
+        audio_script += f"नामांक {name_num} और कुआ नंबर {kua} है। "
+        audio_script += f"आपके ग्रहों का फल कहता है कि {comb_fal}। "
+        if active_rajyog:
+            audio_script += " आपके ग्रिड में विशेष राजयोग भी बन रहे हैं। "
+            for ry in active_rajyog:
+                audio_script += f"{ry} "
+                # --- यहाँ रखें st.session_state वाला हिस्सा ---
+            st.session_state['u_name'] = u_name
+            st.session_state['dob_digits'] = dob_digits
+            st.session_state['missing_nums'] = missing_nums
+            st.session_state['name_num'] = name_num
+
             # Ab aapke purane tabs yahan se shuru honge
         tab1, tab2, tab3 = st.tabs(["📑 मूलांक-भाग्यांक फल", "🔮 नाम-भाग्य विचार", "🎡 ग्रिड एवं उपाय"])      
                     
 
         with tab1:
-            st.markdown("### 🌟 आपके व्यक्तित्व का मुख्य आधार")
-            
-            # मूलांक और भाग्यांक को सुंदर कार्ड में दिखाना
-            st.markdown(f"""
-            <div style="background-color: #fdf2e9; padding: 20px; border-radius: 15px; border-left: 8px solid #e67e22; margin-bottom: 20px;">
-                <h4 style="color: #e67e22; margin: 0;">मूलांक: {mulank} | भाग्यांक: {bhagyank}</h4>
-                <p style="color: #6e2c00; font-size: 16px; margin-top: 10px;">
-                आपका <b>मूलांक</b> आपकी आंतरिक शक्ति है, और <b>भाग्यांक</b> आपका कर्म मार्ग।
-                </p>
-            </div>
+            # १. डेटा को सुरक्षित रूप से निकालें
+            m_data = grah_deta.get(mulank, {})
+            b_data = grah_deta.get(bhagyank, {})
+
+            # २. पहले से डिफाइन करें ताकि NameError न आए
+            tab1_audio = f"नमस्ते {u_name} जी। आपके मूलांक और भाग्यांक का विश्लेषण तैयार है।"
+
+            # ३. प्रीमियम कार्ड का डिज़ाइन (CSS)
+            st.markdown("""
+            <style>
+                .lucky-container {
+                    background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+                    border: 2px solid #e0e0e0;
+                    border-radius: 15px;
+                    padding: 20px;
+                    margin-bottom: 20px;
+                    box-shadow: 5px 5px 15px rgba(0,0,0,0.05);
+                }
+                .flex-box { display: flex; justify-content: space-between; gap: 15px; }
+                .info-col { flex: 1; padding: 15px; border-radius: 12px; }
+                .m-bg { background-color: #e3f2fd; border: 1px solid #bbdefb; }
+                .b-bg { background-color: #f3e5f5; border: 1px solid #e1bee7; }
+                .label { font-weight: bold; color: #333; }
+            </style>
             """, unsafe_allow_html=True)
 
-            # 2. Audio script ki shuruat karein
-            tab1_audio = f"Namaste! Aapka Mulaank {mulank} hai aur Bhagyaank {bhagyank} hai. "
-        # मैत्री लॉजिक का परिणाम दिखाना
-            if bhagyank in m_rel:
-                st.success(f"✔️ **Aapka sambandh:** Mulaank {mulank} aur Bhagyaank {bhagyank} ke beech sambandh **Mitravat (Friendly)** hai.")
-                tab1_audio += f"In dono ke beech bahut hi mitravat sambandh hai, jo aapko har kaam mein safalta dilayega."
-            elif bhagyank in m_enm:
-                st.warning(f"⚠️ **Aapka sambandh:** Mulaank {mulank} aur Bhagyaank {bhagyank} ke beech sambandh **Shatruvat (Enemy)** hai.")
-                tab1_audio += f"In dono ke beech shatruvat sambandh hone ke karan, aapko thoda sangharsh karna pad sakta hai."
-            else:
-                st.info(f"ℹ️ **Aapka sambandh:** Mulaank {mulank} aur Bhagyaank {bhagyank} ke beech sambandh **Sam (Neutral)** hai.")
-                tab1_audio += f"In dono ke beech sam sambandh hai, jo aapke jeevan ko santulit banaye rakhega."
+            # ४. कार्ड का डिस्प्ले (HTML)
+            st.markdown(f"""
+            <div class="lucky-container">
+                <h3 style="text-align: center; color: #1a508b; margin-top: 0;">🌟 आपके शुभ पैरामीटर्स</h3>
+                <div class="flex-box">
+                    <div class="info-col m-bg">
+                        <h4 style="color: #1976d2; margin-top: 0;">मूलांक: {mulank} (स्वभाव)</h4>
+                        <p><span class="label">🪐 ग्रह:</span> {m_data.get('grah', 'N/A')}</p>
+                        <p><span class="label">📅 दिन:</span> {m_data.get('day', 'N/A')}</p>
+                        <p><span class="label">🎨 रंग:</span> {m_data.get('color', 'N/A')}</p>
+                        <p style="font-size: 12px; color: #666; font-style: italic;">उपयोग: दैनिक शांति व आत्मविश्वास हेतु।</p>
+                    </div>
+                    <div class="info-col b-bg">
+                        <h4 style="color: #7b1fa2; margin-top: 0;">भाग्यांक: {bhagyank} (भाग्य)</h4>
+                        <p><span class="label">🪐 ग्रह:</span> {b_data.get('grah', 'N/A')}</p>
+                        <p><span class="label">📅 दिन:</span> {b_data.get('day', 'N/A')}</p>
+                        <p><span class="label">🎨 रंग:</span> {b_data.get('color', 'N/A')}</p>
+                        <p style="font-size: 12px; color: #666; font-style: italic;">उपयोग: करियर व बड़ी सफलताओं हेतु।</p>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            # १. डेटा वेरिएबल्स (यह जोड़ना जरूरी है)
+            m_grah = m_data.get('grah', 'विशेष ग्रह')
+            m_din = m_data.get('day', 'शुभ दिन')
+            m_rang = m_data.get('color', 'शुभ रंग')
 
-            # 3. Tab 1 ke liye audio button (Sabse niche lagayein)
-            if tab1_audio:
-                st.write("---")
-                # केवल एक स्लाइडर बनेगा जो राजयोग और उपाय दोनों बोलेगा
-                bol_web(tab1_audio, "graha_voice")
-            
+            b_grah = b_data.get('grah', 'विशेष ग्रह')
+            b_din = b_data.get('day', 'शुभ दिन')
+            b_rang = b_data.get('color', 'शुभ रंग')
+
+            # २. ऑडियो स्क्रिप्ट
+            tab1_audio = (
+                f"प्रणाम {u_name} जी! आपके मूलांक {mulank} के आधार पर, जो आपके स्वभाव को दर्शाता है, "
+                f"आपका शुभ ग्रह {m_grah} है, शुभ दिन {m_din} है और आपका सबसे अनुकूल रंग {m_rang} है। "
+                f"वहीं आपके भाग्यांक {bhagyank} के अनुसार, आपका स्वामी ग्रह {b_grah} है। शुभ दिन {b_din} है और आपका सबसे अनुकूल रंग {b_rang} है।"
+            )
+
+            # ५. व्यक्तित्व का मुख्य आधार सेक्शन
+            st.markdown("---")
+            st.markdown(f"### 🌟 आपके व्यक्तित्व का मुख्य आधार")
+            st.write(f"मूलांक **{mulank}** और भाग्यांक **{bhagyank}** का यह मेल आपके जीवन की दिशा तय करता है।")
+
+            # ६. ऑडियो को कॉल करें (अगर bol_web फंक्शन बना हुआ है)
+            bol_web(tab1_audio, "graha_voice")
+               
         with tab2:
-            st.markdown("### ⚖️ नामांक (Name Number) विश्लेषण एवं परामर्श")
+            st.header("🔮 गुरु का वैज्ञानिक परामर्श")
             
-            # नामांक कार्ड
-            st.markdown(f"""
-            <div style="background-color: #ebf5fb; padding: 20px; border-radius: 15px; border-left: 8px solid #2e86c1; margin-bottom: 20px; text-align: center;">
-                <h2 style="color: #2e86c1; margin: 0;">आपका नामांक: {name_num}</h2>
-                <p style="color: #1b4f72; font-size: 16px; margin-top: 10px;">
-                (चूकि आपका नाम '{u_name}' है, जिसका अंक ज्योतिष मूल्य {name_num} आता है)
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+            # name_sum ko define karna taaki peeli line hat jaye
+            if 'name_sum' not in locals() and 'name_sum' not in globals():
+                name_sum = name_num 
 
-            # --- क्रांतिकारी परामर्श लॉजिक (The Revolutionary Logic) ---
-            
-            # १. चेक करें कि क्या नामांक पहले से ग्रिड में मौजूद है?
-            # 'all_present_nums' वह सेट है जिसमें DOB के अंक शामिल हैं
-            count_in_dob = dob_digits.count(name_num)
-            
-            if count_in_dob >= 1:
-                # चेतावनी: अगर अंक पहले से मौजूद है
-                st.error(f"⚠️ **अंकों की अति (Overload) की चेतावनी!**")
-                st.write(f"आपका नामांक **{name_num}** आपकी जन्मतिथि में पहले से ही मौजूद है। नाम के माध्यम से इस अंक की पुनरावृत्ति हो रही है, जो इस ग्रह की ऊर्जा को 'असंतुलित' कर सकती है।")
+            def get_g_n(n):
+                return grah_deta.get(int(n), {}).get('grah', 'अंक')
+
+            # Mulank aur Bhagyank ke liye grah ka naam
+            n_g, m_g, b_g = get_g_n(name_num), get_g_n(mulank), get_g_n(bhagyank)
+            t2_audio = f"Namaste! Aapka namank {name_num} hai jo {n_g} ka ank hai. "
+
+            # 1. Sanyukt Namank ka Phal (Compound Number Logic)
+            if name_sum > 9:
+                st.subheader(f"🔢 संयुक्त नामांक {name_sum} का फल")
+                f_d, s_d = int(str(name_sum)[0]), int(str(name_sum)[1])
+                g1, g2 = get_g_n(f_d), get_g_n(s_d)
                 
-                st.markdown("---")
-                st.subheader("💡 गुरु का परामर्श (Name Correction Suggestion)")
-                st.info("बेहतर सफलता और राजयोग के लिए आपको अपना नाम उस अंक पर लाना चाहिए जो आपके ग्रिड में अनुपस्थित (Missing) है।")
-
-                # २. राजयोग के लिए सबसे बेहतर सुझाव ढूंढना
-                suggestions = []
-                if 5 in missing_nums:
-                    suggestions.append(("5 (बुध)", "यह आपके 'स्वर्ण राजयोग' (4-5-6) को पूर्ण करेगा। व्यापार और संवाद में जबरदस्त सफलता मिलेगी।"))
-                elif 6 in missing_nums:
-                    suggestions.append(("6 (शुक्र)", "यह सुख-समृद्धि और पारिवारिक सुख के द्वार खोलेगा।"))
-                elif 1 in missing_nums:
-                    suggestions.append(("1 (सूर्य)", "यह सरकारी लाभ और मान-सम्मान में वृद्धि करेगा।"))
+                # Sanyukt ank ke aapas ka sambandh
+                rel = "मित्र" if s_d in friendship_logic.get(f_d, {}).get('friends', []) else "शत्रु" if s_d in friendship_logic.get(f_d, {}).get('enemies', []) else "सम"
+                inf_msg = f"आपका संयुक्त नामांक {name_sum}, {g1} ({f_d}) और {g2} ({s_d}) के योग से बना है। ये आपस में {rel} हैं।"
+                st.info(inf_msg)
+                t2_audio += f"Aapka sanyukt namank {name_sum}, {g1} aur {g2} ke yog se bana hai, jo aapas mein {rel} hain. "
                 
-                if suggestions:
-                    for title, desc in suggestions:
-                        st.success(f"✅ **सुझाव: नाम को अंक {title} पर ले जाएं।**")
-                        st.write(f"👉 {desc}")
-                else:
-                    # यदि ऊपर वाले मुख्य अंक नहीं हैं, तो कोई भी पहला मिसिंग नंबर बताएं
-                    st.success(f"✅ **सुझाव:** अपने नाम को अंक **{missing_nums[0]}** पर सेट करना आपके लिए हितकारी होगा।")
-
-            elif name_num in missing_nums:
-                # यदि नामांक किसी कमी को पूरा कर रहा है
-                st.success(f"✨ **शुभ योग:** आपका वर्तमान नामांक **{name_num}** आपके ग्रिड की एक कमी को पूरा कर रहा है। यह आपके लिए बहुत ही अनुकूल और प्रगतिशील है।")
-            
-            st.markdown("---")
-            st.warning("📣 **विशेष सलाह:** नाम की स्पेलिंग में बदलाव करने से पहले **विशाल विक्रम पांडे जी** से परामर्श अवश्य लें ताकि सूक्ष्म गणना सही हो सके। mo. 6392311093")
-            # --- टैब २ के लिए आवाज़ का हिस्सा ---
-            # पहले एक स्क्रिप्ट तैयार करते हैं
-            tab2_audio = f"नामांक विश्लेषण के अनुसार, आपका नामांक {name_num} है। "
-            
-            if count_in_dob >= 1:
-                tab2_audio = f"नमस्कार {u_name} जी। नामांक विश्लेषण के अनुसार, आपका नामांक {name_num} है। "
-
-            if count_in_dob >= 1:
-                tab2_audio += f"सावधान! आपका नामांक {name_num} आपकी जन्मतिथि के अंकों के साथ रिपीट हो रहा है। "
-    
-    # राजयोग की गणना (अंक ५ या ६ के आधार पर)
-            if 5 in missing_nums:
-                tab2_audio += "गुरु का परामर्श है कि आप अपना नाम अंक 5 पर लाने का प्रयास करें। इससे स्वर्ण राजयोग बनेगा। "
-            elif 6 in missing_nums:
-                tab2_audio += "बेहतर होगा कि आप अपना नाम अंक 6 पर ले जाएं, जिससे संपत्ति राजयोग की प्राप्ति होगी। "
-            else:
-                tab2_audio += f"सुझाव है कि आप अपने नाम को अंक {missing_nums[0] if missing_nums else 1} पर सेट करें। "
-            
-# --- आपकी पर्ची वाली विशेष सलाह जोड़ना ---
-                tab2_audio += "विशेष सलाह: नाम की स्पेलिंग में बदलाव करने हेतु और सूक्ष्म गणना के लिए विशाल विक्रम पाण्डेय जी से संपर्क करें। धन्यवाद। जय श्री राम।"
-            bol_web(tab2_audio, "tab2_advice_voice")
-            # अब मशीन को बोलने का आदेश दें
-            st.markdown("---")
-            st.write("🎙️ **गुरु का परामर्श सुनें:**")
-           
-        with tab3:
-            
-
-            # २. लो-शु ग्रिड दिखाना (फोटो 478cc4f2 के वेरिएबल्स के अनुसार)
-            st.markdown("### 🔮 लो-शू ग्रिड और विस्तृत भविष्य फल")
-            st.write("### 🔲 आपका लो-शू ग्रिड चार्ट")
-            
-            
-            # १. ऑडियो स्क्रिप्ट को यहाँ एक बार शुरू करें
-            tab3_audio = "प्रणाम! आपके चार्ट का विशेष विश्लेषण यहाँ दिया गया है। "
-
-            # २. राजयोगों को ऑडियो में जोड़ना
-            if 'active_rajyog' in locals() and active_rajyog:
-                tab3_audio += "सबसे पहले आपके चार्ट के राजयोगों की बात करते हैं। आपके चार्ट में ये विशेष राजयोग बन रहे हैं: "
-                for ry in active_rajyog:
-                    st.success(f"✔️ {ry}") # स्क्रीन पर दिखाएँ
-                    tab3_audio += f"{ry}। " # ऑडियो में जोड़ें
-            else:
-                st.info("फिलहाल इस चार्ट में कोई विशेष राजयोग नहीं बन रहा है।")
-                tab3_audio += "फिलहाल इस चार्ट में कोई विशेष राजयोग नहीं है। "
+                c_f = compound_master_81.get(int(name_sum), "यह विशिष्ट ऊर्जा वाला अंक है।")
+                st.success(f"**फल:** {c_f}")
+                t2_audio += f"Iska phal hai: {c_f}. "
 
             st.write("---")
 
+            # 2. Maitree Analysis (Grah aur Ank ke Naam ke Saath)
+            st.subheader(f"📊 अंक मैत्री विवरण: {name_num} ({n_g})")
+            m_en = friendship_logic.get(int(mulank), {}).get('enemies', [])
+            b_en = friendship_logic.get(int(bhagyank), {}).get('enemies', [])
+
+            shatru_list = []
+            if name_num in m_en: shatru_list.append(f"मूलांक {mulank} ({m_g})")
+            if name_num in b_en: shatru_list.append(f"भाग्यांक {bhagyank} ({b_g})")
+
+            if not shatru_list:
+                msg = f"नामांक {name_num} ({n_g}), मूलांक {mulank} ({m_g}) और भाग्यांक {bhagyank} ({b_g}) दोनों का मित्र है।"
+                st.success(f"✅ {msg}")
+                t2_audio += f"{msg} "
+            else:
+                msg = f"नामांक {name_num} ({n_g}) आपके {' और '.join(shatru_list)} का शत्रु है।"
+                st.error(f"❌ {msg}")
+                t2_audio += f"{msg} "
+
+            st.write("---")
+
+            # 3. Rajyog Logic (Mangal 9 ko prathmikta)
+            st.subheader("💡 गुरु का विशेष राजयोग सुझाव")
+            priorities = [
+                {'t': 9, 'others': [3, 6], 'name': "आध्यात्मिक प्लेन (3-6-9)"},
+                {'t': 4, 'others': [5, 6], 'name': "गोल्डन राजयोग (4-5-6)"}
+            ]
+
+            for p in priorities:
+                target = p['t']
+                if target in missing_nums and all(x in grid_pos for x in p['others']):
+                    t_grah = get_g_n(target)
+                    # Check if it's safe (not enemy of mulank or bhagyank)
+                    if target not in m_en and target not in b_en:
+                        msg = f"{p['name']} पूरा करने हेतु {target} ({t_grah}) अपनाएं, यह आपके मूलांक {mulank} और भाग्यांक {bhagyank} का मित्र है।"
+                        st.success(f"🌟 {msg}")
+                        t2_audio += f"Sujhav hai ki {msg} "
+                        break
+                    else:
+                        shatru_of = "मूलांक" if target in m_en else "भाग्यांक"
+                        msg = f"अंक {target} ({t_grah}) {p['name']} बना सकता है, पर यह आपके {shatru_of} का शत्रु है, अतः न अपनाएं।"
+                        st.warning(f"⚠️ {msg}")
+                        t2_audio += f"Chetavni! {msg} "
+                # ३. ऑडियो प्ले करना
+                    if 'bol_web' in locals():
+                        bol_web(tab1_audio, "graha_voice")
+            # Contact Info [cite: 2025-06-12]
+            st.write("---")
+            contact_msg = "सुक्ष्म गाडना हेतु Vishal Vikram Pandey ji se संपर्क करे ."
+            st.info(f"📍 {contact_msg}")
+            t2_audio += f" {contact_msg}"
+            
+            bol_web(t2_audio, "tab2_voice")
+            st.markdown("<p style='text-align: center; color: gray;'>आचार्य विशाल विक्रम पांडे</p>", unsafe_allow_html=True)
+
+     
+        with tab3:
+            st.markdown("### 🌟 लो-शू ग्रिड और विस्तृत भविष्य फल")
+            
+            # 1. सबसे पहले ऑडियो वेरिएबल को परिभाषित (Define) करें
+            tab3_audio = "प्रणाम! आपके चार्ट का विशेष विश्लेषण यहाँ दिया गया है। "
+
+            # 2. अब grid_counts को परिभाषित करें ताकि पिछला Error न आए
+            from collections import Counter
+            grid_counts = Counter(dob_digits)
+            for num in [mulank, bhagyank, name_num, kua]:
+                grid_counts[num] += 1
+
+            # 3. अब राजयोग की गणना (Calculation)
+            active_rajyog = []
+            planes = [
+                ([4, 9, 2], "मानसिक शक्ति राजयोग (4-9-2)"),
+                ([3, 5, 7], "इच्छा शक्ति राजयोग (3-5-7)"),
+                ([8, 1, 6], "कर्म शक्ति राजयोग (8-1-6)"),
+                ([4, 5, 6], "गोल्डन राजयोग (4-5-6)"),
+                ([2, 5, 8], "सिल्वर राजयोग (2-5-8)")
+            ]
+
+            for plane_nums, plane_name in planes:
+                if all(grid_counts.get(num, 0) > 0 for num in plane_nums):
+                    active_rajyog.append(plane_name)
+
+            # 4. अब आपका पुराना ऑडियो वाला हिस्सा (जो फोटो fe7396e7 में है)
+            if active_rajyog:
+                tab3_audio += "सबसे पहले आपके चार्ट के राजयोगों की बात करते हैं। "
+                for ry in active_rajyog:
+                    st.success(f"✅ {ry}")
+                    tab3_audio += f"{ry}. "
+            # 1. Sabse pehle audio variable ko start karein (Taki Error na aaye)
+            tab3_audio = "प्रणाम! आपके चार्ट का विशेष विश्लेषण यहाँ दिया गया है। "
+
+            # 2. Missing Numbers ki list taiyaar karein
+            all_present_nums = set(dob_digits) | {mulank, bhagyank, name_num, kua}
+            missing_nums = [n for n in range(1, 10) if n not in all_present_nums]
+
+            # 3. Rajyog ka logic (Jo humne pehle discuss kiya tha)
+            active_rajyog = []
+            # ... (Yahan aapka planes wala loop rahega)
+
+            # 4. Missing Numbers ka Audio aur Display
+            if missing_nums:
+                tab3_audio += "अब आपके चार्ट में मौजूद मिसिंग नंबरों के उपायों की चर्चा करते हैं। "
+                for n in missing_nums:
+                    if n in remedy_info:
+                        g = remedy_info[n]['grah']
+                        u = remedy_info[n]['upay']
+                        st.info(f"🚩 **अंक {n} ({g}):** {u}") # Screen par dikhane ke liye
+                        tab3_audio += f"अंक {n} जो {g} का है, उसके लिए उपाय है: {u}। " # Audio mein jodne ke liye        
+                                
             # ३. उपायों को ऑडियो में जोड़ना
             if 'missing_nums' in locals():
-                tab3_audio += "अब लुप्त अंकों के उपायों की चर्चा करते हैं। "
+                tab3_audio += "अब missing number के उपायों की चर्चा करते हैं। "
                 for n in missing_nums:
                     if n in remedy_info:
                         g = remedy_info[n]["grah"]
@@ -494,3 +675,4 @@ if submit:
                 st.write("---")
                 # केवल एक स्लाइडर बनेगा जो राजयोग और उपाय दोनों बोलेगा
                 bol_web(tab3_audio, "graha_voice")
+                
