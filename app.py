@@ -702,11 +702,6 @@ if submit:
                     st.success("🎯 आपकी ग्रिड में सभी ग्रहों की ऊर्जा संतुलित है। कोई भी ग्रह दो से अधिक बार नहीं आया है।")
                     tab2_audio += "Aapki grid mein sabhi grahon ki oorja santulit hai. "
                 # ==========================================
-                if not has_overactive:
-                    # पूर्णतः हिंदी में सफलता का संदेश
-                    st.success("🎯 आपकी ग्रिड में सभी ग्रहों की ऊर्जा संतुलित है। कोई भी ग्रह दो से अधिक बार नहीं आया है।")
-                    tab2_audio += "Aapki grid mein sabhi grahon ki oorja santulit hai. "
-                # ==========================================
                 # ३. ऑडियो प्ले करना
                 st.write("---")
                 contact_msg = "सुक्ष्म गाडना हेतु Vishal Vikram Pandey ji se संपर्क करे ."
