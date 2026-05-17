@@ -376,7 +376,7 @@ if submit:
         ]
          
         rajyog_fal = {
-        "मानसिक शक्ति राजयोग (4-9-2)": " 4  आपकी सोचने की शक्ति और मेमोरी बहुत तेज है। आप मानसिक कार्यों में बहुत सफल होते हैं।",
+        "मानसिक शक्ति राजयोग (4-9-2)": "आपकी सोचने की शक्ति और मेमोरी बहुत तेज है। आप मानसिक कार्यों में बहुत सफल होते हैं।",
         "इच्छा शक्ति राजयोग (3-5-7)": "आपकी संकल्प शक्ति बहुत मजबूत है। आप जो ठान लेते हैं, उसे पूरा करके ही दम लेते हैं।",
         "कर्म शक्ति राजयोग (8-1-6)": "आप अत्यंत परिश्रमी हैं। आपका कर्म ही आपकी सफलता का मुख्य आधार बनता है।",
         "विचार शक्ति राजयोग (4-3-8)": "आप योजना बनाने में माहिर हैं। आपकी दूरदर्शिता आपको व्यापार और करियर में लाभ दिलाती है।",
@@ -552,25 +552,25 @@ if submit:
             tab2_audio = f"Namaste! Aapka namank {name_num} hai jo {n_g} ka ank hai. "
 
             # 1. Sanyukt Namank ka Phal (Compound Number Logic)
-            if name_sum > 0:
-                # अंकों को अलग करने का सही तरीका
-                s_name_sum = str(name_sum)
-                f_d = int(s_name_sum[0])
-                s_d = int(s_name_sum[1]) if len(s_name_sum) > 1 else 0
-                g1, g2 = get_g_n(f_d), get_g_n(s_d)
+            if name_sum > 1:
+                # === ३.५ कम्पाउंड नंबर (Compound Number) का फलकथन और ऑडियो स्क्रिप्ट ===
+                st.subheader("🔢 Compound Number (संयुक्त अंक) का फल")
                 
-                # Sanyukt ank ke aapas ka sambandh
-                rel = "मित्र" if s_d in friendship_logic.get(f_d, {}).get('friends', []) else "शत्रु" if s_d in friendship_logic.get(f_d, {}).get('enemies', []) else "सम"
-                inf_msg = f"आपका संयुक्त नामांक {name_sum}, {g1} ({f_d}) और {g2} ({s_d}) के योग से बना है। ये आपस में {rel} हैं।"
-                st.info(inf_msg)
-                tab2_audio += f"Aapka sanyukt namank {name_sum}, {g1} aur {g2} ke yog se bana hai, jo aapas mein {rel} hain. "
+                # 'name_val' वेरिएबल से नाम का कुल योग लेकर कम्पाउंड फल निकालना
+                compound_num = name_val
+                compound_fal = compound_master_81.get(compound_num, "इस संयुक्त अंक का फल अभी उपलब्ध नहीं है।")
                 
-                c_f = compound_master_81.get(int(name_sum), "यह विशिष्ट ऊर्जा वाला अंक है।")
-                st.success(f"**फल:** {c_f}")
-                tab2_audio += f"Iska phal hai: {c_f}. "
+                # स्क्रीन पर दिखाना
+                st.info(f"**आपका संयुक्त अंक {compound_num} है:** {compound_fal}")
+                
+                # ऑडियो स्क्रिप्ट तैयार करना (ताकि अंत में गुरु इसे बोलकर सुनाएं)
+                compound_audio_text = f" विशाल जी, आपके नाम के अक्षरों का कुल योग, यानी आपका संयुक्त अंक जिसे कम्पाउंड नंबर कहते हैं, वह {compound_num} है। ज्योतिष गणना के अनुसार, {compound_fal} "
+                
+                # इसे टैब ३ के मुख्य ऑडियो वेरिएबल में जोड़ना (बिना पुराना डेटा हटाए)
+                tab2_audio += compound_audio_text
 
-                st.write("---")
-
+                st.divider()
+                
                 # 2. Maitree Analysis (Grah aur Ank ke Naam ke Saath)
                 st.subheader(f"📊 अंक मैत्री विवरण: {name_num} ({n_g})")
                 m_en = friendship_logic.get(int(mulank), {}).get('enemies', [])
@@ -593,37 +593,128 @@ if submit:
 
                 # 3. Rajyog Logic (Mangal 9 ko prathmikta)
                 st.subheader("💡 गुरु का विशेष राजयोग सुझाव")
+                # यहाँ हम यूज़र के सभी शुद्ध अंकों को एक साथ मिला रहे हैं
+                शुद्ध_अंक_स्ट्रिंग = str(mulank) + str(bhagyank) + str(name_num)
+                
+                # यदि आपने कुआ नंबर भी ग्रिड में जोड़ा है, तो उसे भी यहाँ शामिल कर लें:
+                if 'kua_num' in locals() or 'kua_num' in globals():
+                    शुद्ध_अंक_स्ट्रिंग += str(kua)
+                    
+                # अगर आपके पास जन्मतिथि के अंकों की कोई शुद्ध स्ट्रिंग (जैसे 'dob_digits') है, तो उसे भी जोड़ सकते हैं:
+                if 'dob_digits' in locals() or 'dob_digits' in globals():
+                    शुद्ध_अंक_स्ट्रिंग += str(dob_digits)
+                # यूज़र के पास जितने भी असली अंक मौजूद हैं, उनकी एक शुद्ध लिस्ट
+                मौजूद_अंक_लिस्ट = [int(char) for char in शुद्ध_अंक_स्ट्रिंग if char.isdigit()]
                 priorities = [
-                    {'t': 9, 'others': [3, 6], 'name': "आध्यात्मिक प्लेन (3-6-9)"},
-                    {'t': 4, 'others': [5, 6], 'name': "गोल्डन राजयोग (4-5-6)"}
-                ]
+                {'t': 4, 'others': [5, 6], 'name': "गोल्डन राजयोग (4-5-6)"},
+                {'t': 5, 'others': [4, 6], 'name': "गोल्डन राजयोग (4-5-6)"},
+                {'t': 6, 'others': [4, 6], 'name': "गोल्डन राजयोग (4-5-6)"},
+                {'t': 2, 'others': [5, 8], 'name': "रजत राजयोग (2-5-8)"},
+                {'t': 5, 'others': [2, 8], 'name': "रजत राजयोग (2-5-8)"},
+                {'t': 8, 'others': [2, 5], 'name': "रजत राजयोग (2-5-8)"},
+                {'t': 4, 'others': [3, 8], 'name': "विचार शक्ति राजयोग (4-3-8)"},
+                {'t': 3, 'others': [4, 8], 'name': "विचार शक्ति राजयोग (4-3-8)"},
+                {'t': 8, 'others': [4, 3], 'name': "विचार शक्ति राजयोग (4-3-8)"},
+                {'t': 9, 'others': [5, 1], 'name': "सफलता राजयोग (9-5-1)"},
+                {'t': 5, 'others': [9, 1], 'name': "सफलता राजयोग (9-5-1)"},
+                {'t': 1, 'others': [9, 5], 'name': "सफलता राजयोग (9-5-1)"},
+                {'t': 4, 'others': [9, 2], 'name': "मानसिक शक्ति राजयोग (4-9-2)"},
+                {'t': 9, 'others': [4, 2], 'name': "मानसिक शक्ति राजयोग (4-9-2)"},
+                {'t': 2, 'others': [4, 9], 'name': "मानसिक शक्ति राजयोग (4-9-2)"},
+                {'t': 3, 'others': [5, 7], 'name': " इच्छा शक्ति राजयोग (3-5-7)"},
+                {'t': 5, 'others': [3, 7], 'name': " इच्छा शक्ति राजयोग (3-5-7)"},
+                {'t': 7, 'others': [5, 3], 'name': " इच्छा शक्ति राजयोग (3-5-7)"},
+                {'t': 8, 'others': [1, 6], 'name': "  कर्म शक्ति राजयोग (8-1-6)"},
+                {'t': 1, 'others': [8, 6], 'name': "  कर्म शक्ति राजयोग (8-1-6)"},
+                {'t': 6, 'others': [1, 8], 'name': "  कर्म शक्ति राजयोग (8-1-6)"},
+                {'t': 2, 'others': [7, 6], 'name': "  संतान और संपन्नता (2-7-6)"},
+                {'t': 7, 'others': [2, 6], 'name': "  संतान और संपन्नता (2-7-6)"},
+                {'t': 6, 'others': [7, 2], 'name': "  संतान और संपन्नता (2-7-6)"},
+                {'t': 3, 'others': [5, 7], 'name': "  इच्छा शक्ति राजयोग (3-5-7)"},
+                {'t': 5, 'others': [3, 7], 'name': "  इच्छा शक्ति राजयोग (3-5-7)"},
+                {'t': 7, 'others': [5, 3], 'name': "  इच्छा शक्ति राजयोग (3-5-7)"},
+            ]
+                राजयोग_मिला = False
 
                 for p in priorities:
                     target = p['t']
-                    if target in missing_nums and all(x in grid_pos for x in p['others']):
-                        t_grah = get_g_n(target)
-                        # Check if it's safe (not enemy of mulank or bhagyank)
+                    
+                    # शर्त १: जो अंक चाहिए (target) वह यूज़र के पास मौजूद नहीं होना चाहिए
+                    # शर्त २: राजयोग को पूरा करने वाले बाकी दोनों अंक यूज़र के पास सच में मौजूद होने चाहिए
+                    if (target not in मौजूद_अंक_लिस्ट) and all(x in मौजूद_अंक_लिस्ट for x in p['others']):
+                        
+                        # शत्रु अंकों की जांच (मूलांक और भाग्यांक से)
                         if target not in m_en and target not in b_en:
+                            t_grah = get_g_n(target)
                             msg = f"{p['name']} पूरा करने हेतु {target} ({t_grah}) अपनाएं, यह आपके मूलांक {mulank} और भाग्यांक {bhagyank} का मित्र है।"
                             st.success(f"🌟 {msg}")
                             tab2_audio += f"Sujhav hai ki {msg} "
-                            break
-                else:
-                    shatru_of = "मूलांक" if target in m_en else "भाग्यांक"
-                    msg = f"अंक {target} ({t_grah}) {p['name']} बना सकता है, पर यह आपके {shatru_of} का शत्रु है, अतः न अपनाएं।"
-                    st.warning(f"⚠️ {msg}")
-                    tab2_audio += f"Chetavni! {msg} "
-            # ३. ऑडियो प्ले करना
-               
-            # Contact Info [cite: 2025-06-12]
-            st.write("---")
-            contact_msg = "सुक्ष्म गाडना हेतु Vishal Vikram Pandey ji se संपर्क करे ."
-            st.info(f"📍 {contact_msg}")
-            tab2_audio += f" {contact_msg}"
-            bol_web(tab2_audio, "tab2_voice")
-            st.markdown("<p style='text-align: center; color: gray;'>आचार्य विशाल विक्रम पांडे</p>", unsafe_allow_html=True)
+                            राजयोग_मिला = True
+                            break  # एक मुख्य राजयोग का सुझाव मिलने पर लूप रोकें
+                        else:
+                            # अगर वह अंक शत्रु है, तो चेतावनी दें और दूसरा राजयोग चेक करें
+                            shatru_of = "मूलांक" if target in m_en else "भाग्यांक"
+                            t_grah = get_g_n(target)
+                            msg = f"अंक {target} ({t_grah}) से आपका {p['name']} बन सकता है, पर यह आपके {shatru_of} का शत्रु है, अतः इसे न अपनाएं।"
+                            st.warning(f"⚠️ {msg}")
+                            tab2_audio += f"Chetavni! {msg} "
+                            # यहाँ break नहीं करेंगे ताकि सिस्टम लिस्ट में अगला सुरक्षित राजयोग ढूंढ सके
 
-     
+                if not राजयोग_मिला:
+                    st.info("ℹ️ वर्तमान में आपके लिए कोई नया विशेष राजयोग सुझाव उपलब्ध नहीं है।")
+                        # यूज़र के पास जितने भी असली अंक मौजूद हैं, उनकी एक शुद्ध लिस्ट
+                मौजूद_अंक_लिस्ट = [int(char) for char in शुद्ध_अंक_स्ट्रिंग if char.isdigit()]
+
+                st.write("---")
+
+                        # ==========================================
+                # 🆕 संशोधित लॉजिक: ग्रिड के कंबाइंड टेक्स्ट में से अंकों की सही गिनती
+                # ==========================================
+            
+                st.subheader("⚠️ अत्यधिक पुनरावृत्ति एवं ऊर्जा असंतुलन")
+                
+                has_overactive = False
+                
+                # १ से ९ तक के सभी अंकों की बिल्कुल शुद्ध और सटीक जांच
+                for num in range(1, 10):
+                    count_in_grid = शुद्ध_अंक_स्ट्रिंग.count(str(num))
+                    
+                    # यदि कोई अंक २ से अधिक बार आया है (३ या उससे ज़्यादा बार)
+                    if count_in_grid > 2:
+                        has_overactive = True
+                        grah_name = get_g_n(num)
+                        
+                        # पूर्णतः हिंदी में चेतावनी बॉक्स
+                        st.warning(f"✨ **अंक {num} ({grah_name})** आपकी ग्रिड में **{count_in_grid} बार** आया है।")
+                        
+                        # पूर्णतः हिंदी में असंतुलन का विवरण
+                        st.write(
+                            f"लो-शू ग्रिड में दो से अधिक बार मौजूद होने के कारण **{grah_name}** की शक्ति अत्यधिक बढ़ गई है, "
+                            f"जिससे आपकी **ऊर्जा असंतुलित हो रही है**। इसे संतुलित करने के लिए कृपया विशेष ज्योतिषीय उपाय अपनाएं।"
+                        )
+                        
+                        # ऑडियो स्क्रिप्ट (बैकएंड में गुरु के बोलने के लिए)
+                        overactive_audio = f"Aapki grid mein ank {num} do se adhik baar aaya hai, jisse {grah_name} ki oorja asantulit ho rahi hai. Kripya is grah ke vishesh upaye karein. "
+                        tab2_audio += overactive_audio
+
+                if not has_overactive:
+                    # पूर्णतः हिंदी में सफलता का संदेश
+                    st.success("🎯 आपकी ग्रिड में सभी ग्रहों की ऊर्जा संतुलित है। कोई भी ग्रह दो से अधिक बार नहीं आया है।")
+                    tab2_audio += "Aapki grid mein sabhi grahon ki oorja santulit hai. "
+                # ==========================================
+                if not has_overactive:
+                    # पूर्णतः हिंदी में सफलता का संदेश
+                    st.success("🎯 आपकी ग्रिड में सभी ग्रहों की ऊर्जा संतुलित है। कोई भी ग्रह दो से अधिक बार नहीं आया है।")
+                    tab2_audio += "Aapki grid mein sabhi grahon ki oorja santulit hai. "
+                # ==========================================
+                # ३. ऑडियो प्ले करना
+                st.write("---")
+                contact_msg = "सुक्ष्म गाडना हेतु Vishal Vikram Pandey ji se संपर्क करे ."
+                st.info(f"📍 {contact_msg}")
+                tab2_audio += f" {contact_msg}"
+                bol_web(tab2_audio, "tab2_voice")
+                st.markdown("<p style='text-align: center; color: gray;'>आचार्य विशाल विक्रम पांडे</p>", unsafe_allow_html=True)
+
         with tab3:
             # १. ऑडियो वेरिएबल को शुरू करें
             tab3_audio = "प्रणाम! आपके चार्ट का विशेष विश्लेषण यहाँ दिया गया है। "
