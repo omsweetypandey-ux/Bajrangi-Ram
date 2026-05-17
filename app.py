@@ -440,7 +440,46 @@ if submit:
             st.session_state['dob_digits'] = dob_digits
             st.session_state['missing_nums'] = missing_nums
             st.session_state['name_num'] = name_num
-
+                     # =======================================================
+                # 💮 कैटगरी चेतावनियाँ और लाइव चमकने वाला बार (100% वर्किंग)
+                # =======================================================
+        
+                # CSS एनीमेशन: जो पूरे बॉक्स का बैकग्राउंड और बॉर्डर लगातार बदलेगा
+                जादुई_कैटगरी_स्टाइल = """
+                <style>
+                @keyframes blinkCategory {
+                    0%   { background-color: #FF4B4B; border-color: #FF1A1A; box-shadow: 0 0 15px rgba(255,75,75,0.7); }
+                    33%  { background-color: #00BCD4; border-color: #0097A7; box-shadow: 0 0 15px rgba(0,188,212,0.7); }
+                    66%  { background-color: #4CAF50; border-color: #388E3C; box-shadow: 0 0 15px rgba(76,175,80,0.7); }
+                    100% { background-color: #FF9800; border-color: #F57C00; box-shadow: 0 0 15px rgba(255,152,0,0.7); }
+                }
+        
+                .glow-bar {
+                    animation: blinkCategory 6s infinite alternate;
+                    padding: 15px;
+                    border-radius: 15px;
+                    border: 3px solid #FF4B4B;
+                    text-align: center;
+                    margin-bottom: 25px;
+                    color: white !important;
+                }
+        
+                .glow-bar h3, .glow-bar p {
+                    color: white !important;
+                    margin: 0px !important;
+                    font-weight: bold !important;
+                    text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+                }
+                </style>
+        
+                <div class="glow-bar">
+                    <h3>👇 कृपया नीचे दी गई तीनों कैटगरी अवश्य देखें 👇</h3>
+                    <p>१. मूलांक-भाग्यांक फल | २. नाम-भाग्य विचार | ३. ग्रिड एवं उपाय</p>
+                </div>
+                """
+        
+                # इसे स्क्रीन पर दिखाना (यह हर सेकंड रंग बदलेगा)
+                st.markdown(जादुई_कैटगरी_स्टाइल, unsafe_allow_html=True)
             # Ab aapke purane tabs yahan se shuru honge
         tab1, tab2, tab3 = st.tabs(["📑 मूलांक-भाग्यांक फल", "🔮 नाम-भाग्य विचार", "🎡 ग्रिड एवं उपाय"])      
                     
