@@ -486,11 +486,11 @@ if submit:
 
         .glow-bar {
             animation: blinkCategory 6s infinite alternate;
-            padding: 15px;
-            border-radius: 15px;
-            border: 3px solid #FF4B4B;
+            padding: 3px;
+            border-radius: 10px;
+            border: 2px solid #FF4B4B;
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 3px;
             color: white !important;
         }
 
@@ -522,6 +522,11 @@ if submit:
 
             # २. पहले से डिफाइन करें ताकि NameError न आए
             tab1_audio = f"नमस्ते {u_name} जी। आपके मूलांक और भाग्यांक का विश्लेषण तैयार है।"
+            tab1_audio += f"जय बजरंगबली {u_name} जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है  "
+            tab1_audio += f"आपका मूलांक {mulank} और भाग्यांक {bhagyank} है। "
+            tab1_audio += f"नामांक {name_num} और कुआ नंबर {kua} है। "
+            tab1_audio += f"आपके ग्रहों का फल कहता है कि {comb_fal}। "
+           
 
             # ३. प्रीमियम कार्ड का डिज़ाइन (CSS)
             st.markdown("""
