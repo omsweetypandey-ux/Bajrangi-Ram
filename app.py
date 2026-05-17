@@ -394,38 +394,68 @@ if submit:
                 ]
         # ४. राजयोग का फल जोड़ना
                 # टैब्स को मोबाइल फ्रेंडली और सुंदर बनाने के लिए नया CSS
+        
+                                # =======================================================
+        # 🎯 केवल कैटगरी (Tabs) को लाइव रंग बदलने वाला बनाने का अचूक CSS
+        # =======================================================
         st.markdown("""
         <style>
-            /* टैब्स के पूरे कंटेनर को मोबाइल स्क्रीन पर फिट करना */
-            .stTabs [data-baseweb="tab-list"] {
-                display: flex;
-                flex-wrap: wrap; /* यह लाइन मोबाइल पर टैब्स को टूटने से बचाएगी */
-                gap: 8px;
-                width: 100%;
-                justify-content: center;
-            }
+        /* १. पूरे कैटगरी बॉक्स के बाहर का आलीशान फ्रेम */
+        .stTabs [data-baseweb="tab-list"] {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 12px !important;
+            width: 100% !important;
+            justify-content: center !important;
+            background: linear-gradient(135deg, #ffffff, #f7f9fc) !important;
+            padding: 14px 10px !important;
+            border-radius: 20px !important;
+            box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12) !important;
+            border: 2px solid #E2E8F0 !important;
+            margin-bottom: 25px !important;
+        }
 
-            /* हर टैब बटन का स्टाइल */
-            .stTabs [data-baseweb="tab"] {
-                flex: 1 1 auto; /* टैब नाम के हिसाब से अपनी चौड़ाई लेगा */
-                min-width: 80px; 
-                height: auto; /* फिक्स हाइट हटा दी ताकि मोबाइल पर समस्या न हो */
-                padding: 8px 12px;
-                background-color: #F0F2F6;
-                border-radius: 10px 10px 0px 0px;
-                font-weight: bold;
-                font-size: 14px; /* मोबाइल के लिए सही साइज */
-                color: #2C3E50;
-            }
+        /* २. हर एक कैटगरी बटन का डिफ़ॉल्ट ढांचा (अक्षरों को बड़ा और कड़क करना) */
+        .stTabs [data-baseweb="tab"] {
+            flex: 1 1 auto !important;
+            min-width: 110px !important;
+            height: auto !important;
+            padding: 12px 20px !important;
+            background-color: #F8FAFC !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 12px !important;
+            font-weight: 900 !important; /* अक्षर एकदम कड़क और मोटे दिखेंगे */
+            font-size: 16px !important;  /* फॉन्ट साइज को बड़ा किया */
+            color: #475569 !important;
+            text-align: center !important;
+            transition: all 0.4s ease-in-out !important;
+        }
 
-            /* जब कोई टैब सिलेक्ट हो (Active Tab) */
-            .stTabs [aria-selected="true"] {
-                background-color: #E74C3C !important; /* बजरंग लाल रंग */
-                color: white !important;
-                border-bottom: 3px solid #FFD700 !important;
-            }
+        /* ३. 🌟 गिरगिट एनीमेशन प्रभाव जो लगातार रंग बदलेगा */
+        @keyframes categoryColorShift {
+            0%   { background-color: #FF4B4B !important; color: white !important; box-shadow: 0 0 15px rgba(255,75,75,0.6) !important; }
+            33%  { background-color: #00BCD4 !important; color: white !important; box-shadow: 0 0 15px rgba(0,188,212,0.6) !important; }
+            66%  { background-color: #4CAF50 !important; color: white !important; box-shadow: 0 0 15px rgba(76,175,80,0.6) !important; }
+            100% { background-color: #FF9800 !important; color: white !important; box-shadow: 0 0 15px rgba(255,152,0,0.6) !important; }
+        }
+
+        /* ४. 🔥 महा-अचूक सिलेक्टर: जो कैटगरी यूज़र ने चुनी है, उसका बैकग्राउंड रंग जबरन बदलेगा */
+        .stTabs [aria-selected="true"], 
+        .stTabs [aria-selected="true"] > div,
+        .stTabs [data-baseweb="tab"][aria-selected="true"] {
+            animation: categoryColorShift 6s infinite alternate !important; /* हर २ सेकंड में शालीनता से रंग बदलेगा */
+            transform: scale(1.06) translateY(-2px) !important; /* बटन थोड़ा बड़ा और ऊपर उठा रहेगा */
+            border: none !important;
+        }
+
+        /* ५. जब यूज़र कैटगरी पर उंगली या माउस ले जाएगा */
+        .stTabs [data-baseweb="tab"]:hover {
+            background-color: #EDF2F7 !important;
+            color: #0F172A !important;
+        }
         </style>
         """, unsafe_allow_html=True)
+                        
         # ६. 🎤 ऑडियो स्क्रिप्ट (जो सब कुछ बोलकर बताएगा)
         audio_script = f"जय बजरंगबली {u_name} जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है  "
         audio_script += f"आपका मूलांक {mulank} और भाग्यांक {bhagyank} है। "
@@ -440,46 +470,46 @@ if submit:
             st.session_state['dob_digits'] = dob_digits
             st.session_state['missing_nums'] = missing_nums
             st.session_state['name_num'] = name_num
-                     # =======================================================
-                # 💮 कैटगरी चेतावनियाँ और लाइव चमकने वाला बार (100% वर्किंग)
-                # =======================================================
-        
-                # CSS एनीमेशन: जो पूरे बॉक्स का बैकग्राउंड और बॉर्डर लगातार बदलेगा
-                जादुई_कैटगरी_स्टाइल = """
-                <style>
-                @keyframes blinkCategory {
-                    0%   { background-color: #FF4B4B; border-color: #FF1A1A; box-shadow: 0 0 15px rgba(255,75,75,0.7); }
-                    33%  { background-color: #00BCD4; border-color: #0097A7; box-shadow: 0 0 15px rgba(0,188,212,0.7); }
-                    66%  { background-color: #4CAF50; border-color: #388E3C; box-shadow: 0 0 15px rgba(76,175,80,0.7); }
-                    100% { background-color: #FF9800; border-color: #F57C00; box-shadow: 0 0 15px rgba(255,152,0,0.7); }
-                }
-        
-                .glow-bar {
-                    animation: blinkCategory 6s infinite alternate;
-                    padding: 15px;
-                    border-radius: 15px;
-                    border: 3px solid #FF4B4B;
-                    text-align: center;
-                    margin-bottom: 25px;
-                    color: white !important;
-                }
-        
-                .glow-bar h3, .glow-bar p {
-                    color: white !important;
-                    margin: 0px !important;
-                    font-weight: bold !important;
-                    text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
-                }
-                </style>
-        
-                <div class="glow-bar">
-                    <h3>👇 कृपया नीचे दी गई तीनों कैटगरी अवश्य देखें 👇</h3>
-                    <p>१. मूलांक-भाग्यांक फल | २. नाम-भाग्य विचार | ३. ग्रिड एवं उपाय</p>
-                </div>
-                """
-        
-                # इसे स्क्रीन पर दिखाना (यह हर सेकंड रंग बदलेगा)
-                st.markdown(जादुई_कैटगरी_स्टाइल, unsafe_allow_html=True)
+                        # =======================================================
+        # 💮 कैटगरी चेतावनियाँ और लाइव चमकने वाला बार (100% वर्किंग)
+        # =======================================================
+
+        # CSS एनीमेशन: जो पूरे बॉक्स का बैकग्राउंड और बॉर्डर लगातार बदलेगा
+        जादुई_कैटगरी_स्टाइल = """
+        <style>
+        @keyframes blinkCategory {
+            0%   { background-color: #FF4B4B; border-color: #FF1A1A; box-shadow: 0 0 15px rgba(255,75,75,0.7); }
+            33%  { background-color: #00BCD4; border-color: #0097A7; box-shadow: 0 0 15px rgba(0,188,212,0.7); }
+            66%  { background-color: #4CAF50; border-color: #388E3C; box-shadow: 0 0 15px rgba(76,175,80,0.7); }
+            100% { background-color: #FF9800; border-color: #F57C00; box-shadow: 0 0 15px rgba(255,152,0,0.7); }
+        }
+
+        .glow-bar {
+            animation: blinkCategory 6s infinite alternate;
+            padding: 15px;
+            border-radius: 15px;
+            border: 3px solid #FF4B4B;
+            text-align: center;
+            margin-bottom: 25px;
+            color: white !important;
+        }
+
+        .glow-bar h3, .glow-bar p {
+            color: white !important;
+            margin: 0px !important;
+            font-weight: bold !important;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+        }
+        </style>
+
+        <div class="glow-bar">
+            <h3>👇 कृपया नीचे दी गई तीनों कैटगरी अवश्य देखें 👇</h3>
+            <p>१. मूलांक-भाग्यांक फल | २. नाम-भाग्य विचार | ३. ग्रिड एवं उपाय</p>
+        </div>
+        """
+
+        # इसे स्क्रीन पर दिखाना (यह हर सेकंड रंग बदलेगा)
+        st.markdown(जादुई_कैटगरी_स्टाइल, unsafe_allow_html=True)
             # Ab aapke purane tabs yahan se shuru honge
         tab1, tab2, tab3 = st.tabs(["📑 मूलांक-भाग्यांक फल", "🔮 नाम-भाग्य विचार", "🎡 ग्रिड एवं उपाय"])      
                     
@@ -741,6 +771,7 @@ if submit:
                     st.success("🎯 आपकी ग्रिड में सभी ग्रहों की ऊर्जा संतुलित है। कोई भी ग्रह दो से अधिक बार नहीं आया है।")
                     tab2_audio += "Aapki grid mein sabhi grahon ki oorja santulit hai. "
                 # ==========================================
+                
                 # ३. ऑडियो प्ले करना
                 st.write("---")
                 contact_msg = "सुक्ष्म गाडना हेतु Vishal Vikram Pandey ji se संपर्क करे ."
