@@ -283,7 +283,11 @@ if submit:
     
     y_sum = get_single_digit(y)
     kua = get_single_digit(11 - y_sum) if u_gender == "Male" else get_single_digit(y_sum + 4)
-
+        # पहले पेज की गणना के तुरंत बाद इसे मेमोरी (Session State) में सेव करें
+    st.session_state['user_logged_in'] = True
+    st.session_state['app_mulank'] = mulank
+    st.session_state['app_bhagyank'] = bhagyank
+     
 # --- अंक ज्योतिष मैत्री गणना (1 से 9 अंक) ---
     friendship_logic = {
             1: {'friends': [2, 3, 5, 9], 'enemies': [8], 'neutral': [4, 6, 7]},
@@ -311,7 +315,7 @@ if submit:
         # मूलांक और भाग्यांक का संबंध निकालना
     m_rel = friendship_logic.get(mulank, {}).get('friends', [])
     m_enm = friendship_logic.get(mulank, {}).get('enemies', [])    
-
+# --- Yeh lines bilkul shuruat se likhi honi chahiye (0 spaces) ---
     # डुप्लिकेट्स को संभालने के लिए लिस्ट का उपयोग
     dob_digits = [int(n) for n in u_dob.strftime('%d%m%Y') if n != '0']
     
@@ -356,7 +360,7 @@ if submit:
         st.markdown(html_grid, unsafe_allow_html=True)
 
     with col2:
-        st.subheader("📜 click bellow to chooes  category")
+        st.subheader("📜")
         
         # १. ८१ कॉम्बिनेशन का फल निकालना
         comb_key = f"{mulank}-{bhagyank}"
@@ -507,11 +511,14 @@ if submit:
             <p>१. मूलांक-भाग्यांक फल | २. नाम-भाग्य विचार | ३. ग्रिड एवं उपाय</p>
         </div>
         """
-
+                # अगर यूज़र ने पहला पेज भर दिया है, तो उसे हमेशा एक्टिव रखें
+        if 'user_logged_in' in st.session_state:
+            mulank = st.session_state['app_mulank']
+            bhagyank = st.session_state['app_bhagyank']
         # इसे स्क्रीन पर दिखाना (यह हर सेकंड रंग बदलेगा)
         st.markdown(जादुई_कैटगरी_स्टाइल, unsafe_allow_html=True)
             # Ab aapke purane tabs yahan se shuru honge
-        tab1, tab2, tab3 = st.tabs(["📑 मूलांक-भाग्यांक फल", "🔮 नाम-भाग्य विचार", "🎡 ग्रिड एवं उपाय"])      
+        tab1, tab2, tab3, = st.tabs(["📊 मूलांक-भाग्यांक फल", "🗣️ नाम-भाग्य विचार", "💮 ग्रिड एवं उपाय", ])
                     
 
         with tab1:
@@ -606,7 +613,7 @@ if submit:
             # ५. व्यक्तित्व का मुख्य आधार सेक्शन
             st.markdown("---")
             st.markdown(f"### 🌟 आपके व्यक्तित्व का मुख्य आधार")
-            st.write(f"मूलांक **{mulank}** और भाग्यांक **{bhagyank}** का यह मेल आपके जीवन की दिशा तय करता है।")
+            st.write(f"मूलांक **{mulank}** और भाग्यांक **{bhagyank}** का यह मेल आपके जीवन की दिशा तय करता है। मूलांक आपके व्यक्तित्व और स्वभाव को दर्शाता है, जबकि भाग्यांक आपके जीवन के भाग्य, उद्देश्य और चुनौतियों का प्रतिनिधित्व करता है, मूलांक आपके व्यक्तित्व और स्वभाव को दर्शाता है, जबकि भाग्यांक आपके जीवन के भाग्य, उद्देश्य और चुनौतियों का प्रतिनिधित्व करता है।")
 
             # ६. ऑडियो को कॉल करें (अगर bol_web फंक्शन बना हुआ है)
             bol_web(tab1_audio, "graha_voice")
@@ -853,4 +860,4 @@ if submit:
                 st.write("---")
                 # केवल एक स्लाइडर बनेगा जो राजयोग और उपाय दोनों बोलेगा
                 bol_web(tab3_audio, "graha_voice")
-                
+                # =======================================================
