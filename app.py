@@ -1,28 +1,45 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
-# Page config ke thik niche ise lagayein
+# 1. Normal CSS (Upar aur neeche ke saare elements ke liye)
 hide_streamlit_style = """
             <style>
-            /* Upar ka poora header aur toolbar hatane ke liye */
-            header {visibility: hidden;}
-            [data-testid="stHeader"] {visibility: hidden;}
-            
-            /* Neeche ka 'Made with Streamlit' aur footer hatane ke liye */
-            footer {visibility: hidden;}
-            [data-testid="stFooter"] {visibility: hidden;}
-            
-            /* Main Menu (3 dots) ko hatane ke liye */
-            #MainMenu {visibility: hidden;}
-            
-            /* NEECHE KA MANAGE APP / CROWN BUTTON BHI HATANE KE LIYE */
-            [data-testid="stDecoration"] {display: none;}
-            .stAppDeployButton {display: none;}
-            iframe[title="Manage app"] {display: none !important;}
-            div[data-testid="stStatusWidget"] {display: none !important;}
-            footer + div {display: none !important;}
+            header, [data-testid="stHeader"] {visibility: hidden !important; display: none !important;}
+            footer, [data-testid="stFooter"] {visibility: hidden !important; display: none !important;}
+            [data-testid="stDecoration"], .stAppDeployButton, #MainMenu {visibility: hidden !important; display: none !important;}
             </style>
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+# 2. JAVASCRIPT BRAHMASTRA (Jo 'Manage app' button ko zabardasti delete kar dega)
+components.html(
+    """
+    <script>
+    function removeManageApp() {
+        // Laptop aur Mobile dono ke liye buttons ko target karna
+        var buttons = window.parent.document.querySelectorAll('button');
+        buttons.forEach(function(button) {
+            if (button.textContent.includes('Manage app') || button.innerHTML.includes('svg')) {
+                button.parentElement.style.display = 'none';
+                button.style.display = 'none';
+            }
+        });
+        
+        // Iframe aur anya elements ko hatane ke liye
+        var iframes = window.parent.document.querySelectorAll('iframe');
+        iframes.forEach(function(iframe) {
+            if (iframe.title === 'Manage app') {
+                iframe.style.display = 'none';
+            }
+        });
+    }
+    // Har 1 second mein check karega aur gayab rakhega
+    setInterval(removeManageApp, 1000);
+    </script>
+    """,
+    height=0,
+    width=0
+)
 import streamlit as st
 from datetime import date
 from gtts import gTTS
