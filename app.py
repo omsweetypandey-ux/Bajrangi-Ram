@@ -1,4 +1,29 @@
 import streamlit as st
+
+# 1. Page config agar pehle se hai toh uske thik niche ise lagayein
+st.set_page_config(
+    page_title="Bajrangi Ram Ank Jyotish Kendra",
+    page_icon="🔱",
+    layout="centered"
+)
+
+# 2. TOOLBAR AUR FOOTER KO JAD SE HATANE KA CODE
+hide_streamlit_style = """
+            <style>
+            /* Upar ka poora header aur toolbar hatane ke liye */
+            header {visibility: hidden;}
+            [data-testid="stHeader"] {visibility: hidden;}
+            
+            /* Neeche ka 'Made with Streamlit' aur footer hatane ke liye */
+            footer {visibility: hidden;}
+            [data-testid="stFooter"] {visibility: hidden;}
+            
+            /* Agar mobile par right side mein abhi bhi 3 dots dikhein toh use hatane ke liye */
+            #MainMenu {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+import streamlit as st
 from datetime import date
 from gtts import gTTS
 import base64
