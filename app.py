@@ -557,23 +557,23 @@ if submit:
             """, unsafe_allow_html=True)
 
             # ४. कार्ड का डिस्प्ले (HTML)
-            st.markdown(f"""
+             st.markdown(f"""
             <div class="lucky-container">
                 <h3 style="text-align: center; color: #1a508b; margin-top: 0;">🌟 आपके शुभ पैरामीटर्स</h3>
                 <div class="flex-box">
                     <div class="info-col m-bg">
-                        <h4 style="color: #1976d2; margin-top: 0;">मूलांक: {mulank} (स्वभाव)</h4>
-                        <p><span class="label">🪐 ग्रह:</span> {m_data.get('grah', 'N/A')}</p>
-                        <p><span class="label">📅 दिन:</span> {m_data.get('day', 'N/A')}</p>
-                        <p><span class="label">🎨 रंग:</span> {m_data.get('color', 'N/A')}</p>
-                        <p style="font-size: 12px; color: #666; font-style: italic;">उपयोग: दैनिक शांति व आत्मविश्वास हेतु।</p>
+                        <h4 style="color: red; margin-top: 0;">मूलांक: {mulank} (स्वभाव)</h4>
+                        <p><span class="label">🪐 ग्रह:</span> <span style="color: red; font-weight: bold;">{m_data.get('grah', 'N/A')}</span></p>
+<p><span class="label">📅 दिन:</span> <span style="color: red; font-weight: bold;">{m_data.get('day', 'N/A')}</span></p>
+<p><span class="label">🎨 रंग:</span> <span style="color: red; font-weight: bold;">{m_data.get('color', 'N/A')}</span></p>
+                        <p style="font-size: 12px; color: red; font-style: italic;">उपयोग: दैनिक शांति व आत्मविश्वास हेतु।</p>
                     </div>
                     <div class="info-col b-bg">
-                        <h4 style="color: #7b1fa2; margin-top: 0;">भाग्यांक: {bhagyank} (भाग्य)</h4>
-                        <p><span class="label">🪐 ग्रह:</span> {b_data.get('grah', 'N/A')}</p>
-                        <p><span class="label">📅 दिन:</span> {b_data.get('day', 'N/A')}</p>
-                        <p><span class="label">🎨 रंग:</span> {b_data.get('color', 'N/A')}</p>
-                        <p style="font-size: 12px; color: #666; font-style: italic;">उपयोग: करियर व बड़ी सफलताओं हेतु।</p>
+                        <h4 style="color: blue; margin-top: 0;">भाग्यांक: {bhagyank} (भाग्य)</h4>
+                        <p><span class="label">🪐 ग्रह:</span> <span style="color: blue; font-weight: bold;">{b_data.get('grah', 'N/A')}</span></p>
+<p><span class="label">📅 दिन:</span> <span style="color: blue; font-weight: bold;">{b_data.get('day', 'N/A')}</span></p>
+<p><span class="label">🎨 रंग:</span> <span style="color: blue; font-weight: bold;">{b_data.get('color', 'N/A')}</span></p>
+                        <p style="font-size: 12px; color: blue; font-style: italic;">उपयोग: करियर व बड़ी सफलताओं हेतु।</p>
                     </div>
                 </div>
             </div>
