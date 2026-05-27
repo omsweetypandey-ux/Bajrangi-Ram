@@ -261,7 +261,7 @@ u_dob = st.date_input(
 )
 
 u_gender = st.selectbox("लिंग", ["Male", "Female"])
-submit = st.button("कुंडली देखें")
+submit = st.button("विवरण देखें")
 
 if submit:
     
@@ -271,7 +271,7 @@ if submit:
     typed = ""
     for char in welcome_text:
         typed += char
-        placeholder.markdown(f"<div style='background-color:#E74C3C; padding: 15px; border-radius: 10px; border: 1px solid #E74C3C; text-align: center;'><h3>{typed}</h3></div>", unsafe_allow_html=True)
+        placeholder.markdown(f"<div style='background-color:; padding: 15px; border-radius: 10px; border: 1px solid #E74C3C; text-align: center;'><h3>{typed}</h3></div>", unsafe_allow_html=True)
         time.sleep(0.02)
 
         # --- स्टेज २: गणना (Calculations) ---
@@ -507,8 +507,8 @@ if submit:
         </style>
 
         <div class="glow-bar">
-            <h3>👇 कृपया नीचे दी गई तीनों कैटगरी अवश्य देखें 👇</h3>
-            <p>१. मूलांक-भाग्यांक फल | २. नाम-भाग्य विचार | ३. ग्रिड एवं उपाय</p>
+            <p>👇 कृपया नीचे दी गई तीनों कैटगरी अवश्य देखें 👇</p>
+            <h2>१. मूलांक-भाग्यांक फल | २. नाम-भाग्य विचार | ३. ग्रिड एवं उपाय</h2>
         </div>
         """
                 # अगर यूज़र ने पहला पेज भर दिया है, तो उसे हमेशा एक्टिव रखें
@@ -557,7 +557,7 @@ if submit:
             """, unsafe_allow_html=True)
 
             # ४. कार्ड का डिस्प्ले (HTML)
-             st.markdown(f"""
+            st.markdown(f"""
             <div class="lucky-container">
                 <h3 style="text-align: center; color: #1a508b; margin-top: 0;">🌟 आपके शुभ पैरामीटर्स</h3>
                 <div class="flex-box">
