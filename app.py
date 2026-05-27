@@ -1,46 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
-
-# 1. Normal CSS (Upar aur neeche ke saare elements ke liye)
-hide_streamlit_style = """
-            <style>
-            header, [data-testid="stHeader"] {visibility: hidden !important; display: none !important;}
-            footer, [data-testid="stFooter"] {visibility: hidden !important; display: none !important;}
-            [data-testid="stDecoration"], .stAppDeployButton, #MainMenu {visibility: hidden !important; display: none !important;}
-            </style>
-            """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-# 2. JAVASCRIPT BRAHMASTRA (Jo 'Manage app' button ko zabardasti delete kar dega)
-components.html(
-    """
-    <script>
-    function removeManageApp() {
-        // Laptop aur Mobile dono ke liye buttons ko target karna
-        var buttons = window.parent.document.querySelectorAll('button');
-        buttons.forEach(function(button) {
-            if (button.textContent.includes('Manage app') || button.innerHTML.includes('svg')) {
-                button.parentElement.style.display = 'none';
-                button.style.display = 'none';
-            }
-        });
-        
-        // Iframe aur anya elements ko hatane ke liye
-        var iframes = window.parent.document.querySelectorAll('iframe');
-        iframes.forEach(function(iframe) {
-            if (iframe.title === 'Manage app') {
-                iframe.style.display = 'none';
-            }
-        });
-    }
-    // Har 1 second mein check karega aur gayab rakhega
-    setInterval(removeManageApp, 1000);
-    </script>
-    """,
-    height=0,
-    width=0
-)
-import streamlit as st
 from datetime import date
 from gtts import gTTS
 import base64
@@ -560,8 +518,10 @@ if submit:
         # इसे स्क्रीन पर दिखाना (यह हर सेकंड रंग बदलेगा)
         st.markdown(जादुई_कैटगरी_स्टाइल, unsafe_allow_html=True)
             # Ab aapke purane tabs yahan se shuru honge
-        tab1, tab2, tab3, = st.tabs(["📊 मूलांक-भाग्यांक फल", "🗣️ नाम-भाग्य विचार", "💮 ग्रिड एवं उपाय", ])
-                    
+        # यहाँ हमने चौथा टैब "📱 मोबाइल नंबर विचार" नाम से जोड़ दिया है
+        # 'key="current_active_tab"' जोड़ने से स्ट्रीमलिट याद रखेगा कि यूजर किस टैब पर था
+        
+        tab1, tab2, tab3, = st.tabs(["⬜ मूलांक-भाग्यांक फल", "👤 नाम-भाग्य विचार", "💮 ग्रिड एवं उपाय", ], key="active_numerology_tab")
 
         with tab1:
 
@@ -902,4 +862,4 @@ if submit:
                 st.write("---")
                 # केवल एक स्लाइडर बनेगा जो राजयोग और उपाय दोनों बोलेगा
                 bol_web(tab3_audio, "graha_voice")
-                # =======================================================
+                
