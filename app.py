@@ -261,7 +261,77 @@ u_dob = st.date_input(
 )
 
 u_gender = st.selectbox("लिंग", ["Male", "Female"])
-submit = st.button("विवरण देखें")
+# Line 263 के ठीक नीचे यह पूरा ब्लॉक पेस्ट करें
+
+# बटनों को अगल-बगल (Side-by-Side) दिखाने के लिए Columns
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    # यह आपका पहला बटन है जिससे कुंडली की गणना चालू होगी
+    submit = st.button("👁️ विवरण देखें", use_container_width=True)
+
+with col2:
+    # यह आपका डिजिटल वॉलेट और कॉल पॉप-अप बटन है
+    if st.button("📞 सूक्ष्म गणना हेतु Call Now", use_container_width=True):
+        
+        # यह जादुई पॉप-अप विंडो (Dialog Box) खोलेगा
+        @st.dialog("आधिकारिक ज्योतिष डिजिटल वॉलेट")
+        def show_wallet():
+            # पॉप-अप का ऊपरी संदेश (यह अब सीधे बॉक्स के अंदर दिखेगा)
+            st.markdown("""
+            <div style='text-align: center; background-color: #fff9f0; padding: 15px; border-radius: 10px;'>
+                <h4 style='color: #ff6f00; margin-bottom: 5px; font-family: "Georgia", serif;'>दक्षिणा एवं रिचार्ज केंद्र</h4>
+                <p style='font-size: 14px; color: #333333; margin: 0;'>सूक्ष्म गणना व सीधी बातचीत के लिए कृपया वॉलेट रिचार्ज करें।</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.write("") # खाली जगह के लिए
+            
+            # दो भाग - एक तरफ QR Code और दूसरी तरफ नंबर
+            pay_col1, pay_col2 = st.columns([1, 1])
+            
+            with pay_col1:
+                st.markdown("<b style='font-size: 15px; color: #ff6f00;'>📷 QR कोड स्कैन करें</b>", unsafe_allow_html=True)
+                import os
+                import glob
+
+                # फोल्डर के अंदर QR इमेज ढूंढने का लॉजिक
+                possible_patterns = ["qr_code.png", "qr_code.jpg", "qr_code.jpeg", "*QR*.png", "*QR*.jpg", "*QR*.jpeg"]
+                qr_file_path = None
+
+                for pattern in possible_patterns:
+                    files = glob.glob(pattern)
+                    if files:
+                        qr_file_path = files[0]
+                        break
+
+                if not qr_file_path:
+                    all_images = glob.glob("*.png") + glob.glob("*.jpg") + glob.glob("*.jpeg")
+                    if all_images:
+                        qr_file_path = all_images[0]
+
+                # इमेज डिस्प्ले (width=180 से डिब्बा छोटा और सुंदर दिखेगा)
+                if qr_file_path and os.path.exists(qr_file_path):
+                    st.image(qr_file_path, caption="PhonePe / GPay / Paytm", width=180)
+                else:
+                    st.warning("⚠️ QR कोड फाइल फोल्डर में नहीं मिली।")
+                    
+            with pay_col2:
+                st.markdown("<b style='font-size: 15px; color: #ff6f00;'>📱 सीधा ट्रांसफर करें</b>", unsafe_allow_html=True)
+                st.info("**गूगल पे / फोनपे / पेटीएम:**")
+                st.code("+91 916392311093", language="text")
+                st.markdown("<p style='font-size: 12px; color: #666666;'>📌 <b>रिचार्ज के बाद:</b> भुगतान का स्क्रीनशॉट लेकर नीचे दिए गए बटन से सीधे संपर्क करें.</p>", unsafe_allow_html=True)
+            # नीचे बातचीत और स्क्रीनशॉट के फाइनल बटन
+            f_col1, f_col2 = st.columns(2)
+            with f_col1:
+                st.link_button("📞 सीधा कॉल करें", "tel:+91XXXXXXXXXX", use_container_width=True) # यहाँ नंबर बदलें
+            with f_col2:
+                # एकदम सीधा और सटीक व्हाट्सएप लिंक (बिना किसी बीच के पेज के)
+                whatsapp_url = "https://wa.me/916392311093?text=प्रणाम%20गुरुजी,%20मैंने%20वॉलेट%20रिचार्ज%20कर%20दिया%20है।%20यह%20रहा%20भुगतान%20का%20स्क्रीनशॉट।"
+
+                st.link_button("💬 स्क्रीनशॉट भेजें", whatsapp_url, use_container_width=True)
+        # पॉप-अप फंक्शन को चालू करने के लिए
+        show_wallet()
 
 if submit:
     
@@ -862,4 +932,59 @@ if submit:
                 st.write("---")
                 # केवल एक स्लाइडर बनेगा जो राजयोग और उपाय दोनों बोलेगा
                 bol_web(tab3_audio, "graha_voice")
-                
+import streamlit as st
+
+# यह कोड आपके एडमिन पैनल या सेटिंग्स टैब के लिए है
+def admin_control_board():
+    st.markdown("---")
+    st.markdown("<h3 style='color: #ff6f00;'>⚙️ गुरु एडमिन कंट्रोल बोर्ड (Admin Panel)</h3>", unsafe_allow_html=True)
+    
+    # १. प्रति मिनट दर सेट करने का विकल्प
+    st.subheader("1. कॉलिंग रेट मैनेजमेंट")
+    if 'call_rate' not in st.session_state:
+        st.session_state['call_rate'] = 21.00  # डिफ़ॉल्ट दर: 21 रुपये प्रति मिनट
+
+    new_rate = st.number_input(
+        "प्रति मिनट बातचीत की दर (INR / Minute) तय करें:", 
+        min_value=1.0, 
+        max_value=500.0, 
+        value=float(st.session_state['call_rate']),
+        step=1.0
+    )
+    st.session_state['call_rate'] = new_rate
+    st.success(f"वर्तमान कॉलिंग दर: ₹{st.session_state['call_rate']}/मिनट सेट है।")
+
+    st.markdown("---")
+
+    # २. मैन्युअल रिचार्ज और मिनट कैलकुलेटर बोर्ड
+    st.subheader("2. ग्राहक वॉलेट रिचार्ज केंद्र (Manual Entry)")
+    
+    # इनपुट फ़ील्ड्स
+    cust_phone = st.text_input("ग्राहक का मोबाइल नंबर दर्ज करें:")
+    recharge_amount = st.number_input("प्राप्त हुआ रिचार्ज अमाउंट (₹):", min_value=0, step=10)
+    
+    # गणना (Calculations)
+    if recharge_amount > 0:
+        # मिनट की गणना = राशि / प्रति मिनट दर
+        available_minutes = int(recharge_amount / st.session_state['call_rate'])
+        
+        st.info(f"💡 **गणना:** ₹{recharge_amount} के रिचार्ज पर ग्राहक को **{available_minutes} मिनट** का टॉक-टाइम मिलेगा।")
+        
+        # रिचार्ज कन्फर्म करने का बटन
+        if st.button("वॉलेट में मिनट जोड़ें और एक्टिवेट करें"):
+            if cust_phone:
+                # यहाँ आप इस डेटा को अपने पास सेव रख सकते हैं
+                st.balloons()
+                st.success(f"सफलतापूर्वक! ग्राहक {cust_phone} का वॉलेट एक्टिव कर दिया गया है। कुल समय: {available_minutes} मिनट।")
+            else:
+                st.error("कृपया पहले ग्राहक का मोबाइल नंबर दर्ज करें।")
+
+# मुख्य ऐप में इसे देखने के लिए बस इस फंक्शन को कॉल करें:
+# admin_control_board()
+# # Sidebar mein Admin Panel ka ek gupt option (sirf aapke liye)
+st.sidebar.markdown("---")
+show_admin = st.sidebar.checkbox("🔒 गुरु एडमिन लॉगिन (Admin View)")
+
+# Agar aap check-box par click karenge, tabhi dashboard screen par sabse niche khulega
+if show_admin:
+    admin_control_board()                
