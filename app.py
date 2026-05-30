@@ -4,7 +4,22 @@ from gtts import gTTS
 import base64
 import time
 import uuid  
-import os    
+import os
+# 🎯 लाइन ७ (import os) के ठीक नीचे यह पेस्ट करें:
+st.set_page_config(
+    page_title="बजरंगी राम अंक ज्योतिष केंद्र",
+    page_icon="🔮",
+    layout="centered",
+    menu_items=None  # 👈 यह ऊपर के Fork और गिटहब कोडिंग मेनू को गायब कर देगा
+)
+
+st.markdown("""
+    <style>
+        header {visibility: hidden;}      /* ऊपर की काली पट्टी और गिटहब लोगो गायब */
+        footer {visibility: hidden;}      /* नीचे का 'Hosted with Streamlit' गायब */
+        #MainMenu {visibility: hidden;}   /* स्ट्रीमलिट का मेनू बटन गायब */
+    </style>
+""", unsafe_allow_html=True)
 from io import BytesIO
 # १. आवाज़ वाला इंजन
 def bol_web(text, part_id):
