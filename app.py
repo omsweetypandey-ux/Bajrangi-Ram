@@ -305,7 +305,7 @@ with col2:
         
             with pay_col1:
                 st.markdown("<b>QR कोड स्कैन करें</b>", unsafe_allow_html=True)
-                qr_url = "https://raw.githubusercontent.com/omsweetypandey-ux/Bajrangi-Ram/main/qr_coad.png"
+                qr_url = "https://raw.githubusercontent.com/omsweetypandey-ux/Bajrangi-Ram/main/qr_code.png"
                 st.image(qr_url, caption="PhonePe / GPay / Paytm", use_container_width=True)
             
             with pay_col2:
