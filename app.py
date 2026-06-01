@@ -304,9 +304,9 @@ with col2:
             pay_col1, pay_col2 = st.columns([1, 1])
         
             with pay_col1:
-            st.markdown("<b>QR कोड स्कैन करें</b>", unsafe_allow_html=True)
-            qr_url = "https://raw.githubusercontent.com/omsweetypandey-ux/Bajrangi-Ram/main/qr_coad.png"
-            st.image(qr_url, caption="PhonePe / GPay / Paytm", use_container_width=True)
+                st.markdown("<b>QR कोड स्कैन करें</b>", unsafe_allow_html=True)
+                qr_url = "https://raw.githubusercontent.com/omsweetypandey-ux/Bajrangi-Ram/main/qr_coad.png"
+                st.image(qr_url, caption="PhonePe / GPay / Paytm", use_container_width=True)
             
             with pay_col2:
                 st.markdown("<b>सीधा ट्रांसफर करें</b>", unsafe_allow_html=True)
