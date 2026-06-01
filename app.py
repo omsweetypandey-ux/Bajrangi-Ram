@@ -291,60 +291,53 @@ with col2:
         
         # यह जादुई पॉप-अप विंडो (Dialog Box) खोलेगा
         @st.dialog("आधिकारिक ज्योतिष डिजिटल वॉलेट")
-        def show_wallet():
-            # पॉप-अप का ऊपरी संदेश (यह अब सीधे बॉक्स के अंदर दिखेगा)
-            st.markdown("""
-            <div style='text-align: center; background-color: #fff9f0; padding: 15px; border-radius: 10px;'>
-                <h4 style='color: #ff6f00; margin-bottom: 5px; font-family: "Georgia", serif;'>दक्षिणा एवं रिचार्ज केंद्र</h4>
-                <p style='font-size: 14px; color: #333333; margin: 0;'>सूक्ष्म गणना व सीधी बातचीत के लिए कृपया वॉलेट रिचार्ज करें।</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.write("") # खाली जगह के लिए
-            
-            # दो भाग - एक तरफ QR Code और दूसरी तरफ नंबर
-            pay_col1, pay_col2 = st.columns([1, 1])
-            
-            with pay_col1:
-                st.markdown("<b style='font-size: 15px; color: #ff6f00;'>📷 QR कोड स्कैन करें</b>", unsafe_allow_html=True)
-                import os
-                import glob
+       def show_wallet():
+    st.markdown("""
+    <div style='text-align: center; background-color: #fff9f0; padding: 15px; border-radius: 10px; border: 1px solid #ff6f00;'>
+        <h4 style='color: #ff6f00; margin-bottom: 5px; font-family: "Georgia", serif;'>दक्षिणा एवं रिचार्ज</h4>
+        <p style='font-size: 14px; color: #333333; margin: 0;'>सूक्ष्म गणना व सीधी बातचीत के लिए कृपया वॉलेट रिचार्ज करें</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.write("") # खाली जगह के लिए
+    
+    # 🎯 दोनों भागों का सही ढांचा (QR Code और नंबर)
+    pay_col1, pay_col2 = st.columns([1, 1])
+    
+    with pay_col1:
+        st.markdown("<b>QR कोड स्कैन करें</b>", unsafe_allow_html=True)
+        # आपका असली लाइव गिटहब लिंक
+        qr_url = "https://raw.githubusercontent.com/omsweetypandey-ux/Bajrangi-Ram/main/qr_coad.png"
+        st.image(qr_url, caption="PhonePe / GPay / Paytm", use_container_width=True)
+        
+    with pay_col2:
+        st.markdown("<b>सीधा ट्रांसफर करें</b>", unsafe_allow_html=True)
+        st.info("***गूगल पे / फोनपे / पेटीएम:***")
+        st.code("+91 9140201831", language="text")
+        st.markdown("<p style='font-size: 12px; color: #666666;'><b>रिचार्ज के बाद:</b> भुगतान का स्क्रीनशॉट लेकर नीचे दिए गए बटन से सीधे संपर्क करें.</p>", unsafe_allow_html=True)
 
-                # फोल्डर के अंदर QR इमेज ढूंढने का लॉजिक
-                possible_patterns = ["qr_code.png", "qr_code.jpg", "qr_code.jpeg", "*QR*.png", "*QR*.jpg", "*QR*.jpeg"]
-                qr_file_path = None
-
-                for pattern in possible_patterns:
-                    files = glob.glob(pattern)
-                    if files:
-                        qr_file_path = files[0]
-                        break
-
-                if not qr_file_path:
-                    all_images = glob.glob("*.png") + glob.glob("*.jpg") + glob.glob("*.jpeg")
-                    if all_images:
-                        qr_file_path = all_images[0]
-
-                # इमेज डिस्प्ले (width=180 से डिब्बा छोटा और सुंदर दिखेगा)
-                if qr_file_path and os.path.exists(qr_file_path):
-                    st.image(qr_file_path, caption="PhonePe / GPay / Paytm", width=180)
-                else:
-                    st.warning("⚠️ QR कोड फाइल फोल्डर में नहीं मिली।")
-                    
-            with pay_col2:
-                st.markdown("<b style='font-size: 15px; color: #ff6f00;'>📱 सीधा ट्रांसफर करें</b>", unsafe_allow_html=True)
-                st.info("**गूगल पे / फोनपे / पेटीएम:**")
-                st.code("+91 916392311093", language="text")
-                st.markdown("<p style='font-size: 12px; color: #666666;'>📌 <b>रिचार्ज के बाद:</b> भुगतान का स्क्रीनशॉट लेकर नीचे दिए गए बटन से सीधे संपर्क करें.</p>", unsafe_allow_html=True)
-            # नीचे बातचीत और स्क्रीनशॉट के फाइनल बटन
-            f_col1, f_col2 = st.columns(2)
-            with f_col1:
-                st.link_button("📞 सीधा कॉल करें", "tel:+91XXXXXXXXXX", use_container_width=True) # यहाँ नंबर बदलें
-            with f_col2:
-                # एकदम सीधा और सटीक व्हाट्सएप लिंक (बिना किसी बीच के पेज के)
-                whatsapp_url = "https://wa.me/916392311093?text=प्रणाम%20गुरुजी,%20मैंने%20वॉलेट%20रिचार्ज%20कर%20दिया%20है।%20यह%20रहा%20भुगतान%20का%20स्क्रीनशॉट।"
-
-                st.link_button("💬 स्क्रीनशॉट भेजें", whatsapp_url, use_container_width=True)
+    # #️⃣ नीचे बातचीत और स्क्रीनशॉट के फाइनल बटन
+    f_col1, f_col2 = st.columns(2)
+    
+    # ऑटो-पेमेंट लिंक्स (नये नंबर 9140201831 के साथ पूरी तरह सुरक्षित)
+    st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-weight: bold; color: #ff6f00;'>📱 अपने मोबाइल ऐप से तुरंत भुगतान करें:</p>", unsafe_allow_html=True)
+    
+    gpay_url = "upi://pay?pa=9140201831@upi&pn=Bajrangi%20Ram&am=20&cu=INR"
+    phonepe_url = "upi://pay?pa=9140201831@upi&pn=Bajrangi%20Ram&am=20&cu=INR"
+    
+    upi_col1, upi_col2 = st.columns(2)
+    with upi_col1:
+        st.link_button("🚀 Google Pay से पे करें", gpay_url, use_container_width=True)
+    with upi_col2:
+        st.link_button("🟣 PhonePe से पे करें", phonepe_url, use_container_width=True)
+        
+    # बातचीत और स्क्रीनशॉट के बटन
+    with f_col1:
+        st.link_button("📞 सीधा कॉल करें", "tel:+919140201831", use_container_width=True)
+    with f_col2:
+        whatsapp_url = "https://wa.me/919140201831?text=%E0%A4%AA%E0%A5%8D%E0%A4%B0%E0%A4%A3%E0%A4%AE%E0%A5%8D%20%E0%A4%97%E0%A5%81%E0%A4%B0%E0%A5%81%E0%A4%9C%E0%A5%80%21%20%E0%A4%AE%E0%A5%88%E0%A4%A8%E0%A5%87%20%E0%A4%AD%E0%A5%81%E0%A4%97%E0%A4%A4%E0%A4%BE%E0%A4%A8%20%E0%A4%95%E0%A4%B0%20%E0%A4%A6%E0%A4%BF%E0%A4%AF%E0%A4%BE%20%E0%A4%B9%E0%A5%88%E0%A5%A4"
+        st.link_button("💬 स्क्रीनशॉट भेजें", whatsapp_url, use_container_width=True)
         # पॉप-अप फंक्शन को चालू करने के लिए
         show_wallet()
 
