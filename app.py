@@ -1,10 +1,20 @@
 import streamlit as st
-from datetime import date
+import datetime  
 from gtts import gTTS
 import base64
 import time
 import uuid  
 import os
+import json
+import firebase_admin
+from firebase_admin import credentials, db
+
+# Firebase को कनेक्ट करें
+if not firebase_admin._apps:
+    cred = credentials.Certificate('firebase_key.json')
+    firebase_admin.initialize_app(cred, {
+        'databaseURL': 'https://bajrangiram-jyotish-kendra-default-rtdb.firebaseio.com/'
+    })
 # 🎯 लाइन ७ (import os) के ठीक नीचे यह पेस्ट करें:
 st.set_page_config(
     page_title="बजरंगी राम अंक ज्योतिष केंद्र",
@@ -21,7 +31,91 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 from io import BytesIO
-# १. आवाज़ वाला इंजन
+
+# ✨ प्रीमियम हेडर: चमकते पीले बटन्स और ब्लैक स्टाइलिंग
+st.markdown("""
+    <style>
+    div.stButton > button[key="search_popup_btn"],
+    div.stButton > button[key="menu_category_btn"] {
+        background-color: #000000 !important;
+        color: #FFEB3B !important;
+        font-weight: bold !important;
+        border: 2px solid #FFEB3B !important;
+        border-radius: 8px !important;
+        width: 100%;
+        transition: 0.3s;
+    }
+    div.stButton > button:hover {
+        background-color: #FFEB3B !important;
+        color: #000000 !important;
+        border: 2px solid #000000 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# हेडर टाइटल (अब इसे नया लुक दिया है)
+st.markdown("<h2 style='color:#8B0000; text-align:center;'>Ψ बजरंगी राम अंक ज्योतिष केंद्र</h2>", unsafe_allow_html=True)
+
+# बटन्स का नया कॉलम (जो स्टाइलिंग के साथ जुड़ेगा)
+head_col1, head_col2 = st.columns([1, 1])
+
+
+st.markdown("---") # विभाजक रेखा
+
+# हेडर के ठीक नीचे एक सुंदर पतली विभाजक रेखा
+st.markdown("<hr style='margin-top:10px; margin-bottom:20px; border:1px solid #ddd;'>", unsafe_allow_html=True)
+
+
+    # टैब का निर्माण (जैसा आपने फोटो में चाहा था)
+tab_1, tab_2 = st.tabs(["📂 Search", "➕ New"])
+
+with tab_1:
+    st.subheader("🔍 ग्राहक खोजें")
+    
+    # Firebase से डेटा सर्च करने का नया तरीका
+    query = st.text_input("नाम या मोबाइल से खोजें...", key="search_bar")
+    
+    if query:
+        try:
+            # Firebase से सारा डेटा लाएं
+            ref = db.reference('/')
+            all_users = ref.get()
+            
+            if all_users:
+                # सर्च लॉजिक (नाम या मोबाइल के आधार पर)
+                results = [user for user in all_users.values() if 
+                           query.lower() in str(user.get('name', '')).lower() or 
+                           query in str(user.get('mobile', ''))]
+                
+                if results:
+                    for entry in results:
+                        btn_label = f"👤 {entry.get('name')} | {entry.get('mobile')}"
+                        if st.button(btn_label, key=f"btn_{entry.get('mobile')}"):
+                            st.session_state['u_name'] = entry.get('name')
+                            st.session_state['u_phone'] = entry.get('mobile')
+                            st.rerun()
+                else:
+                    st.warning("कोई रिकॉर्ड नहीं मिला।")
+            else:
+                st.info("डेटाबेस अभी खाली है।")
+        except Exception as e:
+            st.error(f"सर्च करने में समस्या: {e}")
+with tab_2:
+    st.subheader("➕ नया विवरण भरें")
+    
+    # Reset बटन का लॉजिक
+if st.button("🔄 नया फॉर्म साफ़ करें (Reset)"):
+    # सभी कीज़ को खाली करें
+    st.session_state['u_name'] = ""
+    st.session_state['u_phone'] = ""
+    st.session_state['u_dob'] = datetime.date(2000, 1, 1) # डिफ़ॉल्ट तारीख
+    st.session_state['u_gender'] = "Male"
+    
+    # पेज को री-रन करें
+    st.rerun()
+
+    # इसके बाद आपका पुराना फॉर्म वाला कोड (नाम, जन्मतिथि, आदि) जारी रहेगा
+    # सुनिश्चित करें कि आपके इनपुट फील्ड्स में key='u_name', key='u_phone' आदि दिए हुए हैं।
 def bol_web(text, part_id):
     try:
         clean_text = text.replace("*", "").replace("#", "").replace("\n", " ")
@@ -42,13 +136,54 @@ def bol_web(text, part_id):
         # पुरानी फाइल डिलीट करना ताकि कंप्यूटर न भरे
         if os.path.exists(filename):
             os.remove(filename)
-
     except Exception as e:
         st.error(f"ऑडियो में समस्या: {e}")
+
+# =====================================================================
+# 🗄️ ग्राहकों का विवरण हमेशा के लिए सेव रखने का तिजोरी लॉजिक (JSON Database)
+# =====================================================================
+DB_FILE = "kundli_database.json"
+
+        # फाइल में वापस सेव करें
+# नया फंक्शन: डेटा को Firebase Realtime Database में सेव करने के लिए
+import datetime # यह import सुनिश्चित करें कि फाइल में सबसे ऊपर हो
+
+def save_to_database(mobile, name, dob, gender):
+    # आज की तारीख निकालें
+    today_date = datetime.date.today().strftime("%d-%m-%Y")
+    
+    # डेटा तैयार करें (तारीख के साथ)
+    user_data = {
+        'name': str(name),
+        'dob': str(dob),
+        'gender': str(gender),
+        'date': today_date  # यह लाइन आपके एडमिन पैनल का आधार बनेगी
+    }
+    
+    # Firebase में सेव करें
+    ref = db.reference('users')
+    ref.child(str(mobile)).set(user_data)
 def get_single_digit(n):
     while n > 9:
         n = sum(int(d) for d in str(n))
     return n
+
+ # यहाँ अपना नया सर्च फंक्शन पेस्ट करें
+def search_by_name(target_name):
+    # Firebase से डेटा लाने के लिए
+    ref = db.reference('users')
+    all_users = ref.get() 
+    
+    if all_users:
+        results = []
+        for mobile, details in all_users.items():
+            # अगर नाम मिलता है, तो उसे रिजल्ट में जोड़ें
+            if target_name.lower() in details.get('name', '').lower():
+                details['mobile'] = mobile # मोबाइल नंबर भी साथ जोड़ दें
+                results.append(details)
+        return results if results else "❌ कोई रिकॉर्ड नहीं मिला!"
+    return "❌ डेटाबेस खाली है!"
+ 
 
 chaldean_table = {'A':1,'I':1,'J':1,'Q':1,'Y':1,'B':2,'K':2,'R':2,'C':3,'G':3,'L':3,'S':3,'D':4,'M':4,'T':4,'E':5,'H':5,'N':5,'X':5,'U':6,'V':6,'W':6,'O':7,'Z':7,'F':8,'P':8}
 # ४. ८१ कॉम्बिनेशन (उदाहरण के लिए)
@@ -251,130 +386,127 @@ remedy_info = {
     }
 }
 # ५. ऐप इंटरफेस
-st.set_page_config(page_title="बजरंगी राम", layout="wide")
-st.markdown("<h1 style='text-align: center; color: #E74C3C;'>Ψ बजरंगी राम अंक ज्योतिष केंद्र</h1>", unsafe_allow_html=True)
-
 st.header("📋 विवरण भरें")
 import datetime
-
 # --- इनपुट विभाग (Input Section) ---
 
 # १. नाम के लिए (Placeholder के साथ)
-u_name = st.text_input("आपका शुभ नाम", placeholder="यहाँ अपना पूरा नाम भरें...")
-
+u_name = st.text_input("आपका शुभ नाम", key="u_name")
 # २. आज की तारीख और रेंज सेट करना
 today = datetime.date.today()
 hundred_years_ago = today.year - 100
 hundred_years_ahead = today.year + 100
 
-# ३. डेट पिकर (१०० साल पीछे और १०० साल आगे की रेंज के साथ)
-u_dob = st.date_input(
-    "अपनी जन्म तिथि चुनें",
-    value=today, # डिफ़ॉल्ट रूप से आज की तारीख दिखाएगा
-    min_value=datetime.date(hundred_years_ago, 1, 1), # १०० साल पीछे
-    max_value=datetime.date(hundred_years_ahead, 12, 31) # १०० साल आगे
-)
+# इसे पेस्ट करें (लाइन 401-406 की जगह):
+u_dob = st.date_input("अपनी जन्मतिथि चुनें", key="u_dob", min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
 
-u_gender = st.selectbox("लिंग", ["Male", "Female"])
-# Line 263 के ठीक नीचे यह पूरा ब्लॉक पेस्ट करें
+u_gender = st.selectbox("लिंग", ["Male", "Female"], key="u_gender")
 
-# बटनों को अगल-बगल (Side-by-Side) दिखाने के लिए Columns
+
+# 📱 मोबाइल नंबर इनपुट बॉक्स (पुराने रिकॉर्ड से डेटा लोड करने की क्षमता के साथ)
+u_phone = st.text_input("अपना पंजीकृत मोबाइल नंबर भरें...", key="u_phone")
+
+# === विवरण सुरक्षित करने का बटन ===
+# विवरण सुरक्षित करने का बटन
+import re # यह लाइन फाइल में सबसे ऊपर रखें (अगर नहीं है तो)
+
+    # विवरण सुरक्षित करने का बटन
+if st.button("अपना विवरण सुरक्षित करें"):
+    if u_name and u_phone:
+        try:
+            # Firebase में डेटा सेव करें (मोबाइल नंबर को ID की तरह उपयोग करें)
+            ref = db.reference(f'/{u_phone}')
+            ref.set({
+                'name': u_name,
+                'dob': str(u_dob),
+                'gender': u_gender,
+                'mobile': u_phone
+            })
+            st.success(f"{u_name} का विवरण सफलतापूर्वक सुरक्षित कर लिया गया है!")
+            st.balloons()
+            import time
+            time.sleep(2)
+            st.rerun()
+        except Exception as e:
+            st.error(f"डेटा सेव करने में समस्या: {e}")
+    else:
+        st.warning("कृपया नाम और मोबाइल नंबर जरूर भरें।")
+# ====================================================================
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    # यह आपका पहला बटन है जिससे कुंडली की गणना चालू होगी
     submit = st.button("👁️ विवरण देखें", use_container_width=True)
 
+
+
 with col2:
-    # यह आपका डिजिटल वॉलेट और कॉल पॉप-अप बटन है
-    if st.button("📞 सूक्ष्म गणना हेतु Call Now", use_container_width=True):
-        
-        # यह जादुई पॉप-अप विंडो (Dialog Box) खोलेगा
-        @st.dialog("आधिकारिक ज्योतिष डिजिटल वॉलेट")
-        def show_wallet():
-            st.markdown("""
-            <div style='text-align: center; background-color: #fff9f0; padding: 15px; border-radius: 10px; border: 1px solid #ff6f00;'>
-                <h4 style='color: #ff6f00; margin-bottom: 5px; font-family: "Georgia", serif;'>दक्षिणा एवं रिचार्ज</h4>
-                <p style='font-size: 14px; color: #333333; margin: 0;'>सूक्ष्म गणना व सीधी बातचीत के लिए कृपया वॉलेट रिचार्ज करें</p>
-            </div>
-            """, unsafe_allow_html=True)
-        
-            st.write("")
-        
-            pay_col1, pay_col2 = st.columns([1, 1])
-        
-            with pay_col1:
-                st.markdown("<b>QR कोड स्कैन करें</b>", unsafe_allow_html=True)
-                qr_url = "https://raw.githubusercontent.com/omsweetypandey-ux/Bajrangi-Ram/main/qr_code.png"
-                st.image(qr_url, caption="PhonePe / GPay / Paytm", use_container_width=True)
-            
-            with pay_col2:
-                st.markdown("<b>सीधा ट्रांसफर करें</b>", unsafe_allow_html=True)
-                st.info("***गूगल पे / फोनपे / पेटीएम:***")
-                st.code("+91 9140201831", language="text")
-                st.markdown("<p style='font-size: 12px; color: #666666;'><b>रिचार्ज के बाद:</b> भुगतान का स्क्रीनशॉट लेकर नीचे दिए गए बटन से सीधे संपर्क करें.</p>", unsafe_allow_html=True)
-    
-            f_col1, f_col2 = st.columns(2)
-        
-            st.markdown("<hr style='margin: 15px 0;'>", unsafe_allow_html=True)
-            st.markdown("<p style='text-align: center; font-weight: bold; color: #ff6f00;'>📱 अपने मोबाइल ऐप से तुरंत भुगतान करें:</p>", unsafe_allow_html=True)
-        
-            gpay_url = "upi://pay?pa=9140201831@upi&pn=Bajrangi%20Ram&am=20&cu=INR"
-            phonepe_url = "upi://pay?pa=9140201831@upi&pn=Bajrangi%20Ram&am=20&cu=INR"
-            
-            upi_col1, upi_col2 = st.columns(2)
-            with upi_col1:
-                st.link_button("🚀 Google Pay से पे करें", gpay_url, use_container_width=True)
-            with upi_col2:
-                st.link_button("🟣 PhonePe से पे करें", phonepe_url, use_container_width=True)
-            
-            with f_col1:
-                st.link_button("📞 सीधा कॉल करें", "tel:+919140201831", use_container_width=True)
-            with f_col2:
-                whatsapp_url = "https://wa.me/919140201831?text=%E0%A4%AA%E0%A5%8D%E0%A4%B0%E0%A4%A3%E0%A4%AE%E0%A5%8D%20%E0%A4%97%E0%A5%81%E0%A4%B0%E0%A5%81%E0%A4%9C%E0%A5%80%21%20%E0%A4%AE%E0%A5%88%E0%A4%A8%E0%A5%8體%20%E0%A4%B9%E0%A5%8F%E0%A4%97%E0%A4%A4%E0%A4%BE%E0%A4%A8%20%E0%A4%96%E0%A4%B0%20%E0%A4%A6%E0%A4%BF%E0%A4%AF%E0%A4%BE%20%E0%A4%B9%E0%A5%8B%E0%A5%A4"
-                st.link_button("💬 स्क्रीनशॉट भेजें", whatsapp_url, use_container_width=True)
-        # पॉप-अप फंक्शन को चालू करने के लिए
-        show_wallet()
+    my_contact_number = "6392311093"
+   # अपना मोबाइल नंबर यहाँ डालें
+my_contact_number = "+916392311093"  # यहाँ अपना 10 अंकों का नंबर लिखें
 
+call_html = f'''
+<a href="tel:{my_contact_number}" style="text-decoration: none;">
+    <button style="
+        width: 100%;
+        background-color: #FF4B4B;
+        color: white;
+        border: none;
+        padding: 0.8rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;">
+        📞 सूक्ष्म गणना हेतु Call Now
+    </button>
+</a>
+'''
+st.markdown(call_html, unsafe_allow_html=True)
 if submit:
-    
-    st.balloons()
-    placeholder = st.empty()
-    welcome_text = f"🚩 जय श्री राम {u_name} जी! आपकी ज्योतिषीय गणना की जा रही है..."
-    typed = ""
-    for char in welcome_text:
-        typed += char
-        placeholder.markdown(f"<div style='background-color:; padding: 15px; border-radius: 10px; border: 1px solid #E74C3C; text-align: center;'><h3>{typed}</h3></div>", unsafe_allow_html=True)
-        time.sleep(0.02)
+    if not u_phone or len(str(u_phone)) != 10:
+            st.error("⚠️ कृपया गणना के लिए 10 अंकों का मोबाइल नंबर भरें।")
+    else:  
+        st.balloons()
+        placeholder = st.empty()
+        welcome_text = f"🚩 जय श्री राम {u_name} जी! आपकी ज्योतिषीय गणना की जा रही है..."
+        typed = ""
+        for char in welcome_text:
+            typed += char
+            placeholder.markdown(f"<div style='background-color:; padding: 15px; border-radius: 10px; border: 1px solid #E74C3C; text-align: center;'><h3>{typed}</h3></div>", unsafe_allow_html=True)
+            time.sleep(0.02)
 
-        # --- स्टेज २: गणना (Calculations) ---
-    d, m, y = u_dob.day, u_dob.month, u_dob.year
-    mulank = get_single_digit(d)
-    bhagyank = get_single_digit(d + m + y)
-    name_val = sum(chaldean_table.get(c.upper(), 0) for c in u_name if c.isalpha())
-    name_num = get_single_digit(name_val)
-    
-    y_sum = get_single_digit(y)
-    kua = get_single_digit(11 - y_sum) if u_gender == "Male" else get_single_digit(y_sum + 4)
-        # पहले पेज की गणना के तुरंत बाद इसे मेमोरी (Session State) में सेव करें
-    st.session_state['user_logged_in'] = True
-    st.session_state['app_mulank'] = mulank
-    st.session_state['app_bhagyank'] = bhagyank
-     
-# --- अंक ज्योतिष मैत्री गणना (1 से 9 अंक) ---
-    friendship_logic = {
-            1: {'friends': [2, 3, 5, 9], 'enemies': [8], 'neutral': [4, 6, 7]},
-            2: {'friends': [1, 3, 5], 'enemies': [4, 8, 9], 'neutral': [6, 7]},
-            3: {'friends': [1, 2, 5, 7, 9], 'enemies': [6], 'neutral': [4, 8]},
-            4: {'friends': [5, 6, 7, 8], 'enemies': [1, 2, 9], 'neutral': [3]},
-            5: {'friends': [1, 2, 3, 4, 6, 7, 8, 9], 'enemies': [], 'neutral': []},
-            6: {'friends': [4, 5, 7, 8], 'enemies': [3], 'neutral': [1, 2, 9]},
-            7: {'friends': [3, 4, 5, 6], 'enemies': [1, 2, 9], 'neutral': [8]},
-            8: {'friends': [4, 5, 6, 7], 'enemies': [1, 2, 9], 'neutral': [3]},
-            9: {'friends': [1, 2, 3, 5], 'enemies': [4, 7, 8], 'neutral': [6]}
-        }
-# 1. ग्रहों की जानकारी (रंग और दिन)
-    grah_deta = {
+            # --- स्टेज २: गणना (Calculations) ---
+        d, m, y = u_dob.day, u_dob.month, u_dob.year
+        mulank = get_single_digit(d)
+        bhagyank = get_single_digit(d + m + y)
+        name_val = sum(chaldean_table.get(c.upper(), 0) for c in u_name if c.isalpha())
+        name_num = get_single_digit(name_val)
+        
+        y_sum = get_single_digit(y)
+        kua = get_single_digit(11 - y_sum) if u_gender == "Male" else get_single_digit(y_sum + 4)
+            # पहले पेज की गणना के तुरंत बाद इसे मेमोरी (Session State) में सेव करें
+        st.session_state['user_logged_in'] = True
+        st.session_state['app_mulank'] = mulank
+        st.session_state['app_bhagyank'] = bhagyank
+        st.session_state['app_user_name'] = u_name
+        
+        # --- अंक ज्योतिष मैत्री गणना (1 से 9 अंक) ---
+        friendship_logic = {
+                1: {'friends': [2, 3, 5, 9], 'enemies': [8], 'neutral': [4, 6, 7]},
+                2: {'friends': [1, 3, 5], 'enemies': [4, 8, 9], 'neutral': [6, 7]},
+                3: {'friends': [1, 2, 5, 7, 9], 'enemies': [6], 'neutral': [4, 8]},
+                4: {'friends': [5, 6, 7, 8], 'enemies': [1, 2, 9], 'neutral': [3]},
+                5: {'friends': [1, 2, 3, 4, 6, 7, 8, 9], 'enemies': [], 'neutral': []},
+                6: {'friends': [4, 5, 7, 8], 'enemies': [3], 'neutral': [1, 2, 9]},
+                7: {'friends': [3, 4, 5, 6], 'enemies': [1, 2, 9], 'neutral': [8]},
+                8: {'friends': [4, 5, 6, 7], 'enemies': [1, 2, 9], 'neutral': [3]},
+                9: {'friends': [1, 2, 3, 5], 'enemies': [4, 7, 8], 'neutral': [6]}
+            }
+        # 1. ग्रहों की जानकारी (रंग और दिन)
+        grah_deta = {
             1: {"grah": "सूर्य", "day": "रविवार", "color": "नारंगी या सुनहरा"},
             2: {"grah": "चंद्रमा", "day": "सोमवार", "color": "सफेद या सिल्वर"},
             3: {"grah": "गुरु", "day": "गुरुवार", "color": "पीला"},
@@ -386,608 +518,629 @@ if submit:
             9: {"grah": "मंगल", "day": "मंगलवार", "color": "लाल"}
         }
         # मूलांक और भाग्यांक का संबंध निकालना
-    m_rel = friendship_logic.get(mulank, {}).get('friends', [])
-    m_enm = friendship_logic.get(mulank, {}).get('enemies', [])    
-# --- Yeh lines bilkul shuruat se likhi honi chahiye (0 spaces) ---
-    # डुप्लिकेट्स को संभालने के लिए लिस्ट का उपयोग
-    dob_digits = [int(n) for n in u_dob.strftime('%d%m%Y') if n != '0']
+        m_rel = friendship_logic.get(mulank, {}).get('friends', [])
+        m_enm = friendship_logic.get(mulank, {}).get('enemies', [])    
+        # --- Yeh lines bilkul shuruat se likhi honi chahiye (0 spaces) ---
+        # डुप्लिकेट्स को संभालने के लिए लिस्ट का उपयोग
+        dob_digits = [int(n) for n in u_dob.strftime('%d%m%Y') if n != '0']
     
-    col1, col2 = st.columns([1, 1])
+        col1, col2 = st.columns([1, 1])
 
-    with col1:
-        st.markdown(f"""
-            <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; border-left: 5px solid #E74C3C;'>
-                <h3 style='margin:0; color:#E74C3C;'>मूलांक: {mulank}</h3>
-                <h3 style='margin:5px 0; color:#1E90FF;'>भाग्यांक: {bhagyank}</h3>
-                <h3 style='margin:5px 0; color:#2ECC71;'>नामांक: {name_num}</h3>
-                <h3 style='margin:10px 0; color:#8E44AD;'>कुआ नंबर: {kua}</h3>
-            </div>
-        """, unsafe_allow_html=True)
-
-        st.subheader("🗓️ लो-शू ग्रिड (Multi-Number View)")
-        
-        # ग्रिड मैपिंग
-        grid_pos = {4:(0,0), 9:(0,1), 2:(0,2), 3:(1,0), 5:(1,1), 7:(1,2), 8:(2,0), 1:(2,1), 6:(2,2)}
-        display_grid = [[[] for _ in range(3)] for _ in range(3)]
-
-        # १. DOB के नंबर (Black)
-        for n in dob_digits:
-            if n in grid_pos:
-                r, c = grid_pos[n]
-                display_grid[r][c].append(f"<span style='color:black;'>{n}</span>")
-        
-        # २. विशेष नंबरों को जोड़ना (Colors)
-        special_nums = [(mulank, "#E74C3C"), (bhagyank, "#1E90FF"), (name_num, "#2ECC71"), (kua, "#8E44AD")]
-        for num, color in special_nums:
-            r, c = grid_pos[num]
-            display_grid[r][c].append(f"<span style='color:{color};'>{num}</span>")
- # ग्रिड बनाना
-        html_grid = "<table style='width:100%; border-collapse: collapse; text-align:center; font-size:24px; font-weight:bold;'>"
-        for row in display_grid:
-            html_grid += "<tr style='height:110px;'>"
-            for cell_list in row:
-                content = " ".join(cell_list) if cell_list else ""
-                html_grid += f"<td style='border:2px solid #E74C3C; width:33%; background-color:#FFF9F0;'>{content}</td>"
-            html_grid += "</tr>"
-        html_grid += "</table>"
-        st.markdown(html_grid, unsafe_allow_html=True)
-
-    with col2:
-        st.subheader("📜")
-        
-        # १. ८१ कॉम्बिनेशन का फल निकालना
-        comb_key = f"{mulank}-{bhagyank}"
-        comb_fal = faladesh_dict.get(comb_key, "आपके मूलांक और भाग्यांक का तालमेल उत्तम है।")
-
-        # २. मिसिंग नंबर और उपाय
-        all_present_nums = set(dob_digits) | {mulank, bhagyank, name_num, kua}
-        missing_nums = [n for n in range(1, 10) if n not in all_present_nums]
-# --- राजयोग चेक करने का लॉजिक ---
-       
-        active_rajyog = []
-        # चेक करने के लिए सभी ८ कॉम्बिनेशन
-        planes = [
-            ([4, 9, 2], "4-9-2"), ([3, 5, 7], "3-5-7"), ([8, 1, 6], "8-1-6"), # Horizontal
-            ([4, 3, 8], "4-3-8"), ([9, 5, 1], "9-5-1"), ([2, 7, 6], "2-7-6"), # Vertical
-            ([4, 5, 6], "4-5-6"), ([2, 5, 8], "2-5-8")                       # Diagonal
-        ]
-         
-        rajyog_fal = {
-        "मानसिक शक्ति राजयोग (4-9-2)": "आपकी सोचने की शक्ति और मेमोरी बहुत तेज है। आप मानसिक कार्यों में बहुत सफल होते हैं।",
-        "इच्छा शक्ति राजयोग (3-5-7)": "आपकी संकल्प शक्ति बहुत मजबूत है। आप जो ठान लेते हैं, उसे पूरा करके ही दम लेते हैं।",
-        "कर्म शक्ति राजयोग (8-1-6)": "आप अत्यंत परिश्रमी हैं। आपका कर्म ही आपकी सफलता का मुख्य आधार बनता है।",
-        "विचार शक्ति राजयोग (4-3-8)": "आप योजना बनाने में माहिर हैं। आपकी दूरदर्शिता आपको व्यापार और करियर में लाभ दिलाती है।",
-        "सफलता राजयोग (9-5-1)": "यह एक अत्यंत शुभ योग है जो जीवन के हर क्षेत्र में नाम, प्रसिद्धि और सफलता दिलाता है।",
-        "संतान और संपन्नता (2-7-6)": "यह योग सुखी पारिवारिक जीवन, अच्छी संतान और भौतिक सुख-सुविधाओं का संकेत देता है।",
-        "गोल्डन राजयोग (4-5-6)": "यह लो-शू ग्रिड का सबसे शक्तिशाली योग है, जो अपार धन और भाग्य लेकर आता है।",
-        "सिल्वर राजयोग (2-5-8)": "यह योग संपत्ति और जमीन-जायदाद के मामले में बहुत शुभ फल प्रदान करता है।"
-        }
-
-        report_parts = [
-            f"✨ जय बजरंगी! स्वागत है **{u_name}** जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है ",
-            f"🔸 आपका **मूलांक {mulank}** और **भाग्यांक {bhagyank}** है।",
-            f"🔸 आपका **नामांक {name_num}** और **कुआ नंबर {kua}** है।",
-            f"🔮 **विशेष फल:** {comb_fal}"
-                ]
-        # ४. राजयोग का फल जोड़ना
-                # टैब्स को मोबाइल फ्रेंडली और सुंदर बनाने के लिए नया CSS
-        
-                                # =======================================================
-        # 🎯 केवल कैटगरी (Tabs) को लाइव रंग बदलने वाला बनाने का अचूक CSS
-        # =======================================================
-        st.markdown("""
-        <style>
-        /* १. पूरे कैटगरी बॉक्स के बाहर का आलीशान फ्रेम */
-        .stTabs [data-baseweb="tab-list"] {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            gap: 12px !important;
-            width: 100% !important;
-            justify-content: center !important;
-            background: linear-gradient(135deg, #ffffff, #f7f9fc) !important;
-            padding: 14px 10px !important;
-            border-radius: 20px !important;
-            box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12) !important;
-            border: 2px solid #E2E8F0 !important;
-            margin-bottom: 25px !important;
-        }
-
-        /* २. हर एक कैटगरी बटन का डिफ़ॉल्ट ढांचा (अक्षरों को बड़ा और कड़क करना) */
-        .stTabs [data-baseweb="tab"] {
-            flex: 1 1 auto !important;
-            min-width: 110px !important;
-            height: auto !important;
-            padding: 12px 20px !important;
-            background-color: #F8FAFC !important;
-            border: 1px solid #E2E8F0 !important;
-            border-radius: 12px !important;
-            font-weight: 900 !important; /* अक्षर एकदम कड़क और मोटे दिखेंगे */
-            font-size: 16px !important;  /* फॉन्ट साइज को बड़ा किया */
-            color: #475569 !important;
-            text-align: center !important;
-            transition: all 0.4s ease-in-out !important;
-        }
-
-        /* ३. 🌟 गिरगिट एनीमेशन प्रभाव जो लगातार रंग बदलेगा */
-        @keyframes categoryColorShift {
-            0%   { background-color: #FF4B4B !important; color: white !important; box-shadow: 0 0 15px rgba(255,75,75,0.6) !important; }
-            33%  { background-color: #00BCD4 !important; color: white !important; box-shadow: 0 0 15px rgba(0,188,212,0.6) !important; }
-            66%  { background-color: #4CAF50 !important; color: white !important; box-shadow: 0 0 15px rgba(76,175,80,0.6) !important; }
-            100% { background-color: #FF9800 !important; color: white !important; box-shadow: 0 0 15px rgba(255,152,0,0.6) !important; }
-        }
-
-        /* ४. 🔥 महा-अचूक सिलेक्टर: जो कैटगरी यूज़र ने चुनी है, उसका बैकग्राउंड रंग जबरन बदलेगा */
-        .stTabs [aria-selected="true"], 
-        .stTabs [aria-selected="true"] > div,
-        .stTabs [data-baseweb="tab"][aria-selected="true"] {
-            animation: categoryColorShift 6s infinite alternate !important; /* हर २ सेकंड में शालीनता से रंग बदलेगा */
-            transform: scale(1.06) translateY(-2px) !important; /* बटन थोड़ा बड़ा और ऊपर उठा रहेगा */
-            border: none !important;
-        }
-
-        /* ५. जब यूज़र कैटगरी पर उंगली या माउस ले जाएगा */
-        .stTabs [data-baseweb="tab"]:hover {
-            background-color: #EDF2F7 !important;
-            color: #0F172A !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-                        
-        # ६. 🎤 ऑडियो स्क्रिप्ट (जो सब कुछ बोलकर बताएगा)
-        audio_script = f"जय बजरंगबली {u_name} जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है  "
-        audio_script += f"आपका मूलांक {mulank} और भाग्यांक {bhagyank} है। "
-        audio_script += f"नामांक {name_num} और कुआ नंबर {kua} है। "
-        audio_script += f"आपके ग्रहों का फल कहता है कि {comb_fal}। "
-        if active_rajyog:
-            audio_script += " आपके ग्रिड में विशेष राजयोग भी बन रहे हैं। "
-            for ry in active_rajyog:
-                audio_script += f"{ry} "
-                # --- यहाँ रखें st.session_state वाला हिस्सा ---
-            st.session_state['u_name'] = u_name
-            st.session_state['dob_digits'] = dob_digits
-            st.session_state['missing_nums'] = missing_nums
-            st.session_state['name_num'] = name_num
-                        # =======================================================
-        # 💮 कैटगरी चेतावनियाँ और लाइव चमकने वाला बार (100% वर्किंग)
-        # =======================================================
-
-        # CSS एनीमेशन: जो पूरे बॉक्स का बैकग्राउंड और बॉर्डर लगातार बदलेगा
-        जादुई_कैटगरी_स्टाइल = """
-        <style>
-        @keyframes blinkCategory {
-            0%   { background-color: #FF4B4B; border-color: #FF1A1A; box-shadow: 0 0 15px rgba(255,75,75,0.7); }
-            33%  { background-color: #00BCD4; border-color: #0097A7; box-shadow: 0 0 15px rgba(0,188,212,0.7); }
-            66%  { background-color: #4CAF50; border-color: #388E3C; box-shadow: 0 0 15px rgba(76,175,80,0.7); }
-            100% { background-color: #FF9800; border-color: #F57C00; box-shadow: 0 0 15px rgba(255,152,0,0.7); }
-        }
-
-        .glow-bar {
-            animation: blinkCategory 6s infinite alternate;
-            padding: 3px;
-            border-radius: 10px;
-            border: 2px solid #FF4B4B;
-            text-align: center;
-            margin-bottom: 3px;
-            color: white !important;
-        }
-
-        .glow-bar h3, .glow-bar p {
-            color: white !important;
-            margin: 0px !important;
-            font-weight: bold !important;
-            text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
-        }
-        </style>
-
-        <div class="glow-bar">
-            <h3>👇 कृपया नीचे दी गई तीनों कैटगरी अवश्य देखें 👇</h3>
-            <p>१. मूलांक-भाग्यांक फल | २. नाम-भाग्य विचार | ३. ग्रिड एवं उपाय</p>
-        </div>
-        """
-                # अगर यूज़र ने पहला पेज भर दिया है, तो उसे हमेशा एक्टिव रखें
-        if 'user_logged_in' in st.session_state:
-            mulank = st.session_state['app_mulank']
-            bhagyank = st.session_state['app_bhagyank']
-        # इसे स्क्रीन पर दिखाना (यह हर सेकंड रंग बदलेगा)
-        st.markdown(जादुई_कैटगरी_स्टाइल, unsafe_allow_html=True)
-            # Ab aapke purane tabs yahan se shuru honge
-        # यहाँ हमने चौथा टैब "📱 मोबाइल नंबर विचार" नाम से जोड़ दिया है
-        # 'key="current_active_tab"' जोड़ने से स्ट्रीमलिट याद रखेगा कि यूजर किस टैब पर था
-        
-        tab1, tab2, tab3, = st.tabs(["⬜ मूलांक-भाग्यांक फल", "👤 नाम-भाग्य विचार", "💮 ग्रिड एवं उपाय", ], key="active_numerology_tab")
-
-        with tab1:
-
-            # १. डेटा को सुरक्षित रूप से निकालें
-            m_data = grah_deta.get(mulank, {})
-            b_data = grah_deta.get(bhagyank, {})
-
-            # २. पहले से डिफाइन करें ताकि NameError न आए
-            tab1_audio = f"नमस्ते {u_name} जी। आपके मूलांक और भाग्यांक का विश्लेषण तैयार है।"
-            tab1_audio += f"जय बजरंगबली {u_name} जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है  "
-            tab1_audio += f"आपका मूलांक {mulank} और भाग्यांक {bhagyank} है। "
-            tab1_audio += f"नामांक {name_num} और कुआ नंबर {kua} है। "
-            tab1_audio += f"आपके ग्रहों का फल कहता है कि {comb_fal}। "
-           
-
-            # ३. प्रीमियम कार्ड का डिज़ाइन (CSS)
-            st.markdown("""
-            <style>
-                .lucky-container {
-                    background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-                    border: 2px solid #e0e0e0;
-                    border-radius: 15px;
-                    padding: 20px;
-                    margin-bottom: 20px;
-                    box-shadow: 5px 5px 15px rgba(0,0,0,0.05);
-                }
-                .flex-box { display: flex; justify-content: space-between; gap: 15px; }
-                .info-col { flex: 1; padding: 15px; border-radius: 12px; }
-                .m-bg { background-color: #e3f2fd; border: 1px solid #bbdefb; }
-                .b-bg { background-color: #f3e5f5; border: 1px solid #e1bee7; }
-                .label { font-weight: bold; color: #333; }
-            </style>
-            """, unsafe_allow_html=True)
-
-            # ४. कार्ड का डिस्प्ले (HTML)
+        with col1:
             st.markdown(f"""
-            <div class="lucky-container">
-                <h3 style="text-align: center; color: #1a508b; margin-top: 0;">🌟 आपके शुभ पैरामीटर्स</h3>
-                <div class="flex-box">
-                    <div class="info-col m-bg">
-                        <h4 style="color: red; margin-top: 0;">मूलांक: {mulank} (स्वभाव)</h4>
-                        <p><span class="label">🪐 ग्रह:</span> <span style="color: red; font-weight: bold;">{m_data.get('grah', 'N/A')}</span></p>
-<p><span class="label">📅 दिन:</span> <span style="color: red; font-weight: bold;">{m_data.get('day', 'N/A')}</span></p>
-<p><span class="label">🎨 रंग:</span> <span style="color: red; font-weight: bold;">{m_data.get('color', 'N/A')}</span></p>
-                        <p style="font-size: 12px; color: red; font-style: italic;">उपयोग: दैनिक शांति व आत्मविश्वास हेतु।</p>
-                    </div>
-                    <div class="info-col b-bg">
-                        <h4 style="color: blue; margin-top: 0;">भाग्यांक: {bhagyank} (भाग्य)</h4>
-                        <p><span class="label">🪐 ग्रह:</span> <span style="color: blue; font-weight: bold;">{b_data.get('grah', 'N/A')}</span></p>
-<p><span class="label">📅 दिन:</span> <span style="color: blue; font-weight: bold;">{b_data.get('day', 'N/A')}</span></p>
-<p><span class="label">🎨 रंग:</span> <span style="color: blue; font-weight: bold;">{b_data.get('color', 'N/A')}</span></p>
-                        <p style="font-size: 12px; color: blue; font-style: italic;">उपयोग: करियर व बड़ी सफलताओं हेतु।</p>
-                    </div>
+                <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; border-left: 5px solid #E74C3C;'>
+                    <h3 style='margin:0; color:#E74C3C;'>मूलांक: {mulank}</h3>
+                    <h3 style='margin:5px 0; color:#1E90FF;'>भाग्यांक: {bhagyank}</h3>
+                    <h3 style='margin:5px 0; color:#2ECC71;'>नामांक: {name_num}</h3>
+                    <h3 style='margin:10px 0; color:#8E44AD;'>कुआ नंबर: {kua}</h3>
                 </div>
-            </div>
             """, unsafe_allow_html=True)
-            # १. डेटा वेरिएबल्स (यह जोड़ना जरूरी है)
-            m_grah = m_data.get('grah', 'विशेष ग्रह')
-            m_din = m_data.get('day', 'शुभ दिन')
-            m_rang = m_data.get('color', 'शुभ रंग')
 
-            b_grah = b_data.get('grah', 'विशेष ग्रह')
-            b_din = b_data.get('day', 'शुभ दिन')
-            b_rang = b_data.get('color', 'शुभ रंग')
-
-            # २. ऑडियो स्क्रिप्ट
-            tab1_audio = (
-                f"प्रणाम {u_name} जी! आपके मूलांक {mulank} के आधार पर, जो आपके स्वभाव को दर्शाता है, "
-                f"आपका शुभ ग्रह {m_grah} है, शुभ दिन {m_din} है और आपका सबसे अनुकूल रंग {m_rang} है। "
-                f"वहीं आपके भाग्यांक {bhagyank} के अनुसार, आपका स्वामी ग्रह {b_grah} है। शुभ दिन {b_din} है और आपका सबसे अनुकूल रंग {b_rang} है।"
-            )
-                
-                # एक लाइन खींचने के लिएst.divider() 
-                
-                # १. फल के लिए 'Key' तैयार करें
-            combination_key = f"{mulank}-{bhagyank}"
-
-                # २. डिक्शनरी से फल प्राप्त करें
-                # faladesh_dict वही है जो आपने फोटो 7ff1cf19-9461-4913-944a-fdb1c349e391 में बनाई है
-            result_fal = faladesh_dict.get(combination_key, "इस विशेष कॉम्बिनेशन का विश्लेषण अभी तैयार किया जा रहा है।")
-
-                # ३. स्क्रीन पर प्रदर्शित करें
-            st.markdown(f"### 🚩 व्यक्तित्व विश्लेषण (कॉम्बिनेशन {combination_key})")
-                
-                # एक सुंदर कार्ड के रूप में दिखाने के लिए
-            st.info(f"**मूलांक {mulank} और भाग्यांक {bhagyank}:**\n\n{result_fal}")
-
-                # ४. ऑडियो के लिए स्क्रिप्ट में जोड़ें
-                # यहाँ tab1_audio का इस्तेमाल करें
-            tab1_audio += f" आपके मूलांक और भाग्यांक का मेल {combination_key} है। ज्योतिष के अनुसार, {result_fal}"
-            # ५. व्यक्तित्व का मुख्य आधार सेक्शन
-            st.markdown("---")
-            st.markdown(f"### 🌟 आपके व्यक्तित्व का मुख्य आधार")
-            st.write(f"मूलांक **{mulank}** और भाग्यांक **{bhagyank}** का यह मेल आपके जीवन की दिशा तय करता है। मूलांक आपके व्यक्तित्व और स्वभाव को दर्शाता है, जबकि भाग्यांक आपके जीवन के भाग्य, उद्देश्य और चुनौतियों का प्रतिनिधित्व करता है, मूलांक आपके व्यक्तित्व और स्वभाव को दर्शाता है, जबकि भाग्यांक आपके जीवन के भाग्य, उद्देश्य और चुनौतियों का प्रतिनिधित्व करता है।")
-
-            # ६. ऑडियो को कॉल करें (अगर bol_web फंक्शन बना हुआ है)
-            bol_web(tab1_audio, "graha_voice")
-               
-        with tab2:
-            st.header("🔮 गुरु का वैज्ञानिक परामर्श")
+            st.subheader("🗓️ लो-शू ग्रिड (Multi-Number View)")
             
-            # name_sum ko define karna taaki peeli line hat jaye
-            if 'name_sum' not in locals() and 'name_sum' not in globals():
-                name_sum = name_num 
+            # ग्रिड मैपिंग
+            grid_pos = {4:(0,0), 9:(0,1), 2:(0,2), 3:(1,0), 5:(1,1), 7:(1,2), 8:(2,0), 1:(2,1), 6:(2,2)}
+            display_grid = [[[] for _ in range(3)] for _ in range(3)]
 
-            def get_g_n(n):
-                return grah_deta.get(int(n), {}).get('grah', 'अंक')
-
-            # Mulank aur Bhagyank ke liye grah ka naam
-            n_g, m_g, b_g = get_g_n(name_num), get_g_n(mulank), get_g_n(bhagyank)
-            tab2_audio = f"Namaste! Aapka namank {name_num} hai jo {n_g} ka ank hai. "
-
-            # 1. Sanyukt Namank ka Phal (Compound Number Logic)
-            if name_sum > 1:
-                # === ३.५ कम्पाउंड नंबर (Compound Number) का फलकथन और ऑडियो स्क्रिप्ट ===
-                st.subheader("🔢 Compound Number (संयुक्त अंक) का फल")
-                
-                # 'name_val' वेरिएबल से नाम का कुल योग लेकर कम्पाउंड फल निकालना
-                compound_num = name_val
-                compound_fal = compound_master_81.get(compound_num, "इस संयुक्त अंक का फल अभी उपलब्ध नहीं है।")
-                
-                # स्क्रीन पर दिखाना
-                st.info(f"**आपका संयुक्त अंक {compound_num} है:** {compound_fal}")
-                
-                # ऑडियो स्क्रिप्ट तैयार करना (ताकि अंत में गुरु इसे बोलकर सुनाएं)
-                compound_audio_text = f" विशाल जी, आपके नाम के अक्षरों का कुल योग, यानी आपका संयुक्त अंक जिसे कम्पाउंड नंबर कहते हैं, वह {compound_num} है। ज्योतिष गणना के अनुसार, {compound_fal} "
-                
-                # इसे टैब ३ के मुख्य ऑडियो वेरिएबल में जोड़ना (बिना पुराना डेटा हटाए)
-                tab2_audio += compound_audio_text
-
-                st.divider()
-                
-                # 2. Maitree Analysis (Grah aur Ank ke Naam ke Saath)
-                st.subheader(f"📊 अंक मैत्री विवरण: {name_num} ({n_g})")
-                m_en = friendship_logic.get(int(mulank), {}).get('enemies', [])
-                b_en = friendship_logic.get(int(bhagyank), {}).get('enemies', [])
-
-                shatru_list = []
-                if name_num in m_en: shatru_list.append(f"मूलांक {mulank} ({m_g})")
-                if name_num in b_en: shatru_list.append(f"भाग्यांक {bhagyank} ({b_g})")
-
-                if not shatru_list:
-                    msg = f"नामांक {name_num} ({n_g}), मूलांक {mulank} ({m_g}) और भाग्यांक {bhagyank} ({b_g}) दोनों का मित्र है।"
-                    st.success(f"✅ {msg}")
-                    tab2_audio += f"{msg} "
-                else:
-                    msg = f"नामांक {name_num} ({n_g}) आपके {' और '.join(shatru_list)} का शत्रु है।"
-                    st.error(f"❌ {msg}")
-                    tab2_audio += f"{msg} "
-
-                st.write("---")
-
-                # 3. Rajyog Logic (Mangal 9 ko prathmikta)
-                st.subheader("💡 गुरु का विशेष राजयोग सुझाव")
-                # यहाँ हम यूज़र के सभी शुद्ध अंकों को एक साथ मिला रहे हैं
-                शुद्ध_अंक_स्ट्रिंग = str(mulank) + str(bhagyank) + str(name_num)
-                
-                # यदि आपने कुआ नंबर भी ग्रिड में जोड़ा है, तो उसे भी यहाँ शामिल कर लें:
-                if 'kua_num' in locals() or 'kua_num' in globals():
-                    शुद्ध_अंक_स्ट्रिंग += str(kua)
-                    
-                # अगर आपके पास जन्मतिथि के अंकों की कोई शुद्ध स्ट्रिंग (जैसे 'dob_digits') है, तो उसे भी जोड़ सकते हैं:
-                if 'dob_digits' in locals() or 'dob_digits' in globals():
-                    शुद्ध_अंक_स्ट्रिंग += str(dob_digits)
-                # यूज़र के पास जितने भी असली अंक मौजूद हैं, उनकी एक शुद्ध लिस्ट
-                मौजूद_अंक_लिस्ट = [int(char) for char in शुद्ध_अंक_स्ट्रिंग if char.isdigit()]
-                priorities = [
-                {'t': 4, 'others': [5, 6], 'name': "गोल्डन राजयोग (4-5-6)"},
-                {'t': 5, 'others': [4, 6], 'name': "गोल्डन राजयोग (4-5-6)"},
-                {'t': 6, 'others': [4, 6], 'name': "गोल्डन राजयोग (4-5-6)"},
-                {'t': 2, 'others': [5, 8], 'name': "रजत राजयोग (2-5-8)"},
-                {'t': 5, 'others': [2, 8], 'name': "रजत राजयोग (2-5-8)"},
-                {'t': 8, 'others': [2, 5], 'name': "रजत राजयोग (2-5-8)"},
-                {'t': 4, 'others': [3, 8], 'name': "विचार शक्ति राजयोग (4-3-8)"},
-                {'t': 3, 'others': [4, 8], 'name': "विचार शक्ति राजयोग (4-3-8)"},
-                {'t': 8, 'others': [4, 3], 'name': "विचार शक्ति राजयोग (4-3-8)"},
-                {'t': 9, 'others': [5, 1], 'name': "सफलता राजयोग (9-5-1)"},
-                {'t': 5, 'others': [9, 1], 'name': "सफलता राजयोग (9-5-1)"},
-                {'t': 1, 'others': [9, 5], 'name': "सफलता राजयोग (9-5-1)"},
-                {'t': 4, 'others': [9, 2], 'name': "मानसिक शक्ति राजयोग (4-9-2)"},
-                {'t': 9, 'others': [4, 2], 'name': "मानसिक शक्ति राजयोग (4-9-2)"},
-                {'t': 2, 'others': [4, 9], 'name': "मानसिक शक्ति राजयोग (4-9-2)"},
-                {'t': 3, 'others': [5, 7], 'name': " इच्छा शक्ति राजयोग (3-5-7)"},
-                {'t': 5, 'others': [3, 7], 'name': " इच्छा शक्ति राजयोग (3-5-7)"},
-                {'t': 7, 'others': [5, 3], 'name': " इच्छा शक्ति राजयोग (3-5-7)"},
-                {'t': 8, 'others': [1, 6], 'name': "  कर्म शक्ति राजयोग (8-1-6)"},
-                {'t': 1, 'others': [8, 6], 'name': "  कर्म शक्ति राजयोग (8-1-6)"},
-                {'t': 6, 'others': [1, 8], 'name': "  कर्म शक्ति राजयोग (8-1-6)"},
-                {'t': 2, 'others': [7, 6], 'name': "  संतान और संपन्नता (2-7-6)"},
-                {'t': 7, 'others': [2, 6], 'name': "  संतान और संपन्नता (2-7-6)"},
-                {'t': 6, 'others': [7, 2], 'name': "  संतान और संपन्नता (2-7-6)"},
-                {'t': 3, 'others': [5, 7], 'name': "  इच्छा शक्ति राजयोग (3-5-7)"},
-                {'t': 5, 'others': [3, 7], 'name': "  इच्छा शक्ति राजयोग (3-5-7)"},
-                {'t': 7, 'others': [5, 3], 'name': "  इच्छा शक्ति राजयोग (3-5-7)"},
-            ]
-                राजयोग_मिला = False
-
-                for p in priorities:
-                    target = p['t']
-                    
-                    # शर्त १: जो अंक चाहिए (target) वह यूज़र के पास मौजूद नहीं होना चाहिए
-                    # शर्त २: राजयोग को पूरा करने वाले बाकी दोनों अंक यूज़र के पास सच में मौजूद होने चाहिए
-                    if (target not in मौजूद_अंक_लिस्ट) and all(x in मौजूद_अंक_लिस्ट for x in p['others']):
-                        
-                        # शत्रु अंकों की जांच (मूलांक और भाग्यांक से)
-                        if target not in m_en and target not in b_en:
-                            t_grah = get_g_n(target)
-                            msg = f"{p['name']} पूरा करने हेतु {target} ({t_grah}) अपनाएं, यह आपके मूलांक {mulank} और भाग्यांक {bhagyank} का मित्र है।"
-                            st.success(f"🌟 {msg}")
-                            tab2_audio += f"Sujhav hai ki {msg} "
-                            राजयोग_मिला = True
-                            break  # एक मुख्य राजयोग का सुझाव मिलने पर लूप रोकें
-                        else:
-                            # अगर वह अंक शत्रु है, तो चेतावनी दें और दूसरा राजयोग चेक करें
-                            shatru_of = "मूलांक" if target in m_en else "भाग्यांक"
-                            t_grah = get_g_n(target)
-                            msg = f"अंक {target} ({t_grah}) से आपका {p['name']} बन सकता है, पर यह आपके {shatru_of} का शत्रु है, अतः इसे न अपनाएं।"
-                            st.warning(f"⚠️ {msg}")
-                            tab2_audio += f"Chetavni! {msg} "
-                            # यहाँ break नहीं करेंगे ताकि सिस्टम लिस्ट में अगला सुरक्षित राजयोग ढूंढ सके
-
-                if not राजयोग_मिला:
-                    st.info("ℹ️ वर्तमान में आपके लिए कोई नया विशेष राजयोग सुझाव उपलब्ध नहीं है।")
-                        # यूज़र के पास जितने भी असली अंक मौजूद हैं, उनकी एक शुद्ध लिस्ट
-                मौजूद_अंक_लिस्ट = [int(char) for char in शुद्ध_अंक_स्ट्रिंग if char.isdigit()]
-
-                st.write("---")
-
-                        # ==========================================
-                # 🆕 संशोधित लॉजिक: ग्रिड के कंबाइंड टेक्स्ट में से अंकों की सही गिनती
-                # ==========================================
+            # १. DOB के नंबर (Black)
+            for n in dob_digits:
+                if n in grid_pos:
+                    r, c = grid_pos[n]
+                    display_grid[r][c].append(f"<span style='color:black;'>{n}</span>")
             
-                st.subheader("⚠️ अत्यधिक पुनरावृत्ति एवं ऊर्जा असंतुलन")
-                
-                has_overactive = False
-                
-                # १ से ९ तक के सभी अंकों की बिल्कुल शुद्ध और सटीक जांच
-                for num in range(1, 10):
-                    count_in_grid = शुद्ध_अंक_स्ट्रिंग.count(str(num))
-                    
-                    # यदि कोई अंक २ से अधिक बार आया है (३ या उससे ज़्यादा बार)
-                    if count_in_grid > 2:
-                        has_overactive = True
-                        grah_name = get_g_n(num)
-                        
-                        # पूर्णतः हिंदी में चेतावनी बॉक्स
-                        st.warning(f"✨ **अंक {num} ({grah_name})** आपकी ग्रिड में **{count_in_grid} बार** आया है।")
-                        
-                        # पूर्णतः हिंदी में असंतुलन का विवरण
-                        st.write(
-                            f"लो-शू ग्रिड में दो से अधिक बार मौजूद होने के कारण **{grah_name}** की शक्ति अत्यधिक बढ़ गई है, "
-                            f"जिससे आपकी **ऊर्जा असंतुलित हो रही है**। इसे संतुलित करने के लिए कृपया विशेष ज्योतिषीय उपाय अपनाएं।"
-                        )
-                        
-                        # ऑडियो स्क्रिप्ट (बैकएंड में गुरु के बोलने के लिए)
-                        overactive_audio = f"Aapki grid mein ank {num} do se adhik baar aaya hai, jisse {grah_name} ki oorja asantulit ho rahi hai. Kripya is grah ke vishesh upaye karein. "
-                        tab2_audio += overactive_audio
+            # २. विशेष नंबरों को जोड़ना (Colors)
+            special_nums = [(mulank, "#E74C3C"), (bhagyank, "#1E90FF"), (name_num, "#2ECC71"), (kua, "#8E44AD")]
+            for num, color in special_nums:
+                r, c = grid_pos[num]
+                display_grid[r][c].append(f"<span style='color:{color};'>{num}</span>")
+    # ग्रिड बनाना
+            html_grid = "<table style='width:100%; border-collapse: collapse; text-align:center; font-size:24px; font-weight:bold;'>"
+            for row in display_grid:
+                html_grid += "<tr style='height:110px;'>"
+                for cell_list in row:
+                    content = " ".join(cell_list) if cell_list else ""
+                    html_grid += f"<td style='border:2px solid #E74C3C; width:33%; background-color:#FFF9F0;'>{content}</td>"
+                html_grid += "</tr>"
+            html_grid += "</table>"
+            st.markdown(html_grid, unsafe_allow_html=True)
 
-                if not has_overactive:
-                    # पूर्णतः हिंदी में सफलता का संदेश
-                    st.success("🎯 आपकी ग्रिड में सभी ग्रहों की ऊर्जा संतुलित है। कोई भी ग्रह दो से अधिक बार नहीं आया है।")
-                    tab2_audio += "Aapki grid mein sabhi grahon ki oorja santulit hai. "
-                # ==========================================
-                
-                # ३. ऑडियो प्ले करना
-                st.write("---")
-                contact_msg = "सुक्ष्म गाडना हेतु Vishal Vikram Pandey ji se संपर्क करे ."
-                st.info(f"📍 {contact_msg}")
-                tab2_audio += f" {contact_msg}"
-                bol_web(tab2_audio, "tab2_voice")
-                st.markdown("<p style='text-align: center; color: gray;'>आचार्य विशाल विक्रम पांडे</p>", unsafe_allow_html=True)
-
-        with tab3:
-            # १. ऑडियो वेरिएबल को शुरू करें
-            tab3_audio = "प्रणाम! आपके चार्ट का विशेष विश्लेषण यहाँ दिया गया है। "
-
-            # २. राजयोग की गणना (Calculation)
-            active_rajyog = []
-            planes = [
-                ([4, 9, 2], "मानसिक शक्ति राजयोग (4-9-2)"),
-                ([3, 5, 7], "इच्छा शक्ति राजयोग (3-5-7)"),
-                ([8, 1, 6], "कर्म शक्ति राजयोग (8-1-6)"),
-                ([4, 3, 8], "विचार शक्ति राजयोग (4-3-8)"),
-                ([9, 5, 1], "सफलता राजयोग (9-5-1)"),
-                ([2, 7, 6], "संतान और संपन्नता (2-7-6)"),
-                ([4, 5, 6], "गोल्डन राजयोग (4-5-6)"),
-                ([2, 5, 8], "सिल्वर राजयोग (2-5-8)")
-            ]
-
-            # चेक करें कि कौन से राजयोग बन रहे हैं
-            for p_nums, p_name in planes:
-                if all(num in all_present_nums for num in p_nums):
-                    active_rajyog.append(p_name)
-
-            # ३. राजयोग का फल दिखाना (Display)
-            st.subheader("✨ आपके लो-शू ग्रिड के राजयोग")
-            if active_rajyog:
-                tab3_audio += "सबसे पहले आपके चार्ट के राजयोगों की बात करते हैं। "
-                for ry in active_rajyog:
-                    # डिक्शनरी से फल उठाना
-                    fal = rajyog_fal.get(ry, "यह एक अत्यंत शुभ राजयोग है जो जीवन में प्रगति लाता है।")
-                    
-                    # स्क्रीन पर दिखाना
-                    st.success(f"✅ **{ry}**")
-                    st.info(f"📜 **फल:** {fal}")
-                    
-                    # ऑडियो में जोड़ना
-                    tab3_audio += f"{ry}. {fal} "
-            else:
-                st.write("वर्तमान ग्रिड में कोई पूर्ण राजयोग नहीं बन रहा है।")
-
-            st.divider()
-
-            # ४. मिसिंग नंबर्स (Missing Numbers) की गणना और उपाय
-            st.subheader("🔍 मिसिंग नंबर्स और उपाय")
+        with col2:
+            st.subheader("📜")
             
-            # वर्तमान में मौजूद अंकों की लिस्ट
+            # १. ८१ कॉम्बिनेशन का फल निकालना
+            comb_key = f"{mulank}-{bhagyank}"
+            comb_fal = faladesh_dict.get(comb_key, "आपके मूलांक और भाग्यांक का तालमेल उत्तम है।")
+
+            # २. मिसिंग नंबर और उपाय
             all_present_nums = set(dob_digits) | {mulank, bhagyank, name_num, kua}
             missing_nums = [n for n in range(1, 10) if n not in all_present_nums]
+    # --- राजयोग चेक करने का लॉजिक ---
+        
+            active_rajyog = []
+            # चेक करने के लिए सभी ८ कॉम्बिनेशन
+            planes = [
+                ([4, 9, 2], "4-9-2"), ([3, 5, 7], "3-5-7"), ([8, 1, 6], "8-1-6"), # Horizontal
+                ([4, 3, 8], "4-3-8"), ([9, 5, 1], "9-5-1"), ([2, 7, 6], "2-7-6"), # Vertical
+                ([4, 5, 6], "4-5-6"), ([2, 5, 8], "2-5-8")                       # Diagonal
+            ]
+            
+            rajyog_fal = {
+            "मानसिक शक्ति राजयोग (4-9-2)": "अंक ज्योतिष (Numerology) में 'मानसिक राजयोग' या 'राजयोग' का अर्थ जन्मतिथि के उन दुर्लभ और शक्तिशाली संयोजनों से है जो व्यक्ति को बिना अत्यधिक संघर्ष के अपार सफलता, धन, पद और मानसिक शांति प्रदान करते हैं। आपकी सोचने की शक्ति और मेमोरी बहुत तेज है। आप मानसिक कार्यों में बहुत सफल होते हैं।",
+            "इच्छा शक्ति राजयोग (3-5-7)": "अंक ज्योतिष में इच्छा शक्ति का सीधा संबंध व्यक्ति के मानसिक बल और लक्ष्यों के प्रति दृढ़ संकल्प से होता है। आपकी संकल्प शक्ति बहुत मजबूत है। आप जो ठान लेते हैं, उसे पूरा करके ही दम लेते हैं।",
+            "कर्म शक्ति राजयोग (8-1-6)": "आप अत्यंत परिश्रमी हैं। आपका कर्म ही आपकी सफलता का मुख्य आधार बनता है। ऐसे लोगों को अपने जीवन में बड़ी उपलब्धियां प्राप्त होती हैं।  इस राजयोग के प्रभाव से व्यक्ति में अद्भुत निर्णय लेने की शक्ति और नेतृत्व का गुण आता है। समाज में मान-सम्मान और अत्यधिक प्रसिद्धि मिलने का यह एक प्रमुख अंक ज्योतिषीय योग है।s",
+            "विचार शक्ति राजयोग (4-3-8)": "आप योजना बनाने में माहिर हैं। आपकी दूरदर्शिता आपको व्यापार और करियर में लाभ दिलाती है।",
+            "सफलता राजयोग (9-5-1)": "यह एक अत्यंत शुभ योग है जो जीवन के हर क्षेत्र में नाम, प्रसिद्धि और सफलता दिलाता है।",
+            "संतान और संपन्नता (2-7-6)": "यह योग सुखी पारिवारिक जीवन, अच्छी संतान और भौतिक सुख-सुविधाओं का संकेत देता है।",
+            "गोल्डन राजयोग (4-5-6)": "यह लो-शू ग्रिड का सबसे शक्तिशाली योग है, जो अपार धन और भाग्य लेकर आता है।",
+            "सिल्वर राजयोग (2-5-8)": "यह योग संपत्ति और जमीन-जायदाद के मामले में बहुत शुभ फल प्रदान करता है।"
+            }
 
-            if missing_nums:
-                tab3_audio += "अब आपके चार्ट में मौजूद मिसिंग नंबरों के उपायों की चर्चा करते हैं। "
-                for n in missing_nums:
-                    if n in remedy_info:
-                        g = remedy_info[n]['grah']
-                        u = remedy_info[n]['upay']
+            report_parts = [
+                f"✨ जय बजरंगी! स्वागत है **{u_name}** जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है ",
+                f"✨ जय बजरंगी! स्वागत है **{u_name}** जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है ",
+                f"🔸 आपका **मूलांक {mulank}** और **भाग्यांक {bhagyank}** है।",
+                f"🔸 आपका **नामांक {name_num}** और **कुआ नंबर {kua}** है।",
+                f"🔮 **विशेष फल:** {comb_fal}"
+                    ]
+            # ४. राजयोग का फल जोड़ना
+                    # टैब्स को मोबाइल फ्रेंडली और सुंदर बनाने के लिए नया CSS
+            
+                                    # =======================================================
+            # 🎯 केवल कैटगरी (Tabs) को लाइव रंग बदलने वाला बनाने का अचूक CSS
+            # =======================================================
+            st.markdown("""
+            <style>
+            /* १. पूरे कैटगरी बॉक्स के बाहर का आलीशान फ्रेम */
+            .stTabs [data-baseweb="tab-list"] {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 12px !important;
+                width: 100% !important;
+                justify-content: center !important;
+                background: linear-gradient(135deg, #ffffff, #f7f9fc) !important;
+                padding: 14px 10px !important;
+                border-radius: 20px !important;
+                box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12) !important;
+                border: 2px solid #E2E8F0 !important;
+                margin-bottom: 25px !important;
+            }
+
+            /* २. हर एक कैटगरी बटन का डिफ़ॉल्ट ढांचा (अक्षरों को बड़ा और कड़क करना) */
+            .stTabs [data-baseweb="tab"] {
+                flex: 1 1 auto !important;
+                min-width: 110px !important;
+                height: auto !important;
+                padding: 12px 20px !important;
+                background-color: #F8FAFC !important;
+                border: 1px solid #E2E8F0 !important;
+                border-radius: 12px !important;
+                font-weight: 900 !important; /* अक्षर एकदम कड़क और मोटे दिखेंगे */
+                font-size: 16px !important;  /* फॉन्ट साइज को बड़ा किया */
+                color: #475569 !important;
+                text-align: center !important;
+                transition: all 0.4s ease-in-out !important;
+            }
+
+            /* ३. 🌟 गिरगिट एनीमेशन प्रभाव जो लगातार रंग बदलेगा */
+            @keyframes categoryColorShift {
+                0%   { background-color: #FF4B4B !important; color: white !important; box-shadow: 0 0 15px rgba(255,75,75,0.6) !important; }
+                33%  { background-color: #00BCD4 !important; color: white !important; box-shadow: 0 0 15px rgba(0,188,212,0.6) !important; }
+                66%  { background-color: #4CAF50 !important; color: white !important; box-shadow: 0 0 15px rgba(76,175,80,0.6) !important; }
+                100% { background-color: #FF9800 !important; color: white !important; box-shadow: 0 0 15px rgba(255,152,0,0.6) !important; }
+            }
+
+            /* ४. 🔥 महा-अचूक सिलेक्टर: जो कैटगरी यूज़र ने चुनी है, उसका बैकग्राउंड रंग जबरन बदलेगा */
+            .stTabs [aria-selected="true"], 
+            .stTabs [aria-selected="true"] > div,
+            .stTabs [data-baseweb="tab"][aria-selected="true"] {
+                animation: categoryColorShift 6s infinite alternate !important; /* हर २ सेकंड में शालीनता से रंग बदलेगा */
+                transform: scale(1.06) translateY(-2px) !important; /* बटन थोड़ा बड़ा और ऊपर उठा रहेगा */
+                border: none !important;
+            }
+
+            /* ५. जब यूज़र कैटगरी पर उंगली या माउस ले जाएगा */
+            .stTabs [data-baseweb="tab"]:hover {
+                background-color: #EDF2F7 !important;
+                color: #0F172A !important;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+                            
+            # ६. 🎤 ऑडियो स्क्रिप्ट (जो सब कुछ बोलकर बताएगा)
+            audio_script = f"जय बजरंगबली {u_name} जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है  "
+            audio_script += f"आपका मूलांक {mulank} और भाग्यांक {bhagyank} है। "
+            audio_script += f"नामांक {name_num} और कुआ नंबर {kua} है। "
+            audio_script += f"आपके ग्रहों का फल कहता है कि {comb_fal}। "
+            if active_rajyog:
+                audio_script += " आपके ग्रिड में विशेष राजयोग भी बन रहे हैं। "
+                for ry in active_rajyog:
+                    audio_script += f"{ry} "
+                    # --- यहाँ रखें st.session_state वाला हिस्सा ---
+                st.session_state['u_name'] = u_name
+                st.session_state['dob_digits'] = dob_digits
+                st.session_state['missing_nums'] = missing_nums
+                st.session_state['name_num'] = name_num
+                            # =======================================================
+            # 💮 कैटगरी चेतावनियाँ और लाइव चमकने वाला बार (100% वर्किंग)
+            # =======================================================
+
+            # CSS एनीमेशन: जो पूरे बॉक्स का बैकग्राउंड और बॉर्डर लगातार बदलेगा
+            जादुई_कैटगरी_स्टाइल = """
+            <style>
+            @keyframes blinkCategory {
+                0%   { background-color: #FF4B4B; border-color: #FF1A1A; box-shadow: 0 0 15px rgba(255,75,75,0.7); }
+                33%  { background-color: #00BCD4; border-color: #0097A7; box-shadow: 0 0 15px rgba(0,188,212,0.7); }
+                66%  { background-color: #4CAF50; border-color: #388E3C; box-shadow: 0 0 15px rgba(76,175,80,0.7); }
+                100% { background-color: #FF9800; border-color: #F57C00; box-shadow: 0 0 15px rgba(255,152,0,0.7); }
+            }
+
+            .glow-bar {
+                animation: blinkCategory 6s infinite alternate;
+                padding: 3px;
+                border-radius: 10px;
+                border: 2px solid #FF4B4B;
+                text-align: center;
+                margin-bottom: 3px;
+                color: white !important;
+            }
+
+            .glow-bar h3, .glow-bar p {
+                color: white !important;
+                margin: 0px !important;
+                font-weight: bold !important;
+                text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+            }
+            </style>
+
+            <div class="glow-bar">
+                <h3>👇 कृपया नीचे दी गई तीनों कैटगरी अवश्य देखें 👇</h3>
+                <p>१. मूलांक-भाग्यांक फल | २. नाम-भाग्य विचार | ३. ग्रिड एवं उपाय</p>
+            </div>
+            """
+                    # अगर यूज़र ने पहला पेज भर दिया है, तो उसे हमेशा एक्टिव रखें
+            if 'user_logged_in' in st.session_state:
+                mulank = st.session_state['app_mulank']
+                bhagyank = st.session_state['app_bhagyank']
+            # इसे स्क्रीन पर दिखाना (यह हर सेकंड रंग बदलेगा)
+            st.markdown(जादुई_कैटगरी_स्टाइल, unsafe_allow_html=True)
+                # Ab aapke purane tabs yahan se shuru honge
+            # यहाँ हमने चौथा टैब "📱 मोबाइल नंबर विचार" नाम से जोड़ दिया है
+            # 'key="current_active_tab"' जोड़ने से स्ट्रीमलिट याद रखेगा कि यूजर किस टैब पर था
+            
+            tab1, tab2, tab3, tab4 = st.tabs(["⬜ मूलांक-भाग्यांक फल", "👤 नाम-भाग्य विचार", "🔳 ग्रिड एवं उपाय", "📱 मोबाइल नंबर विचार"], key="active_numerology_tab")
+
+        
+
+            with tab1:
+
+                # १. डेटा को सुरक्षित रूप से निकालें
+                m_data = grah_deta.get(mulank, {})
+                b_data = grah_deta.get(bhagyank, {})
+
+                # २. पहले से डिफाइन करें ताकि NameError न आए
+                tab1_audio = f"नमस्ते {u_name} जी। आपके मूलांक और भाग्यांक का विश्लेषण तैयार है।"
+                tab1_audio += f"जय बजरंगबली {u_name} जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है  "
+                tab1_audio += f"आपका मूलांक {mulank} और भाग्यांक {bhagyank} है। "
+                tab1_audio += f"नामांक {name_num} और कुआ नंबर {kua} है। "
+                tab1_audio += f"आपके ग्रहों का फल कहता है कि {comb_fal}। "
+            
+
+                # ३. प्रीमियम कार्ड का डिज़ाइन (CSS)
+                st.markdown("""
+                <style>
+                    .lucky-container {
+                        background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+                        border: 2px solid #e0e0e0;
+                        border-radius: 15px;
+                        padding: 20px;
+                        margin-bottom: 20px;
+                        box-shadow: 5px 5px 15px rgba(0,0,0,0.05);
+                    }
+                    .flex-box { display: flex; justify-content: space-between; gap: 15px; }
+                    .info-col { flex: 1; padding: 15px; border-radius: 12px; }
+                    .m-bg { background-color: #e3f2fd; border: 1px solid #bbdefb; }
+                    .b-bg { background-color: #f3e5f5; border: 1px solid #e1bee7; }
+                    .label { font-weight: bold; color: #333; }
+                </style>
+                """, unsafe_allow_html=True)
+
+                # ४. कार्ड का डिस्प्ले (HTML)
+                st.markdown(f"""
+                <div class="lucky-container">
+                    <h3 style="text-align: center; color: #1a508b; margin-top: 0;">🌟 आपके शुभ पैरामीटर्स</h3>
+                    <div class="flex-box">
+                        <div class="info-col m-bg">
+                            <h4 style="color: red; margin-top: 0;">मूलांक: {mulank} (स्वभाव)</h4>
+                            <p><span class="label">🪐 ग्रह:</span> <span style="color: red; font-weight: bold;">{m_data.get('grah', 'N/A')}</span></p>
+    <p><span class="label">📅 दिन:</span> <span style="color: red; font-weight: bold;">{m_data.get('day', 'N/A')}</span></p>
+    <p><span class="label">🎨 रंग:</span> <span style="color: red; font-weight: bold;">{m_data.get('color', 'N/A')}</span></p>
+                            <p style="font-size: 12px; color: red; font-style: italic;">उपयोग: दैनिक शांति व आत्मविश्वास हेतु।</p>
+                        </div>
+                        <div class="info-col b-bg">
+                            <h4 style="color: blue; margin-top: 0;">भाग्यांक: {bhagyank} (भाग्य)</h4>
+                            <p><span class="label">🪐 ग्रह:</span> <span style="color: blue; font-weight: bold;">{b_data.get('grah', 'N/A')}</span></p>
+    <p><span class="label">📅 दिन:</span> <span style="color: blue; font-weight: bold;">{b_data.get('day', 'N/A')}</span></p>
+    <p><span class="label">🎨 रंग:</span> <span style="color: blue; font-weight: bold;">{b_data.get('color', 'N/A')}</span></p>
+                            <p style="font-size: 12px; color: blue; font-style: italic;">उपयोग: करियर व बड़ी सफलताओं हेतु।</p>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                # १. डेटा वेरिएबल्स (यह जोड़ना जरूरी है)
+                m_grah = m_data.get('grah', 'विशेष ग्रह')
+                m_din = m_data.get('day', 'शुभ दिन')
+                m_rang = m_data.get('color', 'शुभ रंग')
+
+                b_grah = b_data.get('grah', 'विशेष ग्रह')
+                b_din = b_data.get('day', 'शुभ दिन')
+                b_rang = b_data.get('color', 'शुभ रंग')
+
+                # २. ऑडियो स्क्रिप्ट
+                tab1_audio = (
+                    f"प्रणाम {u_name} जी! आपके मूलांक {mulank} के आधार पर, जो आपके स्वभाव को दर्शाता है, "
+                    f"आपका शुभ ग्रह {m_grah} है, शुभ दिन {m_din} है और आपका सबसे अनुकूल रंग {m_rang} है। "
+                    f"वहीं आपके भाग्यांक {bhagyank} के अनुसार, आपका स्वामी ग्रह {b_grah} है। शुभ दिन {b_din} है और आपका सबसे अनुकूल रंग {b_rang} है।"
+                )
+                    
+                    # एक लाइन खींचने के लिएst.divider() 
+                    
+                    # १. फल के लिए 'Key' तैयार करें
+                combination_key = f"{mulank}-{bhagyank}"
+
+                    # २. डिक्शनरी से फल प्राप्त करें
+                    # faladesh_dict वही है जो आपने फोटो 7ff1cf19-9461-4913-944a-fdb1c349e391 में बनाई है
+                result_fal = faladesh_dict.get(combination_key, "इस विशेष कॉम्बिनेशन का विश्लेषण अभी तैयार किया जा रहा है।")
+
+                    # ३. स्क्रीन पर प्रदर्शित करें
+                st.markdown(f"### 🚩 व्यक्तित्व विश्लेषण (कॉम्बिनेशन {combination_key})")
+                    
+                    # एक सुंदर कार्ड के रूप में दिखाने के लिए
+                st.info(f"**मूलांक {mulank} और भाग्यांक {bhagyank}:**\n\n{result_fal}")
+
+                    # ४. ऑडियो के लिए स्क्रिप्ट में जोड़ें
+                    # यहाँ tab1_audio का इस्तेमाल करें
+                tab1_audio += f" आपके मूलांक और भाग्यांक का मेल {combination_key} है। ज्योतिष के अनुसार, {result_fal}"
+                # ५. व्यक्तित्व का मुख्य आधार सेक्शन
+                st.markdown("---")
+                st.markdown(f"### 🌟 आपके व्यक्तित्व का मुख्य आधार")
+                st.write(f"मूलांक **{mulank}** और भाग्यांक **{bhagyank}** का यह मेल आपके जीवन की दिशा तय करता है। मूलांक आपके व्यक्तित्व और स्वभाव को दर्शाता है, जबकि भाग्यांक आपके जीवन के भाग्य, उद्देश्य और चुनौतियों का प्रतिनिधित्व करता है, मूलांक आपके व्यक्तित्व और स्वभाव को दर्शाता है, जबकि भाग्यांक आपके जीवन के भाग्य, उद्देश्य और चुनौतियों का प्रतिनिधित्व करता है।")
+
+                # ६. ऑडियो को कॉल करें (अगर bol_web फंक्शन बना हुआ है)
+                bol_web(tab1_audio, "graha_voice")
+                
+            with tab2:
+                st.header("🔮 गुरु का वैज्ञानिक परामर्श")
+                
+                # name_sum ko define karna taaki peeli line hat jaye
+                if 'name_sum' not in locals() and 'name_sum' not in globals():
+                    name_sum = name_num 
+
+                def get_g_n(n):
+                    return grah_deta.get(int(n), {}).get('grah', 'अंक')
+
+                # Mulank aur Bhagyank ke liye grah ka naam
+                n_g, m_g, b_g = get_g_n(name_num), get_g_n(mulank), get_g_n(bhagyank)
+                tab2_audio = f"Namaste! Aapka namank {name_num} hai jo {n_g} ka ank hai. "
+
+                # 1. Sanyukt Namank ka Phal (Compound Number Logic)
+                if name_sum > 1:
+                    # === ३.५ कम्पाउंड नंबर (Compound Number) का फलकथन और ऑडियो स्क्रिप्ट ===
+                    st.subheader("🔢 Compound Number (संयुक्त अंक) का फल")
+                    
+                    # 'name_val' वेरिएबल से नाम का कुल योग लेकर कम्पाउंड फल निकालना
+                    compound_num = name_val
+                    compound_fal = compound_master_81.get(compound_num, "इस संयुक्त अंक का फल अभी उपलब्ध नहीं है।")
+                    
+                    # स्क्रीन पर दिखाना
+                    st.info(f"**आपका संयुक्त अंक {compound_num} है:** {compound_fal}")
+                    
+                    # ऑडियो स्क्रिप्ट तैयार करना (ताकि अंत में गुरु इसे बोलकर सुनाएं)
+                    # लाइन नंबर 734 को ऐसा बदलें:
+                    compound_audio_text = f"{u_name} जी, आपके नाम के अक्षरों का कुल योग, यानी आपका संयुक्त..."
+                    
+                    # इसे टैब ३ के मुख्य ऑडियो वेरिएबल में जोड़ना (बिना पुराना डेटा हटाए)
+                    tab2_audio += compound_audio_text
+
+                    st.divider()
+                    
+                    # 2. Maitree Analysis (Grah aur Ank ke Naam ke Saath)
+                    st.subheader(f"📊 अंक मैत्री विवरण: {name_num} ({n_g})")
+                    m_en = friendship_logic.get(int(mulank), {}).get('enemies', [])
+                    b_en = friendship_logic.get(int(bhagyank), {}).get('enemies', [])
+
+                    shatru_list = []
+                    if name_num in m_en: shatru_list.append(f"मूलांक {mulank} ({m_g})")
+                    if name_num in b_en: shatru_list.append(f"भाग्यांक {bhagyank} ({b_g})")
+
+                    if not shatru_list:
+                        msg = f"नामांक {name_num} ({n_g}), मूलांक {mulank} ({m_g}) और भाग्यांक {bhagyank} ({b_g}) दोनों का मित्र है।"
+                        st.success(f"✅ {msg}")
+                        tab2_audio += f"{msg} "
+                    else:
+                        msg = f"नामांक {name_num} ({n_g}) आपके {' और '.join(shatru_list)} का शत्रु है।"
+                        st.error(f"❌ {msg}")
+                        tab2_audio += f"{msg} "
+
+                    st.write("---")
+
+                    # 3. Rajyog Logic (Mangal 9 ko prathmikta)
+                    st.subheader("💡 गुरु का विशेष राजयोग सुझाव")
+                    # यहाँ हम यूज़र के सभी शुद्ध अंकों को एक साथ मिला रहे हैं
+                    शुद्ध_अंक_स्ट्रिंग = str(mulank) + str(bhagyank) + str(name_num)
+                    
+                    # यदि आपने कुआ नंबर भी ग्रिड में जोड़ा है, तो उसे भी यहाँ शामिल कर लें:
+                    if 'kua_num' in locals() or 'kua_num' in globals():
+                        शुद्ध_अंक_स्ट्रिंग += str(kua)
+                        
+                    # अगर आपके पास जन्मतिथि के अंकों की कोई शुद्ध स्ट्रिंग (जैसे 'dob_digits') है, तो उसे भी जोड़ सकते हैं:
+                    if 'dob_digits' in locals() or 'dob_digits' in globals():
+                        शुद्ध_अंक_स्ट्रिंग += str(dob_digits)
+                    # यूज़र के पास जितने भी असली अंक मौजूद हैं, उनकी एक शुद्ध लिस्ट
+                    मौजूद_अंक_लिस्ट = [int(char) for char in शुद्ध_अंक_स्ट्रिंग if char.isdigit()]
+                    priorities = [
+                    {'t': 4, 'others': [5, 6], 'name': "गोल्डन राजयोग (4-5-6)"},
+                    {'t': 5, 'others': [4, 6], 'name': "गोल्डन राजयोग (4-5-6)"},
+                    {'t': 6, 'others': [4, 6], 'name': "गोल्डन राजयोग (4-5-6)"},
+                    {'t': 2, 'others': [5, 8], 'name': "रजत राजयोग (2-5-8)"},
+                    {'t': 5, 'others': [2, 8], 'name': "रजत राजयोग (2-5-8)"},
+                    {'t': 8, 'others': [2, 5], 'name': "रजत राजयोग (2-5-8)"},
+                    {'t': 4, 'others': [3, 8], 'name': "विचार शक्ति राजयोग (4-3-8)"},
+                    {'t': 3, 'others': [4, 8], 'name': "विचार शक्ति राजयोग (4-3-8)"},
+                    {'t': 8, 'others': [4, 3], 'name': "विचार शक्ति राजयोग (4-3-8)"},
+                    {'t': 9, 'others': [5, 1], 'name': "सफलता राजयोग (9-5-1)"},
+                    {'t': 5, 'others': [9, 1], 'name': "सफलता राजयोग (9-5-1)"},
+                    {'t': 1, 'others': [9, 5], 'name': "सफलता राजयोग (9-5-1)"},
+                    {'t': 4, 'others': [9, 2], 'name': "मानसिक शक्ति राजयोग (4-9-2)"},
+                    {'t': 9, 'others': [4, 2], 'name': "मानसिक शक्ति राजयोग (4-9-2)"},
+                    {'t': 2, 'others': [4, 9], 'name': "मानसिक शक्ति राजयोग (4-9-2)"},
+                    {'t': 3, 'others': [5, 7], 'name': " इच्छा शक्ति राजयोग (3-5-7)"},
+                    {'t': 5, 'others': [3, 7], 'name': " इच्छा शक्ति राजयोग (3-5-7)"},
+                    {'t': 7, 'others': [5, 3], 'name': " इच्छा शक्ति राजयोग (3-5-7)"},
+                    {'t': 8, 'others': [1, 6], 'name': "  कर्म शक्ति राजयोग (8-1-6)"},
+                    {'t': 1, 'others': [8, 6], 'name': "  कर्म शक्ति राजयोग (8-1-6)"},
+                    {'t': 6, 'others': [1, 8], 'name': "  कर्म शक्ति राजयोग (8-1-6)"},
+                    {'t': 2, 'others': [7, 6], 'name': "  संतान और संपन्नता (2-7-6)"},
+                    {'t': 7, 'others': [2, 6], 'name': "  संतान और संपन्नता (2-7-6)"},
+                    {'t': 6, 'others': [7, 2], 'name': "  संतान और संपन्नता (2-7-6)"},
+                    {'t': 3, 'others': [5, 7], 'name': "  इच्छा शक्ति राजयोग (3-5-7)"},
+                    {'t': 5, 'others': [3, 7], 'name': "  इच्छा शक्ति राजयोग (3-5-7)"},
+                    {'t': 7, 'others': [5, 3], 'name': "  इच्छा शक्ति राजयोग (3-5-7)"},
+                ]
+                    राजयोग_मिला = False
+
+                    for p in priorities:
+                        target = p['t']
+                        
+                        # शर्त १: जो अंक चाहिए (target) वह यूज़र के पास मौजूद नहीं होना चाहिए
+                        # शर्त २: राजयोग को पूरा करने वाले बाकी दोनों अंक यूज़र के पास सच में मौजूद होने चाहिए
+                        if (target not in मौजूद_अंक_लिस्ट) and all(x in मौजूद_अंक_लिस्ट for x in p['others']):
+                            
+                            # शत्रु अंकों की जांच (मूलांक और भाग्यांक से)
+                            if target not in m_en and target not in b_en:
+                                t_grah = get_g_n(target)
+                                msg = f"{p['name']} पूरा करने हेतु {target} ({t_grah}) अपनाएं, यह आपके मूलांक {mulank} और भाग्यांक {bhagyank} का मित्र है।"
+                                st.success(f"🌟 {msg}")
+                                tab2_audio += f"Sujhav hai ki {msg} "
+                                राजयोग_मिला = True
+                                break  # एक मुख्य राजयोग का सुझाव मिलने पर लूप रोकें
+                            else:
+                                # अगर वह अंक शत्रु है, तो चेतावनी दें और दूसरा राजयोग चेक करें
+                                shatru_of = "मूलांक" if target in m_en else "भाग्यांक"
+                                t_grah = get_g_n(target)
+                                msg = f"अंक {target} ({t_grah}) से आपका {p['name']} बन सकता है, पर यह आपके {shatru_of} का शत्रु है, अतः इसे न अपनाएं।"
+                                st.warning(f"⚠️ {msg}")
+                                tab2_audio += f"Chetavni! {msg} "
+                                # यहाँ break नहीं करेंगे ताकि सिस्टम लिस्ट में अगला सुरक्षित राजयोग ढूंढ सके
+
+                    if not राजयोग_मिला:
+                        st.info("ℹ️ वर्तमान में आपके लिए कोई नया विशेष राजयोग सुझाव उपलब्ध नहीं है।")
+                            # यूज़र के पास जितने भी असली अंक मौजूद हैं, उनकी एक शुद्ध लिस्ट
+                    मौजूद_अंक_लिस्ट = [int(char) for char in शुद्ध_अंक_स्ट्रिंग if char.isdigit()]
+
+                    st.write("---")
+
+                            # ==========================================
+                    # 🆕 संशोधित लॉजिक: ग्रिड के कंबाइंड टेक्स्ट में से अंकों की सही गिनती
+                    # ==========================================
+                
+                    st.subheader("⚠️ अत्यधिक पुनरावृत्ति एवं ऊर्जा असंतुलन")
+                    
+                    has_overactive = False
+                    
+                    # १ से ९ तक के सभी अंकों की बिल्कुल शुद्ध और सटीक जांच
+                    for num in range(1, 10):
+                        count_in_grid = शुद्ध_अंक_स्ट्रिंग.count(str(num))
+                        
+                        # यदि कोई अंक २ से अधिक बार आया है (३ या उससे ज़्यादा बार)
+                        if count_in_grid > 2:
+                            has_overactive = True
+                            grah_name = get_g_n(num)
+                            
+                            # पूर्णतः हिंदी में चेतावनी बॉक्स
+                            st.warning(f"✨ **अंक {num} ({grah_name})** आपकी ग्रिड में **{count_in_grid} बार** आया है।")
+                            
+                            # पूर्णतः हिंदी में असंतुलन का विवरण
+                            st.write(
+                                f"लो-शू ग्रिड में दो से अधिक बार मौजूद होने के कारण **{grah_name}** की शक्ति अत्यधिक बढ़ गई है, "
+                                f"जिससे आपकी **ऊर्जा असंतुलित हो रही है**। इसे संतुलित करने के लिए कृपया विशेष ज्योतिषीय उपाय अपनाएं।"
+                            )
+                            
+                            # ऑडियो स्क्रिप्ट (बैकएंड में गुरु के बोलने के लिए)
+                            overactive_audio = f"Aapki grid mein ank {num} do se adhik baar aaya hai, jisse {grah_name} ki oorja asantulit ho rahi hai. Kripya is grah ke vishesh upaye karein. "
+                            tab2_audio += overactive_audio
+
+                    if not has_overactive:
+                        # पूर्णतः हिंदी में सफलता का संदेश
+                        st.success("🎯 आपकी ग्रिड में सभी ग्रहों की ऊर्जा संतुलित है। कोई भी ग्रह दो से अधिक बार नहीं आया है।")
+                        tab2_audio += "Aapki grid mein sabhi grahon ki oorja santulit hai. "
+                    # ==========================================
+                    
+                    # ३. ऑडियो प्ले करना
+                    st.write("---")
+                    contact_msg = "सुक्ष्म गाडना हेतु Vishal Vikram Pandey ji se संपर्क करे ."
+                    st.info(f"📍 {contact_msg}")
+                    tab2_audio += f" {contact_msg}"
+                    bol_web(tab2_audio, "tab2_voice")
+                    st.markdown("<p style='text-align: center; color: gray;'>आचार्य विशाल विक्रम पांडे</p>", unsafe_allow_html=True)
+
+            with tab3:
+                # १. ऑडियो वेरिएबल को शुरू करें
+                tab3_audio = "प्रणाम! आपके चार्ट का विशेष विश्लेषण यहाँ दिया गया है। "
+
+                # २. राजयोग की गणना (Calculation)
+                active_rajyog = []
+                planes = [
+                    ([4, 9, 2], "मानसिक शक्ति राजयोग (4-9-2)"),
+                    ([3, 5, 7], "इच्छा शक्ति राजयोग (3-5-7)"),
+                    ([8, 1, 6], "कर्म शक्ति राजयोग (8-1-6)"),
+                    ([4, 3, 8], "विचार शक्ति राजयोग (4-3-8)"),
+                    ([9, 5, 1], "सफलता राजयोग (9-5-1)"),
+                    ([2, 7, 6], "संतान और संपन्नता (2-7-6)"),
+                    ([4, 5, 6], "गोल्डन राजयोग (4-5-6)"),
+                    ([2, 5, 8], "सिल्वर राजयोग (2-5-8)")
+                ]
+
+                # चेक करें कि कौन से राजयोग बन रहे हैं
+                for p_nums, p_name in planes:
+                    if all(num in all_present_nums for num in p_nums):
+                        active_rajyog.append(p_name)
+
+                # ३. राजयोग का फल दिखाना (Display)
+                st.subheader("✨ आपके लो-शू ग्रिड के राजयोग")
+                if active_rajyog:
+                    tab3_audio += "सबसे पहले आपके चार्ट के राजयोगों की बात करते हैं। "
+                    for ry in active_rajyog:
+                        # डिक्शनरी से फल उठाना
+                        fal = rajyog_fal.get(ry, "यह एक अत्यंत शुभ राजयोग है जो जीवन में प्रगति लाता है।")
                         
                         # स्क्रीन पर दिखाना
-                        st.warning(f"अंक {n} ({g}) अनुपस्थित है")
-                        st.write(f"💡 **उपाय:** {u}")
+                        st.success(f"✅ **{ry}**")
+                        st.info(f"📜 **फल:** {fal}")
                         
                         # ऑडियो में जोड़ना
-                        tab3_audio += f"अंक {n} जो {g} का है, उसके लिए उपाय है: {u}। "
+                        tab3_audio += f"{ry}. {fal} "
+                else:
+                    st.write("वर्तमान ग्रिड में कोई पूर्ण राजयोग नहीं बन रहा है।")
+
+                st.divider()
+
+                # ४. मिसिंग नंबर्स (Missing Numbers) की गणना और उपाय
+                st.subheader("🔍 मिसिंग नंबर्स और उपाय")
+                
+                # वर्तमान में मौजूद अंकों की लिस्ट
+                all_present_nums = set(dob_digits) | {mulank, bhagyank, name_num, kua}
+                missing_nums = [n for n in range(1, 10) if n not in all_present_nums]
+
+                if missing_nums:
+                    tab3_audio += "अब आपके चार्ट में मौजूद मिसिंग नंबरों के उपायों की चर्चा करते हैं। "
+                    for n in missing_nums:
+                        if n in remedy_info:
+                            g = remedy_info[n]['grah']
+                            u = remedy_info[n]['upay']
+                            
+                            # स्क्रीन पर दिखाना
+                            st.warning(f"अंक {n} ({g}) अनुपस्थित है")
+                            st.write(f"💡 **उपाय:** {u}")
+                            
+                            # ऑडियो में जोड़ना
+                            tab3_audio += f"अंक {n} जो {g} का है, उसके लिए उपाय है: {u}। "
 
     # ५. अंत में ऑडियो प्लेयर (Optional)
-    # st.audio(generate_audio(tab3_audio))
-            if tab3_audio:
-                st.write("---")
-                # केवल एक स्लाइडर बनेगा जो राजयोग और उपाय दोनों बोलेगा
-                bol_web(tab3_audio, "graha_voice")
-import streamlit as st
+        # st.audio(generate_audio(tab3_audio))
+                if tab3_audio:
+                    st.write("---")
+                    # केवल एक स्लाइडर बनेगा जो राजयोग और उपाय दोनों बोलेगा
+                    bol_web(tab3_audio, "graha_voice")
+            import streamlit as st
+    # ------------------ WITH TAB4 SECTION ------------------
+        with tab4:
+            st.header("📱 मोबाइल नंबर ज्योतिष विश्लेषण")
+            st.write("अपने मोबाइल नंबर के भाग्य और अनुकूलता की गहरी जांच के लिए नीचे दिए गए बटन पर क्लिक करके विशेष विश्लेषण स्क्रीन पर जाएं।")
+            
+            # यह बटन सीधे 'pages' फोल्डर के अंदर रखी फाइल पर भेज देगा
+            st.page_link("pages/mobile_jyotish.py", label="👉 मोबाइल नंबर विश्लेषण पेज पर जाएं", icon="📱")
+                
+        import streamlit as st
 
-# यह कोड आपके एडमिन पैनल या सेटिंग्स टैब के लिए है
-def admin_control_board():
-    st.markdown("---")
-    st.markdown("<h3 style='color: #ff6f00;'>⚙️ गुरु एडमिन कंट्रोल बोर्ड (Admin Panel)</h3>", unsafe_allow_html=True)
-    
-    # १. प्रति मिनट दर सेट करने का विकल्प
-    st.subheader("1. कॉलिंग रेट मैनेजमेंट")
-    if 'call_rate' not in st.session_state:
-        st.session_state['call_rate'] = 21.00  # डिफ़ॉल्ट दर: 21 रुपये प्रति मिनट
-
-    new_rate = st.number_input(
-        "प्रति मिनट बातचीत की दर (INR / Minute) तय करें:", 
-        min_value=1.0, 
-        max_value=500.0, 
-        value=float(st.session_state['call_rate']),
-        step=1.0
-    )
-    st.session_state['call_rate'] = new_rate
-    st.success(f"वर्तमान कॉलिंग दर: ₹{st.session_state['call_rate']}/मिनट सेट है।")
-
-    st.markdown("---")
-
-    # २. मैन्युअल रिचार्ज और मिनट कैलकुलेटर बोर्ड
-    st.subheader("2. ग्राहक वॉलेट रिचार्ज केंद्र (Manual Entry)")
-    
-    # इनपुट फ़ील्ड्स
-    cust_phone = st.text_input("ग्राहक का मोबाइल नंबर दर्ज करें:")
-    recharge_amount = st.number_input("प्राप्त हुआ रिचार्ज अमाउंट (₹):", min_value=0, step=10)
-    
-    # गणना (Calculations)
-    if recharge_amount > 0:
-        # मिनट की गणना = राशि / प्रति मिनट दर
-        available_minutes = int(recharge_amount / st.session_state['call_rate'])
+    # यह कोड आपके एडमिन पैनल या सेटिंग्स टैब के लिए है
+    def admin_control_board():
+        st.markdown("---")
+        st.markdown("<h3 style='color: #ff6f00;'>⚙️ गुरु एडमिन कंट्रोल बोर्ड (Admin Panel)</h3>", unsafe_allow_html=True)
         
-        st.info(f"💡 **गणना:** ₹{recharge_amount} के रिचार्ज पर ग्राहक को **{available_minutes} मिनट** का टॉक-टाइम मिलेगा।")
+        # १. प्रति मिनट दर सेट करने का विकल्प
+        st.subheader("1. कॉलिंग रेट मैनेजमेंट")
+        if 'call_rate' not in st.session_state:
+            st.session_state['call_rate'] = 21.00  # डिफ़ॉल्ट दर: 21 रुपये प्रति मिनट
+
+        new_rate = st.number_input(
+            "प्रति मिनट बातचीत की दर (INR / Minute) तय करें:", 
+            min_value=1.0, 
+            max_value=500.0, 
+            value=float(st.session_state['call_rate']),
+            step=1.0
+        )
+        st.session_state['call_rate'] = new_rate
+        st.success(f"वर्तमान कॉलिंग दर: ₹{st.session_state['call_rate']}/मिनट सेट है।")
+
+        st.markdown("---")
+
+        # २. मैन्युअल रिचार्ज और मिनट कैलकुलेटर बोर्ड
+        st.subheader("2. ग्राहक वॉलेट रिचार्ज केंद्र (Manual Entry)")
         
-        # रिचार्ज कन्फर्म करने का बटन
-        if st.button("वॉलेट में मिनट जोड़ें और एक्टिवेट करें"):
-            if cust_phone:
-                # यहाँ आप इस डेटा को अपने पास सेव रख सकते हैं
-                st.balloons()
-                st.success(f"सफलतापूर्वक! ग्राहक {cust_phone} का वॉलेट एक्टिव कर दिया गया है। कुल समय: {available_minutes} मिनट।")
-            else:
-                st.error("कृपया पहले ग्राहक का मोबाइल नंबर दर्ज करें।")
+        # इनपुट फ़ील्ड्स
+        cust_phone = st.text_input("ग्राहक का मोबाइल नंबर दर्ज करें:")
+        recharge_amount = st.number_input("प्राप्त हुआ रिचार्ज अमाउंट (₹):", min_value=0, step=10)
+        
+        # गणना (Calculations)
+        if recharge_amount > 0:
+            # मिनट की गणना = राशि / प्रति मिनट दर
+            available_minutes = int(recharge_amount / st.session_state['call_rate'])
+            
+            st.info(f"💡 **गणना:** ₹{recharge_amount} के रिचार्ज पर ग्राहक को **{available_minutes} मिनट** का टॉक-टाइम मिलेगा।")
+            
+            # रिचार्ज कन्फर्म करने का बटन
+            if st.button("वॉलेट में मिनट जोड़ें और एक्टिवेट करें"):
+                if cust_phone and len(cust_phone) == 10:
+                    # १. एक ग्लोबल डिक्शनरी (तिजोरी) बनाना ताकि ऐप रिफ्रेश होने पर डेटा सुरक्षित रहे
+                    if 'user_wallets' not in st.session_state:
+                        st.session_state['user_wallets'] = {}
+                    
+                    # २. इस विशिष्ट मोबाइल नंबर के खाते में रिचार्ज राशि को सेव करना
+                    st.session_state['user_wallets'][cust_phone] = float(recharge_amount)
+                    
+                    # ३. ग्राहक के मुख्य पेज के वेरिएबल (wallet_balance) में पैसे को ट्रांसफर करना
+                    st.session_state['wallet_balance'] = float(recharge_amount)
+                    
+                    st.balloons()
+                    st.success(f"सफलतापूर्वक! ग्राहक {cust_phone} का वॉलेट एक्टिव कर दिया गया है। कुल समय: {available_minutes} मिनट।")
+                else:
+                    st.error("कृपया पहले ग्राहक का 10 अंकों का सही मोबाइल नंबर दर्ज करें।")
+    # मुख्य ऐप में इसे देखने के लिए बस इस फंक्शन को कॉल करें:
+    # admin_control_board()
+    # # Sidebar mein Admin Panel ka ek gupt option (sirf aapke liye)
+    st.sidebar.markdown("---")
+    show_admin = st.sidebar.checkbox("🔒 गुरु एडमिन लॉगिन (Admin View)")
 
-# मुख्य ऐप में इसे देखने के लिए बस इस फंक्शन को कॉल करें:
-# admin_control_board()
-# # Sidebar mein Admin Panel ka ek gupt option (sirf aapke liye)
-st.sidebar.markdown("---")
-show_admin = st.sidebar.checkbox("🔒 गुरु एडमिन लॉगिन (Admin View)")
-
-# Agar aap check-box par click karenge, tabhi dashboard screen par sabse niche khulega
-if show_admin:
-    admin_control_board()                
+    # Agar aap check-box par click karenge, tabhi dashboard screen par sabse niche khulega
+    if show_admin:
+        admin_control_board()
