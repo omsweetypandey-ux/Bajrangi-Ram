@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "bajrangiram-jyotish-kendra",
+  "private_key_id": "3124073d98662580accbc7c54227e24bb7e969bd",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCz5MC2ULHxwfIe\nmoMaueRDOCOFRJhSeys1S7NRhieFbvDt+dwX9wRJFQPvsdR9pazATEEQ1L3fiJL7\n58oxnEF+F9pXtR3LH9AW4LLqu2E+/Myxj192zjTEhWbWK70aSxKvzQBz7HPUdK8x\n+FDRnz1IWXjD6G6DXVz+gUuWhcnz+M7tpGpXRb5B3JuHs9ZMGV93wYFuX6df7Jpc\n+Q0qxsNCl29SG0IIoeHgkoGfhjlhqfemUluV0YZknsJPr83cLE4E6r2BcZwTpECF\n9p4Tf1eXCt9aeFAHE2vY5Mkz9XPvt3PUjSrwEmO7qEtCkj87qBWTkZ3BT1TWZT+Z\n6C5m5R31AgMBAAECggEALEqRTyIRmdAyZGoPBvzHUGyJRFXl+gLU2dekVBlncCEn\nRTRsReM95R99O14JjxEENklgCLyUbi2yYL7KR8osztahHdCcQAd6ZLOYoZYWhJtZ\n64q9CqONFuiwb+FPeyKKPIoJB0GrqB69htxYS7A89qv+wZ9f3EyXqZrcaThSB5Tr\n+9t4I/rBr5WT12gkMxEzEBZjVbBW73DITtUlvV9drMLQLbUA9kJxJT7vscQ/hFVi\nBmqmL+wlYOZDlR0opjiKG4+N8fLwEUzssjnjdWfQdriPWvmjb7hodyjgTfkhILYZ\n51UkNuZKv0Ca6jj5Vdg8X22PsJxVuQFR2k0y0j2ScQKBgQDrvVBNLgKkZ19t+RxV\nijF0/507hVm6op7so7J90JAgt4YjI/CkFjtXya8Iy+HV6sl2zEMQd3Fd0icvthuV\n43w5XHagbJbJFbniZXaOtq10zN4A39bNUjXNeOhgcGQ6Om+ekyR6h1yHNw5IsfPh\nfM7KtQIh5t61OIHyzYeRCQVSpQKBgQDDWrrFXevFcrmiW7c6ZCCPq8vVK2e3kfGe\npFBuWiDh+p8NRhOiHogaqe1+8pKYT4lOL1RZkSH1GJ1ZM2v+5ckBBN/1YNYERyNs\ndHly+w2QzgWyOdY0dOgme6po1nTB4RzwagUIquSNCR6gTScd9SWgFnWS4RE7REeM\nN+RzQMNNEQKBgQC5CgaoLj9gsMuVVP5Knoinn6TZfZirCM7aTLvkSft30tZ1ataO\n1eyKwgKkUvTXps2wdDEIEdlonXao2rbYdpGhrNRopBPPj0AzVxUyfG22ysBPy2Oe\nErOsrwUn/dCObCQFQtZVXz7f2/VYVmZqTj87mc0ssz2I3ewSnAWXcI8/CQKBgHN1\nllm8LvMd4VVyO5MJRq1jbi9pXf2DBnkqyFbQcgrdo0+nEUeKIAsST8nt+HKI37AU\nDRh6zMUdbTIhUDzw9qHhjbRrLVKN8QPSu00X0Ga7PWafBFkwl1zXTlp0FcHZGM+G\n+b6rsjUhJLa9otbz4u8BFzBeUV7j9h2LkzwDFOrhAoGAF3pPnhTXuhb7q9awZskg\nLAUG4+npeApw58cIjiP2EoiusSL7N714Gs58LjMnvo0pdld5QLmEh8B0i/up7Du0\nQZgh30KtM6CNsdgTPnNJbFis13+XBN/3RrLRGqdowE+qti/EscX716WL7FkEv3Uq\ncksDnQf++d79wKgw+SNHu1M=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@bajrangiram-jyotish-kendra.iam.gserviceaccount.com",
+  "client_id": "101378214757172038083",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40bajrangiram-jyotish-kendra.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
