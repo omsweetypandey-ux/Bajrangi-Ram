@@ -1,4 +1,5 @@
 import streamlit as st
+import random
 import os
 from gtts import gTTS
 import uuid
@@ -110,6 +111,72 @@ def analyze_planet_relation(single_digit, m_ank, b_ank, title_context):
     with col_b:
         st.success(f"🚀 **भाग्यांक ({b_ank}) के साथ संबंध:**\n\n{b_relation}")
     st.markdown("---")
+
+    import random
+
+def generate_lucky_mobile_numbers_v2(mulank, bhagyank, anti_dict, count=10):
+    """
+    यूज़र के मूलांक और भाग्यांक के अनुसार परफेक्ट 10 मोबाइल नंबर सजेस्ट करने का उन्नत लॉजिक।
+    """
+    lucky_numbers = []
+    
+    # मूलांक और भाग्यांक के मित्र अंकों की यूनिवर्सल डिक्शनरी
+    friendship_matrix_local = {
+        1: [1, 2, 3, 5, 9], 2: [1, 2, 3, 5], 3: [1, 2, 3, 5, 7, 9],
+        4: [1, 5, 6], 5: [1, 2, 3, 5, 6, 8], 6: [1, 5, 6, 7, 8],
+        7: [1, 3, 5, 6], 8: [5, 6], 9: [1, 2, 3, 5, 9]
+    }
+    
+    m_friends = friendship_matrix_local.get(mulank, [5])
+    b_friends = friendship_matrix_local.get(bhagyank, [5])
+    
+    # शत्रु अंकों को हटाकर शुद्ध मित्र अंक फिल्टर करना
+    shatru_numbers = anti_dict.get(mulank, []) + anti_dict.get(bhagyank, [])
+    target_totals = [num for num in m_friends if num in b_friends and num not in shatru_numbers]
+    
+    # बैकअप: अगर कोई कॉमन मित्र न मिले तो 5 और 6 सबसे सुरक्षित भौतिक/व्यापारिक अंक हैं
+    if not target_totals:
+        target_totals = [5, 6]
+        
+    # वैरायटी देने के लिए शुभ और बढ़ते क्रम वाले विभिन्न अंतिम 4 अंकों के पूल्स (Tails)
+    best_tails = [
+        '1569', '2356', '3456', '5679', '1356', '1256', 
+        '3569', '1579', '2456', '5689', '4567', '2367',
+        '5566', '1155', '3366', '7889', '2345', '6789'
+    ]
+    
+    attempts = 0
+    # जब तक पूरे 10 यूनीक नंबर नहीं मिल जाते, लूप चलता रहेगा (मैक्सिमम 3000 एटेम्पट्स तक)
+    while len(lucky_numbers) < count and attempts < 3000:
+        attempts += 1
+        
+        # भारतीय टेलीकॉम के अनुसार शुरुआत 9, 8, 7 या 6 से
+        start_digit = random.choice(['9', '8', '7', '6'])
+        tail = random.choice(best_tails)
+        
+        # बीच के 5 अंक (0 को छोड़कर ताकि ग्रिड की एनर्जी कम न हो)
+        middle = "".join(str(random.randint(1, 9)) for _ in range(5))
+        
+        potential_num = start_digit + middle + tail
+        
+        # नियम १: पूरे 10 अंकों का एकल योग निकालना
+        total_sum = sum(int(d) for d in potential_num)
+        while total_sum > 9:
+            total_sum = sum(int(d) for d in str(total_sum))
+            
+        # नियम २: चेक करना कि कुल योग मित्र सूची में है या नहीं
+        if total_sum in target_totals:
+            # नियम ३: किसी भी सिंगल अंक की आवृत्ति (Frequency) पूरे नंबर में 3 से अधिक न हो
+            freq_check = True
+            for digit in set(potential_num):
+                if potential_num.count(digit) > 3:
+                    freq_check = False
+                    break
+                    
+            if freq_check and potential_num not in lucky_numbers:
+                lucky_numbers.append(potential_num)
+                
+    return lucky_numbers
 
 # =====================================================================
 # ३. इनपुट फॉर्म और मुख्य गणना
@@ -370,19 +437,86 @@ if cust_mobile and len(cust_mobile) == 10:
             speech_script = "जय श्री राम! आपके मोबाइल नंबर का विश्लेषण तैयार है। कृपया स्क्रीन पर अपनी रिपोर्ट देखें।"
     # 🎙️ गुरु रोबोट की अंतिम सलाह (आवाज के लिए)
         speech_script += " सही मोबाइल नंबर की सटीक जानकारी और उचित चुनाव करने के लिए आप ज्योतिषाचार्य विशाल विक्रम पांडे जी से संपर्क कर सकते हैं। धन्यवाद।"
-    # ==============================================================================
-    # 🎛️ ५. gTTS ऑडियो प्लेयर जनरेशन
-    # ==============================================================================
+    # =========================================================================
+    # 🌟 ६. भाग्यशाली मोबाइल नंबर सुझाव (१० बेस्ट ऑप्शंस)
+    # =========================================================================
+    if st.session_state.get('mobile_analyzed', False):
+        st.markdown("---")
+        st.markdown("## 🔮 आपके लिए सर्वोत्तम 10 भाग्यशाली मोबाइल नंबर सुझाव")
+        
+        # डिफ़ॉल्ट 5 की जगह आपके मुख्य वेरिएबल्स (user_mulank, user_bhagyank) का उपयोग किया
+        current_m = user_mulank
+        current_b = user_bhagyank
+        
+        intro_text = f"आपके मूलांक ({current_m}) और भाग्यांक ({current_b}) के अनुकूल, आपके जीवन में प्रगति और धन-आगमन के लिए 10 सर्वोत्तम विकल्प नीचे दिए गए हैं। आप नया सिम लेते समय इनमें से कोई भी उपलब्ध नंबर चुन सकते हैं।"
+        st.markdown(f"आपके **मूलांक ({current_m})** और **भाग्यांक ({current_b})** के अनुकूल, आपके जीवन में प्रगति और धन-आगमन के लिए **10 सर्वोत्तम विकल्प** नीचे दिए गए हैं। आप नया सिम लेते समय इनमें से कोई भी उपलब्ध नंबर चुन सकते हैं:")
+        
+        # इसे भी बोलकर सुनाने वाली स्क्रिप्ट में जोड़ दिया
+        speech_script += f" इसके साथ ही, आपके मूलांक {current_m} और भाग्यांक {current_b} के अनुकूल, आपके लिए १० सर्वोत्तम भाग्यशाली मोबाइल नंबर के सुझाव नीचे दिए गए हैं। "
+
+        # शत्रु अंकों की डिक्शनरी
+        anti_numbers_dict = {
+            1: [8], 2: [4, 8, 9], 3: [6], 4: [1, 2, 9],
+            5: [], 6: [1, 2, 3], 7: [2], 8: [1, 2, 4, 9], 9: [4, 6]
+        }
+        
+        # अब यह बिल्कुल सही मूलांक/भाग्यांक के अनुसार नंबर जनरेट करेगा
+        suggested_nums = generate_lucky_mobile_numbers_v2(current_m, current_b, anti_numbers_dict, count=10)
+        
+        # पहले 5 नंबरों के लिए पहली रो (Row 1)
+        cols_row1 = st.columns(5)
+        for index in range(5):
+            if index < len(suggested_nums):
+                num = suggested_nums[index]
+                single_digit = sum(int(d) for d in num) % 9 or 9
+                speech_script += f"विकल्प {index+1}, नंबर है {', '.join(num)}, जिसका कुल जोड़ {single_digit} है। "
+                with cols_row1[index]:
+                    st.markdown(f"""
+                    <div style="background-color: #f8fafc; padding: 12px; border-radius: 8px; border-top: 4px solid #1e293b; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px;">
+                        <span style="font-size: 11px; color: #64748b; font-weight: bold;">विकल्प {index+1:02d}</span>
+                        <h4 style="margin: 5px 0; color: #1e293b; font-size: 16px; font-family: monospace; font-weight: bold;">{num}</h4>
+                        <span style="font-size: 11px; background-color: #e2e8f0; color: #334155; padding: 2px 6px; border-radius: 4px;">जोड़: {single_digit}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # अगले 5 नंबरों के लिए दूसरी रो (Row 2)
+        cols_row2 = st.columns(5)
+        for index in range(5, 10):
+            if index < len(suggested_nums):
+                num = suggested_nums[index]
+                single_digit = sum(int(d) for d in num) % 9 or 9
+                speech_script += f"विकल्प {index+1}, नंबर है {', '.join(num)}, जिसका कुल जोड़ {single_digit} है। "
+                with cols_row2[index-5]:
+                    st.markdown(f"""
+                    <div style="background-color: #f8fafc; padding: 12px; border-radius: 8px; border-top: 4px solid #1e293b; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px;">
+                        <span style="font-size: 11px; color: #64748b; font-weight: bold;">विकल्प {index+1:02d}</span>
+                        <h4 style="margin: 5px 0; color: #1e293b; font-size: 16px; font-family: monospace; font-weight: bold;">{num}</h4>
+                        <span style="font-size: 11px; background-color: #e2e8f0; color: #334155; padding: 2px 6px; border-radius: 4px;">जोड़: {single_digit}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+    # =========================================================================
+    # 🎦 ५. gTTS ऑडियो प्लेयर जनरेशन (अब यह सबसे नीचे आ गया है ताकि सब कुछ रिकॉर्ड हो सके)
+    # =========================================================================
     st.markdown("---")
     st.markdown("### 🎙️ गुरु मुख से फलादेश सुनें")
+    
+    # अंतिम सलाह जोड़ना
+    speech_script += " जय श्री राम! आशा करती हूँ यह गणना आपके जीवन में सुख और समृद्धि लाएगी। उचित मोबाइल नंबर का चुनाव करें और प्रगति पाएं।"
 
     with st.spinner("गुरु आपकी रिपोर्ट तैयार कर रही हैं, कृपया क्षण भर प्रतीक्षा करें..."):
         try:
+            from io import BytesIO
+            from gtts import gTTS
+            
+            # पूरी तैयार स्क्रिप्ट को यहाँ ऑडियो में बदला जा रहा है
             tts = gTTS(text=speech_script, lang='hi', slow=False)
             fp = BytesIO()
             tts.write_to_fp(fp)
             fp.seek(0)
             st.audio(fp, format="audio/mp3")
-                
+            
         except Exception as e:
-            st.error(f"आवाज तैयार करने में कुछ तकनीकी त्रुटि आई है: {e}")
+            st.error(f"आवाज़ तैयार करने में कुछ तकनीकी त्रुटि आई है: {e}")
