@@ -638,9 +638,9 @@ if submit:
                 r, c = grid_pos[num]
                 display_grid[r][c].append(f"<span style='color:{color};'>{num}</span>")
     # ग्रिड बनाना
-            html_grid = "<table style='width:100%; border-collapse: collapse; text-align:center; font-size:24px; font-weight:bold;'>"
+            html_grid = "<table style='width:60%; border-collapse: collapse; text-align:center; font-size:18px; font-weight:bold;'>"
             for row in display_grid:
-                html_grid += "<tr style='height:110px;'>"
+                html_grid += "<tr style='height:70px;'>"
                 for cell_list in row:
                     content = " ".join(cell_list) if cell_list else ""
                     html_grid += f"<td style='border:2px solid #E74C3C; width:33%; background-color:#FFF9F0;'>{content}</td>"
