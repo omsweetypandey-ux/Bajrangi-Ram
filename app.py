@@ -1,4 +1,12 @@
 import streamlit as st
+# नीचे वाला कोड यहाँ पेस्ट करें:
+hide_streamlit_style = """
+              <style>
+              #MainMenu {visibility: hidden;}
+              footer {visibility: hidden;}
+              header {visibility: hidden;}
+              </style>
+              """
 import datetime  
 from gtts import gTTS
 import base64
@@ -459,11 +467,22 @@ u_gender = st.selectbox("लिंग", ["Male", "Female"], key="u_gender")
 
 
 # 📱 मोबाइल नंबर इनपुट बॉक्स (पुराने रिकॉर्ड से डेटा लोड करने की क्षमता के साथ)
-u_phone = st.text_input("अपना पंजीकृत मोबाइल नंबर भरें...", key="u_phone")
+# यहाँ से पेस्ट करना शुरू करें:
+# मोबाइल नंबर का इनपुट फील्ड
+# नंबर के लिए नया और सटीक इनपुट फील्ड
+if 'u_phone' not in st.session_state:
+    st.session_state.u_phone = ""
+
+import re
+
+u_phone = st.text_input("अपना पंजीकृत मोबाइल नंबर भरें...", key="phone_key")
+
+# अब पूरे कोड में जहाँ भी मोबाइल नंबर की ज़रूरत हो, 
+# वहां st.session_state.u_phone का उपयोग करें।
 
 # === विवरण सुरक्षित करने का बटन ===
 # विवरण सुरक्षित करने का बटन
-import re # यह लाइन फाइल में सबसे ऊपर रखें (अगर नहीं है तो)
+
 
 #     # विवरण सुरक्षित करने का बटन
 # if st.button("अपना विवरण सुरक्षित करें"):
@@ -490,50 +509,60 @@ import re # यह लाइन फाइल में सबसे ऊपर �
 col1, col2 = st.columns([1, 1])
 
 with col1:
+    # 2. विवरण देखें सबमिट बटन
     submit = st.button("👁️ विवरण देखें", use_container_width=True)
 
-
-
 with col2:
-    my_contact_number = "6392311093"
-   # अपना मोबाइल नंबर यहाँ डालें
-my_contact_number = "+916392311093"  # यहाँ अपना 10 अंकों का नंबर लिखें
+    my_contact_number = "+916392311093" # यहाँ अपना 10 अंकों का नंबर लिखें
 
-call_html = f'''
-<a href="tel:{my_contact_number}" style="text-decoration: none;">
-    <button style="
-        width: 100%;
-        background-color: #FF4B4B;
-        color: white;
-        border: none;
-        padding: 0.8rem;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;">
-        📞 सूक्ष्म गणना हेतु Call Now
-    </button>
-</a>
-'''
-st.markdown(call_html, unsafe_allow_html=True)
+    call_html = f'''
+    <a href="tel:{my_contact_number}" style="text-decoration: none;">
+        <button style="
+            width: 100%;
+            background-color: #FF4B4B;
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;">
+            📞 सूक्ष्म गणना हेतु Call Now
+        </button>
+    </a>
+    '''
+    st.markdown(call_html, unsafe_allow_html=True)
+
 if submit:
-    if not u_phone or len(str(u_phone)) != 10:
-            st.error("⚠️ कृपया गणना के लिए 10 अंकों का मोबाइल नंबर भरें।")
-    else:  
+    # 1. सीधे इनपुट बॉक्स (u_phone) से ऑटो-फ़िल वाली वैल्यू उठाएं
+    raw_val = str(u_phone) if u_phone else ""
+    
+    # 2. केवल 0-9 डिजिट्स निकालें (स्पेस, +91 या ब्रैकेट हटाएँ)
+    cleaned_phone = re.sub(r'\D', '', raw_val)
+    
+    # 3. अगर 10 से ज़्यादा अंक हैं तो आख़िरी 10 अंक लें
+    if len(cleaned_phone) > 10:
+        cleaned_phone = cleaned_phone[-10:]
+        
+    # 4. साफ़ किया हुआ नंबर सेशन स्टेट में सेव करें
+    st.session_state.u_phone = cleaned_phone
+
+    # 5. अगर 10 अंक नहीं हैं तो एरर दिखाएं
+    if len(cleaned_phone) != 10:
+        st.error("⚠️ कृपया गणना के लिए 10 अंकों का सही मोबाइल नंबर भरें।")
+    else:
         st.balloons()
         placeholder = st.empty()
         welcome_text = f"🚩 जय श्री राम {u_name} जी! आपकी ज्योतिषीय गणना की जा रही है..."
         typed = ""
         for char in welcome_text:
             typed += char
-            placeholder.markdown(f"<div style='background-color:; padding: 15px; border-radius: 10px; border: 1px solid #E74C3C; text-align: center;'><h3>{typed}</h3></div>", unsafe_allow_html=True)
+            placeholder.markdown(f"<div style='background-color: #f0f2f6; padding: 15px; border-radius: 10px; font-size: 18px; font-weight: bold; text-align: center; color: #1e3d59;'>{typed}</div>", unsafe_allow_html=True)
             time.sleep(0.02)
-
-            # --- स्टेज २: गणना (Calculations) ---
         d, m, y = u_dob.day, u_dob.month, u_dob.year
         mulank = get_single_digit(d)
         bhagyank = get_single_digit(d + m + y)
@@ -620,7 +649,7 @@ if submit:
             st.markdown(html_grid, unsafe_allow_html=True)
 
         with col2:
-            st.subheader("📜")
+            st.subheader("Categories")
             
             # १. ८१ कॉम्बिनेशन का फल निकालना
             comb_key = f"{mulank}-{bhagyank}"
@@ -660,66 +689,7 @@ if submit:
             # ४. राजयोग का फल जोड़ना
                     # टैब्स को मोबाइल फ्रेंडली और सुंदर बनाने के लिए नया CSS
             
-                                    # =======================================================
-            # 🎯 केवल कैटगरी (Tabs) को लाइव रंग बदलने वाला बनाने का अचूक CSS
-            # =======================================================
-            st.markdown("""
-            <style>
-            /* १. पूरे कैटगरी बॉक्स के बाहर का आलीशान फ्रेम */
-            .stTabs [data-baseweb="tab-list"] {
-                display: flex !important;
-                flex-wrap: wrap !important;
-                gap: 12px !important;
-                width: 100% !important;
-                justify-content: center !important;
-                background: linear-gradient(135deg, #ffffff, #f7f9fc) !important;
-                padding: 14px 10px !important;
-                border-radius: 20px !important;
-                box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12) !important;
-                border: 2px solid #E2E8F0 !important;
-                margin-bottom: 25px !important;
-            }
-
-            /* २. हर एक कैटगरी बटन का डिफ़ॉल्ट ढांचा (अक्षरों को बड़ा और कड़क करना) */
-            .stTabs [data-baseweb="tab"] {
-                flex: 1 1 auto !important;
-                min-width: 110px !important;
-                height: auto !important;
-                padding: 12px 20px !important;
-                background-color: #F8FAFC !important;
-                border: 1px solid #E2E8F0 !important;
-                border-radius: 12px !important;
-                font-weight: 900 !important; /* अक्षर एकदम कड़क और मोटे दिखेंगे */
-                font-size: 16px !important;  /* फॉन्ट साइज को बड़ा किया */
-                color: #475569 !important;
-                text-align: center !important;
-                transition: all 0.4s ease-in-out !important;
-            }
-
-            /* ३. 🌟 गिरगिट एनीमेशन प्रभाव जो लगातार रंग बदलेगा */
-            @keyframes categoryColorShift {
-                0%   { background-color: #FF4B4B !important; color: white !important; box-shadow: 0 0 15px rgba(255,75,75,0.6) !important; }
-                33%  { background-color: #00BCD4 !important; color: white !important; box-shadow: 0 0 15px rgba(0,188,212,0.6) !important; }
-                66%  { background-color: #4CAF50 !important; color: white !important; box-shadow: 0 0 15px rgba(76,175,80,0.6) !important; }
-                100% { background-color: #FF9800 !important; color: white !important; box-shadow: 0 0 15px rgba(255,152,0,0.6) !important; }
-            }
-
-            /* ४. 🔥 महा-अचूक सिलेक्टर: जो कैटगरी यूज़र ने चुनी है, उसका बैकग्राउंड रंग जबरन बदलेगा */
-            .stTabs [aria-selected="true"], 
-            .stTabs [aria-selected="true"] > div,
-            .stTabs [data-baseweb="tab"][aria-selected="true"] {
-                animation: categoryColorShift 6s infinite alternate !important; /* हर २ सेकंड में शालीनता से रंग बदलेगा */
-                transform: scale(1.06) translateY(-2px) !important; /* बटन थोड़ा बड़ा और ऊपर उठा रहेगा */
-                border: none !important;
-            }
-
-            /* ५. जब यूज़र कैटगरी पर उंगली या माउस ले जाएगा */
-            .stTabs [data-baseweb="tab"]:hover {
-                background-color: #EDF2F7 !important;
-                color: #0F172A !important;
-            }
-            </style>
-            """, unsafe_allow_html=True)
+               
                             
             # ६. 🎤 ऑडियो स्क्रिप्ट (जो सब कुछ बोलकर बताएगा)
             audio_script = f"जय बजरंगबली {u_name} जी। आपका बजरङ्गिराम अंक ज्योतिष में स्वागत है  "
@@ -735,52 +705,127 @@ if submit:
                 st.session_state['dob_digits'] = dob_digits
                 st.session_state['missing_nums'] = missing_nums
                 st.session_state['name_num'] = name_num
-                            # =======================================================
-            # 💮 कैटगरी चेतावनियाँ और लाइव चमकने वाला बार (100% वर्किंग)
-            # =======================================================
 
-            # CSS एनीमेशन: जो पूरे बॉक्स का बैकग्राउंड और बॉर्डर लगातार बदलेगा
-            जादुई_कैटगरी_स्टाइल = """
+        # ====================================================
+            # 🎯 हेडर + एनिमेटेड एरो कोड
+            # ====================================================
+            कैटेगरी_हेडर_एचटीएमएल = """
             <style>
-            @keyframes blinkCategory {
-                0%   { background-color: #FF4B4B; border-color: #FF1A1A; box-shadow: 0 0 15px rgba(255,75,75,0.7); }
-                33%  { background-color: #00BCD4; border-color: #0097A7; box-shadow: 0 0 15px rgba(0,188,212,0.7); }
-                66%  { background-color: #4CAF50; border-color: #388E3C; box-shadow: 0 0 15px rgba(76,175,80,0.7); }
-                100% { background-color: #FF9800; border-color: #F57C00; box-shadow: 0 0 15px rgba(255,152,0,0.7); }
+            @keyframes colorChangeHeader {
+                0% { color: #dc2626; text-shadow: 0 0 10px rgba(220, 38, 38, 0.4); }
+                33% { color: #d97706; text-shadow: 0 0 10px rgba(217, 119, 6, 0.4); }
+                66% { color: #2563eb; text-shadow: 0 0 10px rgba(37, 99, 235, 0.4); }
+                100% { color: #16a34a; text-shadow: 0 0 10px rgba(22, 163, 74, 0.4); }
             }
-
-            .glow-bar {
-                animation: blinkCategory 6s infinite alternate;
-                padding: 3px;
-                border-radius: 10px;
-                border: 2px solid #FF4B4B;
-                text-align: center;
-                margin-bottom: 3px;
-                color: white !important;
+            .category-header-text {
+                font-size: 18px !important;
+                font-weight: 900 !important;
+                text-align: center !important;
+                animation: colorChangeHeader 4s infinite alternate !important;
+                margin-bottom: 2px !important;
+                letter-spacing: 0.5px !important;
             }
-
-            .glow-bar h3, .glow-bar p {
-                color: white !important;
-                margin: 0px !important;
-                font-weight: bold !important;
-                text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+            @keyframes bounceUpDown {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(8px); }
+            }
+            .bouncing-arrow {
+                display: inline-block !important;
+                font-size: 22px !important;
+                animation: bounceUpDown 1.2s infinite ease-in-out !important;
             }
             </style>
 
-            <div class="glow-bar">
-                <h3>👇 कृपया नीचे दी गई तीनों कैटगरी अवश्य देखें 👇</h3>
-                <p>१. मूलांक-भाग्यांक फल | २. नाम-भाग्य विचार | ३. ग्रिड एवं उपाय</p>
+            <div style="text-align: center; margin-bottom: 8px;">
+                <div class="category-header-text">✨ अपनी कैटेगरी चुनें ✨</div>
+                <div class="bouncing-arrow">👇</div>
             </div>
             """
-                    # अगर यूज़र ने पहला पेज भर दिया है, तो उसे हमेशा एक्टिव रखें
-            if 'user_logged_in' in st.session_state:
-                mulank = st.session_state['app_mulank']
-                bhagyank = st.session_state['app_bhagyank']
-            # इसे स्क्रीन पर दिखाना (यह हर सेकंड रंग बदलेगा)
-            st.markdown(जादुई_कैटगरी_स्टाइल, unsafe_allow_html=True)
-                # Ab aapke purane tabs yahan se shuru honge
-            # यहाँ हमने चौथा टैब "📱 मोबाइल नंबर विचार" नाम से जोड़ दिया है
-            # 'key="current_active_tab"' जोड़ने से स्ट्रीमलिट याद रखेगा कि यूजर किस टैब पर था
+            st.markdown(कैटेगरी_हेडर_एचटीएमएल, unsafe_allow_html=True)
+
+                        # ====================================================
+            # 🌟 लाइट, आकर्षक एवं लाइव रंग बदलने वाला प्रीमियम CSS
+            # ====================================================
+            जादुई_कैटेगरी_स्टाइल = """
+            <style>
+            /* 1. मुख्य बाहरी डिब्बा (लाइट, चमकदार और आकर्षक कार्ड) */
+            .stTabs [data-baseweb="tab-list"] {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 10px !important;
+                width: 100% !important;
+                justify-content: space-between !important;
+                background: linear-gradient(135deg, #ffffff, #f1f5f9) !important;
+                padding: 12px !important;
+                border-radius: 18px !important;
+                border: 2px solid #cbd5e1 !important;
+                box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.08), 0px 2px 6px rgba(0, 0, 0, 0.04) !important;
+                margin-bottom: 20px !important;
+            }
+
+            /* 2. साधारण बटन (Unselected Tabs) - साफ़, प्रीमियम और साफ़ फ़ॉन्ट */
+            .stTabs [data-baseweb="tab"] {
+                flex: 1 1 47% !important;                       /* मोबाइल और लैपटॉप दोनों में शानदार 2x2 फ़िट होगा */
+                height: 48px !important;
+                background: #ffffff !important;
+                border: 1.5px solid #cbd5e1 !important;
+                border-radius: 12px !important;
+                box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.05) !important;
+                transition: all 0.3s ease-in-out !important;
+                padding: 6px 4px !important;
+            }
+
+            /* 3. बटनों के अक्षरों का डिज़ाइन (मोटा, कड़क और बोल्ड) */
+            .stTabs [data-baseweb="tab"] div,
+            .stTabs [data-baseweb="tab"] p,
+            .stTabs [data-baseweb="tab"] span {
+                color: #1e293b !important;                     /* गहरा साफ़ रंग */
+                font-weight: 900 !important;                   /* एकदम बोल्ड */
+                font-size: 15px !important;
+                white-space: nowrap !important;                /* टेक्स्ट बाहर नहीं भागेगा */
+            }
+
+            /* 4. लाइव रंग बदलने वाला आकर्षक एनीमेशन (Glow Effect) */
+            @keyframes liveGlowShine {
+                0% {
+                    background: linear-gradient(135deg, #ff4d4d, #f97316) !important;
+                    box-shadow: 0 0 18px rgba(255, 77, 77, 0.7) !important;
+                }
+                50% {
+                    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+                    box-shadow: 0 0 22px rgba(245, 158, 11, 0.8) !important;
+                }
+                100% {
+                    background: linear-gradient(135deg, #dc2626, #ea580c) !important;
+                    box-shadow: 0 0 18px rgba(220, 38, 38, 0.7) !important;
+                }
+            }
+
+            /* 5. जो टैब सिलेक्ट होगा (Active Tab) - वह लाइव रंग बदलेगा और चमकेगा */
+            .stTabs [aria-selected="true"] {
+                animation: liveGlowShine 3s infinite alternate !important;
+                border: 2px solid #ffffff !important;
+                transform: scale(1.03) !important;
+            }
+
+            /* 6. सिलेक्टेड बटन के अंदर के अक्षर सफ़ेद और चमकदार दिखेंगे */
+            .stTabs [aria-selected="true"] div,
+            .stTabs [aria-selected="true"] p,
+            .stTabs [aria-selected="true"] span {
+                color: #ffffff !important;
+                text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.4) !important;
+            }
+
+            /* 7. नीली पट्टी हटाना */
+            .stTabs [data-baseweb="tab-highlight"] {
+                display: none !important;
+            }
+            </style>
+            """
+            st.markdown(जादुई_कैटेगरी_स्टाइल, unsafe_allow_html=True)
+                        # Ab aapke purane tabs yahan se shuru honge
+                    # यहाँ हमने चौथा टैब "📱 मोबाइल नंबर विचार" नाम से जोड़ दिया है
+                    # 'key="current_active_tab"' जोड़ने से स्ट्रीमलिट याद रखेगा कि यूजर किस टैब पर था
             
             tab1, tab2, tab3, tab4 = st.tabs(["⬜ मूलांक-भाग्यांक फल", "👤 नाम-भाग्य विचार", "🔳 ग्रिड एवं उपाय", "📱 मोबाइल नंबर विचार"], key="active_numerology_tab")
 
