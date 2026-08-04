@@ -718,7 +718,7 @@ if submit:
                 100% { color: #16a34a; text-shadow: 0 0 10px rgba(22, 163, 74, 0.4); }
             }
             .category-header-text {
-                font-size: 18px !important;
+                font-size: 26px !important;
                 font-weight: 900 !important;
                 text-align: center !important;
                 animation: colorChangeHeader 4s infinite alternate !important;
@@ -829,13 +829,22 @@ if submit:
             .stTabs [data-baseweb="tab-highlight"] {
                 display: none !important;
             }
-           
-            /* 7. नीली पट्टी हटाना */
-            .stTabs [data-baseweb="tab-highlight"] {
-                display: none !important;
+
+            /* ६. बटनों का साइज़ और अक्षरों को बड़ा करना (Large Tabs) */
+            .stTabs [data-baseweb="tab"] {
+                min-height: 65px !important;
+                padding: 12px 10px !important;
+            }
+
+            .stTabs [data-baseweb="tab"] div,
+            .stTabs [data-baseweb="tab"] p,
+            .stTabs [data-baseweb="tab"] span {
+                font-size: 19px !important;
+                font-weight: 900 !important;
             }
             </style>
             """
+
             st.markdown(जादुई_कैटेगरी_स्टाइल, unsafe_allow_html=True)
                         # Ab aapke purane tabs yahan se shuru honge
                     # यहाँ हमने चौथा टैब "📱 मोबाइल नंबर विचार" नाम से जोड़ दिया है
@@ -881,17 +890,17 @@ if submit:
                 # ४. कार्ड का डिस्प्ले (HTML)
                 st.markdown(f"""
                 <div class="lucky-container">
-                    <h4 style="text-align: center; color: #1a508b; margin-top: 0;">🌟 आपके शुभ पैरामीटर्स</h4>
+                    <h5 style="text-align: center; color: #1a508b; margin-top: 0;">🌟 आपके शुभ पैरामीटर्स</h5>
                     <div class="flex-box">
                         <div class="info-col m-bg">
-                            <h5 style="color: red; margin-top: 0;">मूलांक: {mulank} (स्वभाव)</h4>
+                            <h6 style="color: red; margin-top: 0;">मूलांक: {mulank} (स्वभाव)</h6>
                             <p><span class="label">🪐 ग्रह:</span> <span style="color: red; font-weight: bold;">{m_data.get('grah', 'N/A')}</span></p>
     <p><span class="label">📅 दिन:</span> <span style="color: red; font-weight: bold;">{m_data.get('day', 'N/A')}</span></p>
     <p><span class="label">🎨 रंग:</span> <span style="color: red; font-weight: bold;">{m_data.get('color', 'N/A')}</span></p>
                             <p style="font-size: 12px; color: red; font-style: italic;">उपयोग: दैनिक शांति व आत्मविश्वास हेतु।</p>
                         </div>
                         <div class="info-col b-bg">
-                            <h5 style="color: blue; margin-top: 0;">भाग्यांक: {bhagyank} (भाग्य)</h4>
+                            <h6 style="color: blue; margin-top: 0;">भाग्यांक: {bhagyank} (भाग्य)</h6>
                             <p><span class="label">🪐 ग्रह:</span> <span style="color: blue; font-weight: bold;">{b_data.get('grah', 'N/A')}</span></p>
     <p><span class="label">📅 दिन:</span> <span style="color: blue; font-weight: bold;">{b_data.get('day', 'N/A')}</span></p>
     <p><span class="label">🎨 रंग:</span> <span style="color: blue; font-weight: bold;">{b_data.get('color', 'N/A')}</span></p>
@@ -926,7 +935,7 @@ if submit:
                 result_fal = faladesh_dict.get(combination_key, "इस विशेष कॉम्बिनेशन का विश्लेषण अभी तैयार किया जा रहा है।")
 
                     # ३. स्क्रीन पर प्रदर्शित करें
-                st.markdown(f"### 🚩 व्यक्तित्व विश्लेषण (कॉम्बिनेशन {combination_key})")
+                st.markdown(f"#### 🚩 व्यक्तित्व विश्लेषण (कॉम्बिनेशन {combination_key})")
                     
                     # एक सुंदर कार्ड के रूप में दिखाने के लिए
                 st.info(f"**मूलांक {mulank} और भाग्यांक {bhagyank}:**\n\n{result_fal}")
@@ -939,7 +948,7 @@ if submit:
 
                 # ५. व्यक्तित्व का मुख्य आधार सेक्शन
                 st.markdown("---")
-                st.markdown("### 🌟 आपके व्यक्तित्व का मुख्य आधार")
+                st.markdown("#### 🌟 आपके व्यक्तित्व का मुख्य आधार")
                 st.write(f"मूलांक **{mulank}** और भाग्यांक **{bhagyank}** का यह मेल आपके जीवन में विशेष प्रभाव डालता है।")
 
                 # ६. ऑडियो को कॉल करें (अगर bol_web फंक्शन बना हुआ है)
