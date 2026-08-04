@@ -610,46 +610,47 @@ if submit:
     
         col1, col2 = st.columns([1, 1])
 
+        # --- बायाँ कॉलम (कॉलम 1): मूलांक, भाग्यांक आदि कार्ड ---
         with col1:
             st.markdown(f"""
-                <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; border-left: 5px solid #E74C3C;'>
-                    <h5 style='margin:0; color:#E74C3C;'>मूलांक: {mulank}</h5>
-                    <h5 style='margin:5px 0; color:#1E90FF;'>भाग्यांक: {bhagyank}</h5>
-                    <h5 style='margin:5px 0; color:#2ECC71;'>नामांक: {name_num}</h5>
-                    <h5 style='margin:10px 0; color:#8E44AD;'>कुआ नंबर: {kua}</h5>
+                <div style='background-color: #f0f2f6; padding: 12px; border-radius: 10px; border-left: 4px solid #E74C3C;'>
+                    <h5 style='margin: 0; color: #E74C3C; font-size: 15px;'>मूलांक: {mulank}</h5>
+                    <h5 style='margin: 6px 0; color: #1E90FF; font-size: 15px;'>भाग्यांक: {bhagyank}</h5>
+                    <h5 style='margin: 6px 0; color: #2ECC71; font-size: 15px;'>नामांक: {name_num}</h5>
+                    <h5 style='margin: 6px 0 0 0; color: #8E44AD; font-size: 15px;'>कुआं नंबर: {kua}</h5>
                 </div>
             """, unsafe_allow_html=True)
 
-            st.subheader("🗓️ लो-शू ग्रिड (Multi-Number View)")
-            
-            # ग्रिड मैपिंग
-            grid_pos = {4:(0,0), 9:(0,1), 2:(0,2), 3:(1,0), 5:(1,1), 7:(1,2), 8:(2,0), 1:(2,1), 6:(2,2)}
-            display_grid = [[[] for _ in range(3)] for _ in range(3)]
+        # --- ग्रिड मैपिंग और लॉजिक ---
+        grid_pos = {4:(0,0), 9:(0,1), 2:(0,2), 3:(1,0), 5:(1,1), 7:(1,2), 8:(2,0), 1:(2,1), 6:(2,2)}
+        display_grid = [[[] for _ in range(3)] for _ in range(3)]
 
-            # १. DOB के नंबर (Black)
-            for n in dob_digits:
-                if n in grid_pos:
-                    r, c = grid_pos[n]
-                    display_grid[r][c].append(f"<span style='color:black;'>{n}</span>")
-            
-            # २. विशेष नंबरों को जोड़ना (Colors)
-            special_nums = [(mulank, "#E74C3C"), (bhagyank, "#1E90FF"), (name_num, "#2ECC71"), (kua, "#8E44AD")]
-            for num, color in special_nums:
+        # १. DOB के नंबर (Black)
+        for n in dob_digits:
+            if n in grid_pos:
+                r, c = grid_pos[n]
+                display_grid[r][c].append(f"<span style='color:black;'>{n}</span>")
+
+        # २. विशेष नंबरों को जोड़ना (Colors)
+        special_nums = [(mulank, "#E74C3C"), (bhagyank, "#1E90FF"), (name_num, "#2ECC71"), (kua, "#8E44AD")]
+        for num, color in special_nums:
+            if num in grid_pos:
                 r, c = grid_pos[num]
                 display_grid[r][c].append(f"<span style='color:{color};'>{num}</span>")
-    # ग्रिड बनाना
-            html_grid = "<table style='width:60%; border-collapse: collapse; text-align:center; font-size:16px; font-weight:bold;'>"
+
+        # --- दायाँ कॉलम (कॉलम 2): लो-शू ग्रिड टेबल ---
+        with col2:
+            st.markdown("##### 🗓️ लो-शू ग्रिड")
+            html_grid = "<table style='width:100%; border-collapse: collapse; text-align:center; font-size:16px; font-weight:bold; background-color:#FFFDF0;'>"
             for row in display_grid:
-                html_grid += "<tr style='height:70px;'>"
+                html_grid += "<tr style='height:45px;'>"
                 for cell_list in row:
                     content = " ".join(cell_list) if cell_list else ""
-                    html_grid += f"<td style='border:2px solid #E74C3C; width:33%; background-color:#FFF9F0;'>{content}</td>"
+                    html_grid += f"<td style='border:2px solid #E74C3C; width:33%; background-color:#FFFDF0;'>{content}</td>"
                 html_grid += "</tr>"
             html_grid += "</table>"
+            
             st.markdown(html_grid, unsafe_allow_html=True)
-
-        with col2:
-            st.subheader("Categories")
             
             # १. ८१ कॉम्बिनेशन का फल निकालना
             comb_key = f"{mulank}-{bhagyank}"
