@@ -763,28 +763,33 @@ if submit:
                 margin-bottom: 20px !important;
             }
 
-            /* 2. साधारण बटन (Unselected Tabs) - साफ़, प्रीमियम और साफ़ फ़ॉन्ट */
+            /* 2. साधारण बटन (Unselected Tabs) - मोबाइल पर २-२ बड़े और साफ़ बटन */
             .stTabs [data-baseweb="tab"] {
-                flex: 1 1 47% !important;                       /* मोबाइल और लैपटॉप दोनों में शानदार 2x2 फ़िट होगा */
-                height: 48px !important;
+                flex: 1 1 calc(50% - 12px) !important; /* हर लाइन में २ बड़े बटन आएँगे */
+                min-width: 140px !important;
+                height: auto !important;
+                min-height: 52px !important;
                 background: #ffffff !important;
-                border: 1.5px solid #cbd5e1 !important;
+                border: 1.8px solid #cbd5e1 !important;
                 border-radius: 12px !important;
-                box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.05) !important;
+                box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06) !important;
                 transition: all 0.3s ease-in-out !important;
-                padding: 6px 4px !important;
+                padding: 10px 8px !important;
+                margin-bottom: 8px !important;
+                justify-content: center !important;
             }
 
-            /* 3. बटनों के अक्षरों का डिज़ाइन (मोटा, कड़क और बोल्ड) */
+            /* 3. बटनों के अक्षरों का डिज़ाइन (मोटा, बड़ा और साफ़ फ़ॉन्ट) */
             .stTabs [data-baseweb="tab"] div,
             .stTabs [data-baseweb="tab"] p,
             .stTabs [data-baseweb="tab"] span {
-                color: #1e293b !important;                     /* गहरा साफ़ रंग */
-                font-weight: 900 !important;                   /* एकदम बोल्ड */
-                font-size: 15px !important;
-                white-space: nowrap !important;                /* टेक्स्ट बाहर नहीं भागेगा */
+                color: #1e293b !important;
+                font-weight: 800 !important;
+                font-size: 17px !important; /* अक्षर बड़े और साफ़ दिखेंगे */
+                white-space: normal !important; /* टेक्स्ट कटेगा नहीं, पूरा दिखेगा */
+                text-align: center !important;
+                line-height: 1.3 !important;
             }
-
             /* 4. लाइव रंग बदलने वाला आकर्षक एनीमेशन (Glow Effect) */
             @keyframes liveGlowShine {
                 0% {
@@ -917,17 +922,19 @@ if submit:
                     # एक सुंदर कार्ड के रूप में दिखाने के लिए
                 st.info(f"**मूलांक {mulank} और भाग्यांक {bhagyank}:**\n\n{result_fal}")
 
-                    # ४. ऑडियो के लिए स्क्रिप्ट में जोड़ें
-                    # यहाँ tab1_audio का इस्तेमाल करें
-                tab1_audio += f" आपके मूलांक और भाग्यांक का मेल {combination_key} है। ज्योतिष के अनुसार, {result_fal}"
+                   
+                        # ४. ऑडियो के लिए स्क्रिप्ट में जोड़ें
+                # यहाँ tab1_audio का इस्तेमाल करें
+                tab1_audio += f" आपके मूलांक और भाग्यांक का मेल {combination_key} है। {result_fal}"
+                tab1_audio += "अपने राजयोग फल तथा अपने अच्छे व बुरे ग्रहों की जानकारी एवं सलाह तथा अपने नाम और मोबाइल नंबर के की जाँच के लिए कृपया ऊपर दी गई कैटेगरीज़ को चुनें।"
+
                 # ५. व्यक्तित्व का मुख्य आधार सेक्शन
                 st.markdown("---")
-                st.markdown(f"### 🌟 आपके व्यक्तित्व का मुख्य आधार")
-                st.write(f"मूलांक **{mulank}** और भाग्यांक **{bhagyank}** का यह मेल आपके जीवन की दिशा तय करता है। मूलांक आपके व्यक्तित्व और स्वभाव को दर्शाता है, जबकि भाग्यांक आपके जीवन के भाग्य, उद्देश्य और चुनौतियों का प्रतिनिधित्व करता है, मूलांक आपके व्यक्तित्व और स्वभाव को दर्शाता है, जबकि भाग्यांक आपके जीवन के भाग्य, उद्देश्य और चुनौतियों का प्रतिनिधित्व करता है।")
+                st.markdown("### 🌟 आपके व्यक्तित्व का मुख्य आधार")
+                st.write(f"मूलांक **{mulank}** और भाग्यांक **{bhagyank}** का यह मेल आपके जीवन में विशेष प्रभाव डालता है।")
 
                 # ६. ऑडियो को कॉल करें (अगर bol_web फंक्शन बना हुआ है)
                 bol_web(tab1_audio, "graha_voice")
-                
             with tab2:
                 st.header("🔮 गुरु का वैज्ञानिक परामर्श")
                 
