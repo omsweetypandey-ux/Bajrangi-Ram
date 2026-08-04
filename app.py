@@ -613,10 +613,10 @@ if submit:
         with col1:
             st.markdown(f"""
                 <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; border-left: 5px solid #E74C3C;'>
-                    <h3 style='margin:0; color:#E74C3C;'>मूलांक: {mulank}</h3>
-                    <h3 style='margin:5px 0; color:#1E90FF;'>भाग्यांक: {bhagyank}</h3>
-                    <h3 style='margin:5px 0; color:#2ECC71;'>नामांक: {name_num}</h3>
-                    <h3 style='margin:10px 0; color:#8E44AD;'>कुआ नंबर: {kua}</h3>
+                    <h5 style='margin:0; color:#E74C3C;'>मूलांक: {mulank}</h5>
+                    <h5 style='margin:5px 0; color:#1E90FF;'>भाग्यांक: {bhagyank}</h5>
+                    <h5 style='margin:5px 0; color:#2ECC71;'>नामांक: {name_num}</h5>
+                    <h5 style='margin:10px 0; color:#8E44AD;'>कुआ नंबर: {kua}</h5>
                 </div>
             """, unsafe_allow_html=True)
 
@@ -638,7 +638,7 @@ if submit:
                 r, c = grid_pos[num]
                 display_grid[r][c].append(f"<span style='color:{color};'>{num}</span>")
     # ग्रिड बनाना
-            html_grid = "<table style='width:60%; border-collapse: collapse; text-align:center; font-size:18px; font-weight:bold;'>"
+            html_grid = "<table style='width:60%; border-collapse: collapse; text-align:center; font-size:16px; font-weight:bold;'>"
             for row in display_grid:
                 html_grid += "<tr style='height:70px;'>"
                 for cell_list in row:
