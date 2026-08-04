@@ -748,79 +748,88 @@ if submit:
             # ====================================================
             जादुई_कैटेगरी_स्टाइल = """
             <style>
-            /* 1. मुख्य बाहरी डिब्बा (लाइट, चमकदार और आकर्षक कार्ड) */
+            /* १. मुख्य बाहरी डिब्बा (२-२ बटनों के लिए ग्रिड) */
             .stTabs [data-baseweb="tab-list"] {
                 display: flex !important;
                 flex-wrap: wrap !important;
                 gap: 10px !important;
                 width: 100% !important;
                 justify-content: space-between !important;
-                background: linear-gradient(135deg, #ffffff, #f1f5f9) !important;
-                padding: 12px !important;
-                border-radius: 18px !important;
-                border: 2px solid #cbd5e1 !important;
-                box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.08), 0px 2px 6px rgba(0, 0, 0, 0.04) !important;
-                margin-bottom: 20px !important;
+                background: transparent !important;
+                padding: 5px 0px !important;
+                border: none !important;
             }
 
-            /* 2. साधारण बटन (Unselected Tabs) - मोबाइल पर २-२ बड़े और साफ़ बटन */
+            /* २. एनिमेटेड अन-सिलेक्टेड कैटेगरी बटन्स */
             .stTabs [data-baseweb="tab"] {
-                flex: 1 1 calc(50% - 12px) !important; /* हर लाइन में २ बड़े बटन आएँगे */
+                flex: 1 1 calc(50% - 10px) !important;
                 min-width: 140px !important;
-                height: auto !important;
-                min-height: 52px !important;
+                min-height: 55px !important;
                 background: #ffffff !important;
-                border: 1.8px solid #cbd5e1 !important;
+                border: 2px solid #3b82f6 !important;
                 border-radius: 12px !important;
-                box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06) !important;
+                box-shadow: 0px 4px 12px rgba(59, 130, 246, 0.15) !important;
                 transition: all 0.3s ease-in-out !important;
-                padding: 10px 8px !important;
-                margin-bottom: 8px !important;
+                padding: 8px 6px !important;
                 justify-content: center !important;
+                animation: pulseGlow 2.5s infinite alternate !important; /* बटन्स के लिए एनिमेशन */
             }
 
-            /* 3. बटनों के अक्षरों का डिज़ाइन (मोटा, बड़ा और साफ़ फ़ॉन्ट) */
+            /* बटन्स के लिए ग्लोइंग एनिमेशन प्रभाव */
+            @keyframes pulseGlow {
+                0% {
+                    border-color: #3b82f6;
+                    box-shadow: 0px 2px 8px rgba(59, 130, 246, 0.2);
+                    transform: scale(0.99);
+                }
+                50% {
+                    border-color: #ec4899;
+                    box-shadow: 0px 4px 15px rgba(236, 72, 153, 0.4);
+                    transform: scale(1.02);
+                }
+                100% {
+                    border-color: #8b5cf6;
+                    box-shadow: 0px 2px 8px rgba(139, 92, 246, 0.2);
+                    transform: scale(0.99);
+                }
+            }
+
+            /* ३. बटनों के अक्षरों का डिज़ाइन (मोटा, बड़ा और स्पष्ट फ़ॉन्ट) */
             .stTabs [data-baseweb="tab"] div,
             .stTabs [data-baseweb="tab"] p,
             .stTabs [data-baseweb="tab"] span {
                 color: #1e293b !important;
                 font-weight: 800 !important;
-                font-size: 17px !important; /* अक्षर बड़े और साफ़ दिखेंगे */
-                white-space: normal !important; /* टेक्स्ट कटेगा नहीं, पूरा दिखेगा */
+                font-size: 16px !important;
+                white-space: normal !important;
                 text-align: center !important;
-                line-height: 1.3 !important;
-            }
-            /* 4. लाइव रंग बदलने वाला आकर्षक एनीमेशन (Glow Effect) */
-            @keyframes liveGlowShine {
-                0% {
-                    background: linear-gradient(135deg, #ff4d4d, #f97316) !important;
-                    box-shadow: 0 0 18px rgba(255, 77, 77, 0.7) !important;
-                }
-                50% {
-                    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-                    box-shadow: 0 0 22px rgba(245, 158, 11, 0.8) !important;
-                }
-                100% {
-                    background: linear-gradient(135deg, #dc2626, #ea580c) !important;
-                    box-shadow: 0 0 18px rgba(220, 38, 38, 0.7) !important;
-                }
+                line-height: 1.2 !important;
             }
 
-            /* 5. जो टैब सिलेक्ट होगा (Active Tab) - वह लाइव रंग बदलेगा और चमकेगा */
+            /* ४. जो टैब सिलेक्ट होगा (Active Tab) - वो और भी ज़्यादा चमकेगा */
             .stTabs [aria-selected="true"] {
-                animation: liveGlowShine 3s infinite alternate !important;
+                background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
                 border: 2px solid #ffffff !important;
-                transform: scale(1.03) !important;
+                animation: activeGlow 1.8s infinite alternate !important;
             }
 
-            /* 6. सिलेक्टेड बटन के अंदर के अक्षर सफ़ेद और चमकदार दिखेंगे */
             .stTabs [aria-selected="true"] div,
             .stTabs [aria-selected="true"] p,
             .stTabs [aria-selected="true"] span {
                 color: #ffffff !important;
-                text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.4) !important;
+                text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3) !important;
             }
 
+            @keyframes activeGlow {
+                0% { box-shadow: 0 0 8px #2563eb; }
+                100% { box-shadow: 0 0 18px #2563eb, 0 0 8px #ec4899; }
+            }
+
+            /* ५. नीचे की पतली रेड लाइन हटाना */
+            .stTabs [data-baseweb="tab-highlight"] {
+                display: none !important;
+            }
+           
             /* 7. नीली पट्टी हटाना */
             .stTabs [data-baseweb="tab-highlight"] {
                 display: none !important;
@@ -872,17 +881,17 @@ if submit:
                 # ४. कार्ड का डिस्प्ले (HTML)
                 st.markdown(f"""
                 <div class="lucky-container">
-                    <h3 style="text-align: center; color: #1a508b; margin-top: 0;">🌟 आपके शुभ पैरामीटर्स</h3>
+                    <h4 style="text-align: center; color: #1a508b; margin-top: 0;">🌟 आपके शुभ पैरामीटर्स</h4>
                     <div class="flex-box">
                         <div class="info-col m-bg">
-                            <h4 style="color: red; margin-top: 0;">मूलांक: {mulank} (स्वभाव)</h4>
+                            <h5 style="color: red; margin-top: 0;">मूलांक: {mulank} (स्वभाव)</h4>
                             <p><span class="label">🪐 ग्रह:</span> <span style="color: red; font-weight: bold;">{m_data.get('grah', 'N/A')}</span></p>
     <p><span class="label">📅 दिन:</span> <span style="color: red; font-weight: bold;">{m_data.get('day', 'N/A')}</span></p>
     <p><span class="label">🎨 रंग:</span> <span style="color: red; font-weight: bold;">{m_data.get('color', 'N/A')}</span></p>
                             <p style="font-size: 12px; color: red; font-style: italic;">उपयोग: दैनिक शांति व आत्मविश्वास हेतु।</p>
                         </div>
                         <div class="info-col b-bg">
-                            <h4 style="color: blue; margin-top: 0;">भाग्यांक: {bhagyank} (भाग्य)</h4>
+                            <h5 style="color: blue; margin-top: 0;">भाग्यांक: {bhagyank} (भाग्य)</h4>
                             <p><span class="label">🪐 ग्रह:</span> <span style="color: blue; font-weight: bold;">{b_data.get('grah', 'N/A')}</span></p>
     <p><span class="label">📅 दिन:</span> <span style="color: blue; font-weight: bold;">{b_data.get('day', 'N/A')}</span></p>
     <p><span class="label">🎨 रंग:</span> <span style="color: blue; font-weight: bold;">{b_data.get('color', 'N/A')}</span></p>
