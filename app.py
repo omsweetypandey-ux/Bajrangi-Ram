@@ -641,17 +641,22 @@ if submit:
         # --- दायाँ कॉलम (कॉलम 2): लो-शू ग्रिड टेबल ---
         with col2:
             st.markdown("##### 🗓️ लो-शू ग्रिड")
-            html_grid = "<table style='width:100%; border-collapse: collapse; text-align:center; font-size:16px; font-weight:bold; background-color:#FFFDF0;'>"
+            
+            grid_rows_html = ""
             for row in display_grid:
-                html_grid += "<tr style='height:45px;'>"
+                grid_rows_html += "<tr style='height:40px;'>"
                 for cell_list in row:
-                    content = " ".join(cell_list) if cell_list else ""
-                    html_grid += f"<td style='border:2px solid #E74C3C; width:33%; background-color:#FFFDF0;'>{content}</td>"
-                html_grid += "</tr>"
-            html_grid += "</table>"
-            
+                    content = " ".join(cell_list) if cell_list else "&nbsp;"
+                    grid_rows_html += f"<td style='border:2px solid #E74C3C; width:33%; height:40px; background-color:#FFFDF0; font-size:16px; font-weight:bold; text-align:center; vertical-align:middle;'>{content}</td>"
+                grid_rows_html += "</tr>"
+
+            html_grid = f"""
+            <table style="width:100%; height:130px; border-collapse:collapse; margin-top:5px; background-color:#FFFDF0;">
+                {grid_rows_html}
+            </table>
+            """
             st.markdown(html_grid, unsafe_allow_html=True)
-            
+                
             # १. ८१ कॉम्बिनेशन का फल निकालना
             comb_key = f"{mulank}-{bhagyank}"
             comb_fal = faladesh_dict.get(comb_key, "आपके मूलांक और भाग्यांक का तालमेल उत्तम है।")
