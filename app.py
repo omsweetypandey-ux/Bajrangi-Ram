@@ -9,6 +9,7 @@ hide_streamlit_style = """
               """
 import datetime  
 from gtts import gTTS
+from elevenlabs.client import ElevenLabs
 import base64
 import time
 import uuid  
@@ -181,27 +182,27 @@ with col_menu:
     # सुनिश्चित करें कि आपके इनपुट फील्ड्स में key='u_name', key='u_phone' आदि दिए हुए हैं।
 def bol_web(text, part_id):
     try:
-        clean_text = text.replace("*", "").replace("#", "").replace("\n", " ")
-        tts = gTTS(text=clean_text, lang='hi', tld='co.in')
+        # 1. टेक्स्ट को साफ़ करना
+        clean_text = text.replace("*", "").replace("#", "")
         
-        unique_id = str(uuid.uuid4())[:8]
-        filename = f"temp_{part_id}_{unique_id}.mp3"
-        tts.save(filename)
-
-        # फाइल को पढ़ना
-        with open(filename, "rb") as f:
-            audio_bytes = f.read()
+        # 2. ElevenLabs API सेट करना
+        client = ElevenLabs(api_key="sk_1725e586c5ab003998eb1112c392b1f9b67d363fe0299bb8")
         
-        # स्क्रीन पर ऑडियो प्लेयर दिखाना
-        st.markdown("#### 🎙️ भविष्य रिपोर्ट सुनने के लिए यहाँ नीचे क्लिक करें:")
+        # 3. Shivank की आवाज़ से ऑडियो बनाना (नया अपडेटेड मेथड)
+        audio_stream = client.text_to_speech.convert(
+            text=clean_text,
+            voice_id="JBFqnCBsd6RMkjVDRZzb",
+            model_id="eleven_multilingual_v2"
+        )
+        
+        audio_bytes = b"".join(audio_stream)
+        
+        # 4. ऑडियो प्ले करना
+        st.markdown("#### 🗣️ भविष्य रिपोर्ट सुनने के लिए यहाँ नीचे क्लिक करें:")
         st.audio(audio_bytes, format="audio/mp3")
-
-        # पुरानी फाइल डिलीट करना ताकि कंप्यूटर न भरे
-        if os.path.exists(filename):
-            os.remove(filename)
+        
     except Exception as e:
-        st.error(f"ऑडियो में समस्या: {e}")
-
+        st.error(f"ऑडियो जनरेट करने में समस्या आई: {e}")
 # =====================================================================
 # 🗄️ ग्राहकों का विवरण हमेशा के लिए सेव रखने का तिजोरी लॉजिक (JSON Database)
 # =====================================================================
@@ -960,7 +961,7 @@ if submit:
                 # ६. ऑडियो को कॉल करें (अगर bol_web फंक्शन बना हुआ है)
                 bol_web(tab1_audio, "graha_voice")
             with tab2:
-                st.header("🔮 गुरु का वैज्ञानिक परामर्श")
+                st.subheader("🔮 गुरु का वैज्ञानिक परामर्श")
                 
                 # name_sum ko define karna taaki peeli line hat jaye
                 if 'name_sum' not in locals() and 'name_sum' not in globals():
@@ -976,8 +977,7 @@ if submit:
                 # 1. Sanyukt Namank ka Phal (Compound Number Logic)
                 if name_sum > 1:
                     # === ३.५ कम्पाउंड नंबर (Compound Number) का फलकथन और ऑडियो स्क्रिप्ट ===
-                    st.subheader("🔢 Compound Number (संयुक्त अंक) का फल")
-                    
+                    st.markdown("<p style='font-size: 22px; font-weight: bold; color: #1F618D;'>🔢 Compound Number (संयुक्त अंक) का फल</p>", unsafe_allow_html=True)
                     # 'name_val' वेरिएबल से नाम का कुल योग लेकर कम्पाउंड फल निकालना
                     compound_num = name_val
                     compound_fal = compound_master_81.get(compound_num, "इस संयुक्त अंक का फल अभी उपलब्ध नहीं है।")
