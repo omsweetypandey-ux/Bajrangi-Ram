@@ -26,9 +26,14 @@ import os
    # })
 
 # 📸 नया बैनर यहाँ से शुरू है
-st.image("banner.png", use_column_width=True)
-from io import BytesIO
+st.set_page_config(
+    page_title="बजरंगी राम अंक ज्योतिष केंद्र",
+    page_icon="🔮",
+    layout="centered",
+    menu_items=None
+)
 
+st.image("banner.png", use_column_width=True)
 # ✨ प्रीमियम हेडर: चमकते पीले बटन्स और ब्लैक स्टाइलिंग
 st.markdown("""
     <style>
