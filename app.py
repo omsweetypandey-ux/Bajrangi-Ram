@@ -14,6 +14,8 @@ import base64
 import time
 import uuid  
 import os
+import asyncio
+import edge_tts
 #import json
 #import firebase_admin
 #from firebase_admin import credentials, db
@@ -26,14 +28,9 @@ import os
    # })
 
 # 📸 नया बैनर यहाँ से शुरू है
-st.set_page_config(
-    page_title="बजरंगी राम अंक ज्योतिष केंद्र",
-    page_icon="🔮",
-    layout="centered",
-    menu_items=None
-)
+st.image("banner.png", use_container_width=True)
+from io import BytesIO
 
-st.image("banner.png", use_column_width=True)
 # ✨ प्रीमियम हेडर: चमकते पीले बटन्स और ब्लैक स्टाइलिंग
 st.markdown("""
     <style>
@@ -175,25 +172,17 @@ with col_menu:
     # सुनिश्चित करें कि आपके इनपुट फील्ड्स में key='u_name', key='u_phone' आदि दिए हुए हैं।
 def bol_web(text, part_id):
     try:
-        # 1. टेक्स्ट को साफ़ करना
         clean_text = text.replace("*", "").replace("#", "")
-        
-        # 2. ElevenLabs API सेट करना
-        client = ElevenLabs(api_key="sk_1725e586c5ab003998eb1112c392b1f9b67d363fe0299bb8")
-        
-        # 3. Shivank की आवाज़ से ऑडियो बनाना (नया अपडेटेड मेथड)
-        audio_stream = client.text_to_speech.convert(
-            text=clean_text,
-            voice_id="JBFqnCBsd6RMkjVDRZzb",
-            model_id="eleven_multilingual_v2"
-        )
-        
-        audio_bytes = b"".join(audio_stream)
-        
-        # 4. ऑडियो प्ले करना
-        st.markdown("#### 🗣️ भविष्य रिपोर्ट सुनने के लिए यहाँ नीचे क्लिक करें:")
-        st.audio(audio_bytes, format="audio/mp3")
-        
+        st.markdown("##### 🗣️ भविष्य रिपोर्ट सुनने के लिए यहाँ नीचे क्लिक करें:")
+
+        # Edge-TTS (Madhur - Male Voice) से ऑडियो बनाना
+        async def _generate_edge():
+            communicate = edge_tts.Communicate(clean_text, "hi-IN-MadhurNeural")
+            await communicate.save("output.mp3")
+
+        asyncio.run(_generate_edge())
+        st.audio("output.mp3", format="audio/mp3")
+
     except Exception as e:
         st.error(f"ऑडियो जनरेट करने में समस्या आई: {e}")
 # =====================================================================
