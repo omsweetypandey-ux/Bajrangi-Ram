@@ -27,14 +27,6 @@ import os
        # 'databaseURL': 'https://bajrangiram-jyotish-kendra-default-rtdb.firebaseio.com/'
    # })
 
-# 📸 नया बैनर यहाँ से शुरू है
-st.set_page_config(
-    page_title="बजरंगी राम अंक ज्योतिष केंद्र",
-    page_icon="🔮",
-    layout="centered",
-    menu_items=None
-)
-
 st.image("app_banner.png")
 # ✨ प्रीमियम हेडर: चमकते पीले बटन्स और ब्लैक स्टाइलिंग
 st.markdown("""
@@ -434,7 +426,7 @@ remedy_info = {
     }
 }
 # ५. ऐप इंटरफेस
-st.header("📋 विवरण भरें")
+st.subheaderheader("📋 विवरण भरें")
 import datetime
 # --- इनपुट विभाग (Input Section) ---
 
