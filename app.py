@@ -12,11 +12,10 @@ from gtts import gTTS
 from elevenlabs.client import ElevenLabs
 import base64
 import time
-import uuid  
+import uuid 
 import asyncio
-import edge_tts
+import edge_tts 
 import os
-from PIL import Image
 #import json
 #import firebase_admin
 #from firebase_admin import credentials, db
@@ -29,15 +28,14 @@ from PIL import Image
    # })
 
 # 📸 नया बैनर यहाँ से शुरू है
-# नया बैनर यहाँ से शुरू है
-banner_path = os.path.join(os.path.dirname(__file__), "banner.png")
-if os.path.exists(banner_path):
-    try:
-        banner_img = Image.open(banner_path)
-        st.image(banner_img)
-    except Exception as e:
-        pass
+st.set_page_config(
+    page_title="बजरंगी राम अंक ज्योतिष केंद्र",
+    page_icon="🔮",
+    layout="centered",
+    menu_items=None
+)
 
+st.image("app_banner.png")
 # ✨ प्रीमियम हेडर: चमकते पीले बटन्स और ब्लैक स्टाइलिंग
 st.markdown("""
     <style>
@@ -180,16 +178,16 @@ with col_menu:
 def bol_web(text, part_id):
     try:
         clean_text = text.replace("*", "").replace("#", "")
-        st.markdown("##### 🗣️ भविष्य रिपोर्ट सुनने के लिए यहाँ नीचे क्लिक करें:")
-
-        # Edge-TTS (Madhur - Male Voice) से ऑडियो बनाना
-        async def _generate_edge():
+        
+        # edge-tts से ऑडियो बनाना (100% फ्री और अनलिमिटेड)
+        async def _generate():
             communicate = edge_tts.Communicate(clean_text, "hi-IN-MadhurNeural")
             await communicate.save("output.mp3")
-
-        asyncio.run(_generate_edge())
+            
+        asyncio.run(_generate())
+        
+        st.markdown("##### 🗣️ भविष्य रिपोर्ट सुनने के लिए यहाँ नीचे क्लिक करें:")
         st.audio("output.mp3", format="audio/mp3")
-
     except Exception as e:
         st.error(f"ऑडियो जनरेट करने में समस्या आई: {e}")
 # =====================================================================
