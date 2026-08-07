@@ -28,7 +28,7 @@ import edge_tts
    # })
 
 # 📸 नया बैनर यहाँ से शुरू है
-st.image("banner.png", use_container_width=True)
+st.image("banner.png", use_column_width=True)
 from io import BytesIO
 
 # ✨ प्रीमियम हेडर: चमकते पीले बटन्स और ब्लैक स्टाइलिंग
