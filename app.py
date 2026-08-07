@@ -28,8 +28,9 @@ import edge_tts
    # })
 
 # 📸 नया बैनर यहाँ से शुरू है
-if os.path.exists("banner.png"):
-    st.image("banner.png")
+banner_path = os.path.join(os.path.dirname(__file__), "banner.png")
+if os.path.exists(banner_path):
+    st.image(banner_path)
 
 # ✨ प्रीमियम हेडर: चमकते पीले बटन्स और ब्लैक स्टाइलिंग
 st.markdown("""
