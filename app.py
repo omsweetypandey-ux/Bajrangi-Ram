@@ -13,9 +13,10 @@ from elevenlabs.client import ElevenLabs
 import base64
 import time
 import uuid  
-import os
 import asyncio
 import edge_tts
+import os
+from PIL import Image
 #import json
 #import firebase_admin
 #from firebase_admin import credentials, db
@@ -28,9 +29,14 @@ import edge_tts
    # })
 
 # 📸 नया बैनर यहाँ से शुरू है
+# नया बैनर यहाँ से शुरू है
 banner_path = os.path.join(os.path.dirname(__file__), "banner.png")
 if os.path.exists(banner_path):
-    st.image(banner_path)
+    try:
+        banner_img = Image.open(banner_path)
+        st.image(banner_img)
+    except Exception as e:
+        pass
 
 # ✨ प्रीमियम हेडर: चमकते पीले बटन्स और ब्लैक स्टाइलिंग
 st.markdown("""
