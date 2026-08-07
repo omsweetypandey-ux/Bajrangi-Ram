@@ -61,9 +61,6 @@ st.markdown("""
 # नया लेआउट: एक कॉलम में टाइटल, दूसरे में मेन्यू
 col_title, col_menu = st.columns([3, 1])
 
-with col_title:
-    st.markdown("<h3 style='color:#8B0000; margin-top:0;'>ψ अंक में छिपा आपका भविष्य </h3>", unsafe_allow_html=True)
-
 with col_menu:
     st.markdown("""
     <style>
