@@ -21,14 +21,21 @@ import firebase_admin
 from firebase_admin import credentials, db
 
 # Firebase कनेक्शन सेट-अप
+# Firebase कनेक्शन सेट-अप
 if not firebase_admin._apps:
     try:
-        cred = credentials.Certificate('firebase_key.json')
+        firebase_json_env = os.environ.get("FIREBASE_CREDENTIALS")
+        if firebase_json_env:
+            cred_dict = json.loads(firebase_json_env)
+            cred = credentials.Certificate(cred_dict)
+        else:
+            cred = credentials.Certificate('firebase_key.json')
+            
         firebase_admin.initialize_app(cred, {
             'databaseURL': 'https://bajrangiram-jyotish-kendra-default-rtdb.firebaseio.com'
         })
     except Exception as e:
-        pass
+        print(f"Firebase Init Error: {e}")
 
 # 📸 नया बैनर यहाँ से शुरू है
 st.image("app_banner.png", use_container_width=True)
