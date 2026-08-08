@@ -17,25 +17,6 @@ import os
 import asyncio
 import edge_tts
 import json
-import firebase_admin
-from firebase_admin import credentials, db
-
-# Firebase कनेक्शन सेट-अप
-# Firebase कनेक्शन सेट-अप
-if not firebase_admin._apps:
-    try:
-        firebase_json_env = os.environ.get("FIREBASE_CREDENTIALS")
-        if firebase_json_env:
-            cred_dict = json.loads(firebase_json_env)
-            cred = credentials.Certificate(cred_dict)
-        else:
-            cred = credentials.Certificate('firebase_key.json')
-            
-        firebase_admin.initialize_app(cred, {
-            'databaseURL': 'https://bajrangiram-jyotish-kendra-default-rtdb.firebaseio.com'
-        })
-    except Exception as e:
-        print(f"Firebase Init Error: {e}")
 
 # 📸 नया बैनर यहाँ से शुरू है
 st.image("app_banner.png", use_container_width=True)
@@ -92,54 +73,8 @@ with col_menu:
 """, unsafe_allow_html=True)
     
     # --- प्रोफाइल सर्च और नया विवरण (Tabs) ---
-tab_1, tab_2 = st.tabs(["🔍 प्रोफाइल खोजें", "➕ नया विवरण लिखें"])
+st.subheader("📝 ग्राहक का विवरण भरें")
 
-with tab_1:
-    st.subheader("🔍 ग्राहक की पुरानी प्रोफाइल खोजें")
-    query = st.text_input("नाम या मोबाइल नंबर दर्ज करें...", key="search_bar")
-    
-    if query:
-        try:
-            ref = db.reference('users')
-            all_users = ref.get()
-            
-            if all_users:
-                results = []
-                # अगर डेटाबेस में यूज़र्स हैं तो सर्च करें
-                for mob, info in all_users.items():
-                    if isinstance(info, dict):
-                        u_name = str(info.get('name', '')).lower()
-                        u_mob = str(mob)
-                        if query.lower() in u_name or query in u_mob:
-                            results.append((u_mob, info))
-                
-                if results:
-                    st.success(f"{len(results)} प्रोफाइल मिली:")
-                    for mob, info in results:
-                        btn_label = f"👤 {info.get('name', 'अज्ञात')} ({mob})"
-                        # बटन दबाते ही फॉर्म अपने आप भर जाएगा
-                        if st.button(btn_label, key=f"btn_{mob}"):
-                            st.session_state['u_name'] = info.get('name', '')
-                            st.session_state['u_phone'] = mob
-                            st.session_state['u_dob'] = info.get('dob', '')
-                            st.session_state['u_gender'] = info.get('gender', 'Male')
-                            st.success(f"{info.get('name')} की प्रोफाइल सफलतापूर्वक लोड हो गई!")
-                            st.rerun()
-                else:
-                    st.warning("इस नाम या नंबर से कोई रिकॉर्ड नहीं मिला।")
-            else:
-                st.info("डेटाबेस में अभी कोई प्रोफाइल सेव नहीं है।")
-        except Exception as e:
-            st.error(f"सर्च करने में समस्या आई: {e}")
-
-with tab_2:
-    st.subheader("➕ नया विवरण या रीसेट")
-    if st.button("🔄 नया फॉर्म साफ करें (Reset)"):
-        st.session_state['u_name'] = ""
-        st.session_state['u_phone'] = ""
-        st.session_state['u_gender'] = "Male"
-        st.success("फॉर्म रीसेट हो गया है!")
-        st.rerun()
     # इसके बाद आपका पुराना फॉर्म वाला कोड (नाम, जन्मतिथि, आदि) जारी रहेगा
     # सुनिश्चित करें कि आपके इनपुट फील्ड्स में key='u_name', key='u_phone' आदि दिए हुए हैं।
 def bol_web(text, part_id):
@@ -157,21 +92,7 @@ def bol_web(text, part_id):
 
     except Exception as e:
         st.error(f"ऑडियो जनरेट करने में समस्या आई: {e}")
-# ग्राहकों का विवरण Firebase Realtime Database में सेव करने का फंक्शन
-def save_to_database(mobile, name, dob, gender):
-    if mobile and name:
-        try:
-            today_date = datetime.date.today().strftime("%d-%m-%Y")
-            user_data = {
-                'name': str(name),
-                'dob': str(dob),
-                'gender': str(gender),
-                'date': today_date
-            }
-            ref = db.reference('users')
-            ref.child(str(mobile)).set(user_data)
-        except Exception as e:
-            st.error(f"डेटाबेस में सेव करने में त्रुटि: {e}")
+
 def get_single_digit(n):
     while n > 9:
         n = sum(int(d) for d in str(n))
@@ -406,21 +327,6 @@ import re
 
 u_phone = st.text_input("अपना पंजीकृत मोबाइल नंबर भरें...", key="u_phone")
 
-# अब पूरे कोड में जहाँ भी मोबाइल नंबर की ज़रूरत हो, 
-# वहां st.session_state.u_phone का उपयोग करें।
-
-# === विवरण सुरक्षित करने का बटन ===
-# विवरण सुरक्षित करने का बटन
-
-
-#=== विवरण सुरक्षित करने का बटन ===
-if st.button("💾 अपना विवरण सुरक्षित करें"):
-    if u_name and u_phone:
-        save_to_database(u_phone, u_name, u_dob, u_gender)
-        st.success(f"🎉 {u_name} का विवरण सफलतापूर्वक सुरक्षित कर लिया गया है!")
-        st.balloons()
-    else:
-        st.warning("⚠️ कृपया नाम और मोबाइल नंबर जरूर भरें!")
 # ====================================================================
 col1, col2 = st.columns([1, 1])
 
