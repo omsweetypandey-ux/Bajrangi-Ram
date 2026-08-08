@@ -12,22 +12,28 @@ from gtts import gTTS
 from elevenlabs.client import ElevenLabs
 import base64
 import time
-import uuid 
-import asyncio
-import edge_tts 
+import uuid  
 import os
-#import json
-#import firebase_admin
-#from firebase_admin import credentials, db
+import asyncio
+import edge_tts
+import json
+import firebase_admin
+from firebase_admin import credentials, db
 
-# Firebase को कनेक्ट करें
-#if not firebase_admin._apps:
-   # cred = credentials.Certificate('firebase_key.json')
-   # firebase_admin.initialize_app(cred, {
-       # 'databaseURL': 'https://bajrangiram-jyotish-kendra-default-rtdb.firebaseio.com/'
-   # })
+# Firebase कनेक्शन सेट-अप
+if not firebase_admin._apps:
+    try:
+        cred = credentials.Certificate('firebase_key.json')
+        firebase_admin.initialize_app(cred, {
+            'databaseURL': 'https://bajrangiram-jyotish-kendra-default-rtdb.firebaseio.com'
+        })
+    except Exception as e:
+        pass
 
-st.image("app_banner.png")
+# 📸 नया बैनर यहाँ से शुरू है
+st.image("banner.png", use_container_width=True)
+from io import BytesIO
+
 # ✨ प्रीमियम हेडर: चमकते पीले बटन्स और ब्लैक स्टाइलिंग
 st.markdown("""
     <style>
@@ -78,153 +84,92 @@ with col_menu:
     </style>
 """, unsafe_allow_html=True)
     
-    # 2. मेनू बार को एक्सपेंडर (बटन) में बदलें
-# with col_menu:
-#     with st.expander("☰ मेन्यू"):
-        
-#         menu_choice = st.radio("विकल्प चुनें", ["होम", "नामांक गणना", "मूलांक-भाग्यांक", "राजयोग", "मोबाइल विश्लेषण", "अबाउट अस"])
-# # हेडर के ठीक नीचे एक सुंदर पतली विभाजक रेखा
-# st.markdown("<hr style='margin-top:10px; margin-bottom:20px; border:1px solid #ddd;'>", unsafe_allow_html=True)
+    # --- प्रोफाइल सर्च और नया विवरण (Tabs) ---
+tab_1, tab_2 = st.tabs(["🔍 प्रोफाइल खोजें", "➕ नया विवरण लिखें"])
 
-
-
-# --- यहाँ से आपका मेनू कंट्रोलर शुरू होता है ---
-
-# if menu_choice == "होम":
-#     st.write("बजरंगी राम अंक ज्योतिष केंद्र में आपका स्वागत है।")
-#     # यहाँ अपना होम पेज का कंटेंट रखें
-
-# elif menu_choice == "नामांक गणना":
-#     st.subheader("नामांक गणना")
-#     # यहाँ अपना नामांक वाला सारा कोड (इनपुट/बटन) पेस्ट कर दें
-
-# elif menu_choice == "मूलांक-भाग्यांक":
-#     st.subheader("मूलांक-भाग्यांक फल")
-#     # यहाँ अपना मूलांक वाला सारा कोड पेस्ट कर दें
-
-# elif menu_choice == "राजयोग":
-#     st.subheader("राजयोग विश्लेषण")
-#     # यहाँ राजयोग वाला कोड पेस्ट करें
-
-# elif menu_choice == "मोबाइल विश्लेषण":
-#     st.subheader("मोबाइल नंबर विश्लेषण")
-#     # यहाँ मोबाइल एनालिसिस वाला कोड पेस्ट करें
-
-# elif menu_choice == "अबाउट अस":
-#     st.subheader("हमारे बारे में")
-#     st.write("यह ऐप ज्योतिष शास्त्र की गणना में सहायता के लिए बनाया गया है।")
-
-    # टैब का निर्माण (जैसा आपने फोटो में चाहा था)
-# tab_1, tab_2 = st.tabs(["📂 Search", "➕ New"])
-
-# with tab_1:
-#     st.subheader("🔍 ग्राहक खोजें")
+with tab_1:
+    st.subheader("🔍 ग्राहक की पुरानी प्रोफाइल खोजें")
+    query = st.text_input("नाम या मोबाइल नंबर दर्ज करें...", key="search_bar")
     
-#     # Firebase से डेटा सर्च करने का नया तरीका
-#     query = st.text_input("नाम या मोबाइल से खोजें...", key="search_bar")
-    
-#     if query:
-#         try:
-#             # Firebase से सारा डेटा लाएं
-#             #ref = db.reference('/')
-#             all_users = ref.get()
+    if query:
+        try:
+            ref = db.reference('users')
+            all_users = ref.get()
             
-#             if all_users:
-#                 # सर्च लॉजिक (नाम या मोबाइल के आधार पर)
-#                 results = [user for user in all_users.values() if 
-#                            query.lower() in str(user.get('name', '')).lower() or 
-#                            query in str(user.get('mobile', ''))]
+            if all_users:
+                results = []
+                # अगर डेटाबेस में यूज़र्स हैं तो सर्च करें
+                for mob, info in all_users.items():
+                    if isinstance(info, dict):
+                        u_name = str(info.get('name', '')).lower()
+                        u_mob = str(mob)
+                        if query.lower() in u_name or query in u_mob:
+                            results.append((u_mob, info))
                 
-#                 if results:
-#                     for entry in results:
-#                         btn_label = f"👤 {entry.get('name')} | {entry.get('mobile')}"
-#                         if st.button(btn_label, key=f"btn_{entry.get('mobile')}"):
-#                             st.session_state['u_name'] = entry.get('name')
-#                             st.session_state['u_phone'] = entry.get('mobile')
-#                             st.rerun()
-#                 else:
-#                     st.warning("कोई रिकॉर्ड नहीं मिला।")
-#             else:
-#                 st.info("डेटाबेस अभी खाली है।")
-#         except Exception as e:
-#             st.error(f"सर्च करने में समस्या: {e}")
-# with tab_2:
-#     st.subheader("➕ नया विवरण भरें")
-    
-#     # Reset बटन का लॉजिक
-# if st.button("🔄 नया फॉर्म साफ़ करें (Reset)"):
-    # सभी कीज़ को खाली करें
-    # st.session_state['u_name'] = ""
-    # st.session_state['u_phone'] = ""
-    # st.session_state['u_dob'] = datetime.date(2000, 1, 1) # डिफ़ॉल्ट तारीख
-    # st.session_state['u_gender'] = "Male"
-    
-    # # पेज को री-रन करें
-    # st.rerun()
+                if results:
+                    st.success(f"{len(results)} प्रोफाइल मिली:")
+                    for mob, info in results:
+                        btn_label = f"👤 {info.get('name', 'अज्ञात')} ({mob})"
+                        # बटन दबाते ही फॉर्म अपने आप भर जाएगा
+                        if st.button(btn_label, key=f"btn_{mob}"):
+                            st.session_state['u_name'] = info.get('name', '')
+                            st.session_state['u_phone'] = mob
+                            st.session_state['u_dob'] = info.get('dob', '')
+                            st.session_state['u_gender'] = info.get('gender', 'Male')
+                            st.success(f"{info.get('name')} की प्रोफाइल सफलतापूर्वक लोड हो गई!")
+                            st.rerun()
+                else:
+                    st.warning("इस नाम या नंबर से कोई रिकॉर्ड नहीं मिला।")
+            else:
+                st.info("डेटाबेस में अभी कोई प्रोफाइल सेव नहीं है।")
+        except Exception as e:
+            st.error(f"सर्च करने में समस्या आई: {e}")
 
+with tab_2:
+    st.subheader("➕ नया विवरण या रीसेट")
+    if st.button("🔄 नया फॉर्म साफ करें (Reset)"):
+        st.session_state['u_name'] = ""
+        st.session_state['u_phone'] = ""
+        st.session_state['u_gender'] = "Male"
+        st.success("फॉर्म रीसेट हो गया है!")
+        st.rerun()
     # इसके बाद आपका पुराना फॉर्म वाला कोड (नाम, जन्मतिथि, आदि) जारी रहेगा
     # सुनिश्चित करें कि आपके इनपुट फील्ड्स में key='u_name', key='u_phone' आदि दिए हुए हैं।
 def bol_web(text, part_id):
     try:
         clean_text = text.replace("*", "").replace("#", "")
-        
-        # edge-tts से ऑडियो बनाना (100% फ्री और अनलिमिटेड)
-        async def _generate():
+        st.markdown("##### 🗣️ भविष्य रिपोर्ट सुनने के लिए यहाँ नीचे क्लिक करें:")
+
+        # Edge-TTS (Madhur - Male Voice) से ऑडियो बनाना
+        async def _generate_edge():
             communicate = edge_tts.Communicate(clean_text, "hi-IN-MadhurNeural")
             await communicate.save("output.mp3")
-            
-        asyncio.run(_generate())
-        
-        st.markdown("##### 🗣️ भविष्य रिपोर्ट सुनने के लिए यहाँ नीचे क्लिक करें:")
+
+        asyncio.run(_generate_edge())
         st.audio("output.mp3", format="audio/mp3")
+
     except Exception as e:
         st.error(f"ऑडियो जनरेट करने में समस्या आई: {e}")
-# =====================================================================
-# 🗄️ ग्राहकों का विवरण हमेशा के लिए सेव रखने का तिजोरी लॉजिक (JSON Database)
-# =====================================================================
-DB_FILE = "kundli_database.json"
-
-        # फाइल में वापस सेव करें
-# नया फंक्शन: डेटा को Firebase Realtime Database में सेव करने के लिए
-import datetime # यह import सुनिश्चित करें कि फाइल में सबसे ऊपर हो
-
-# def save_to_database(mobile, name, dob, gender):
-#     # आज की तारीख निकालें
-#     today_date = datetime.date.today().strftime("%d-%m-%Y")
-    
-#     # डेटा तैयार करें (तारीख के साथ)
-#     user_data = {
-#         'name': str(name),
-#         'dob': str(dob),
-#         'gender': str(gender),
-#         'date': today_date  # यह लाइन आपके एडमिन पैनल का आधार बनेगी
-#     }
-    
-#     # Firebase में सेव करें
-#     #3ref = db.reference('users')
-#     ref.child(str(mobile)).set(user_data)
+# ग्राहकों का विवरण Firebase Realtime Database में सेव करने का फंक्शन
+def save_to_database(mobile, name, dob, gender):
+    if mobile and name:
+        try:
+            today_date = datetime.date.today().strftime("%d-%m-%Y")
+            user_data = {
+                'name': str(name),
+                'dob': str(dob),
+                'gender': str(gender),
+                'date': today_date
+            }
+            ref = db.reference('users')
+            ref.child(str(mobile)).set(user_data)
+        except Exception as e:
+            st.error(f"डेटाबेस में सेव करने में त्रुटि: {e}")
 def get_single_digit(n):
     while n > 9:
         n = sum(int(d) for d in str(n))
     return n
-
- # यहाँ अपना नया सर्च फंक्शन पेस्ट करें
-# def search_by_name(target_name):
-#     # Firebase से डेटा लाने के लिए
-#     #ref = db.reference('users')
-#     all_users = ref.get() 
-    
-#     if all_users:
-#         results = []
-#         for mobile, details in all_users.items():
-#             # अगर नाम मिलता है, तो उसे रिजल्ट में जोड़ें
-#             if target_name.lower() in details.get('name', '').lower():
-#                 details['mobile'] = mobile # मोबाइल नंबर भी साथ जोड़ दें
-#                 results.append(details)
-#         return results if results else "❌ कोई रिकॉर्ड नहीं मिला!"
-#     return "❌ डेटाबेस खाली है!"
  
-
 chaldean_table = {'A':1,'I':1,'J':1,'Q':1,'Y':1,'B':2,'K':2,'R':2,'C':3,'G':3,'L':3,'S':3,'D':4,'M':4,'T':4,'E':5,'H':5,'N':5,'X':5,'U':6,'V':6,'W':6,'O':7,'Z':7,'F':8,'P':8}
 # ४. ८१ कॉम्बिनेशन (उदाहरण के लिए)
 faladesh_dict = {
@@ -452,7 +397,7 @@ if 'u_phone' not in st.session_state:
 
 import re
 
-u_phone = st.text_input("अपना पंजीकृत मोबाइल नंबर भरें...", key="phone_key")
+u_phone = st.text_input("अपना पंजीकृत मोबाइल नंबर भरें...", key="u_phone")
 
 # अब पूरे कोड में जहाँ भी मोबाइल नंबर की ज़रूरत हो, 
 # वहां st.session_state.u_phone का उपयोग करें।
@@ -461,27 +406,14 @@ u_phone = st.text_input("अपना पंजीकृत मोबाइल �
 # विवरण सुरक्षित करने का बटन
 
 
-#     # विवरण सुरक्षित करने का बटन
-# if st.button("अपना विवरण सुरक्षित करें"):
-#     if u_name and u_phone:
-#         try:
-#             # Firebase में डेटा सेव करें (मोबाइल नंबर को ID की तरह उपयोग करें)
-#             ref = db.reference(f'/{u_phone}')
-#             ref.set({
-#                 'name': u_name,
-#                 'dob': str(u_dob),
-#                 'gender': u_gender,
-#                 'mobile': u_phone
-#             })
-#             st.success(f"{u_name} का विवरण सफलतापूर्वक सुरक्षित कर लिया गया है!")
-#             st.balloons()
-#             import time
-#             time.sleep(2)
-#             st.rerun()
-#         except Exception as e:
-#             st.error(f"डेटा सेव करने में समस्या: {e}")
-#     else:
-#         st.warning("कृपया नाम और मोबाइल नंबर जरूर भरें।")
+#=== विवरण सुरक्षित करने का बटन ===
+if st.button("💾 अपना विवरण सुरक्षित करें"):
+    if u_name and u_phone:
+        save_to_database(u_phone, u_name, u_dob, u_gender)
+        st.success(f"🎉 {u_name} का विवरण सफलतापूर्वक सुरक्षित कर लिया गया है!")
+        st.balloons()
+    else:
+        st.warning("⚠️ कृपया नाम और मोबाइल नंबर जरूर भरें!")
 # ====================================================================
 col1, col2 = st.columns([1, 1])
 
@@ -526,7 +458,7 @@ if submit:
         cleaned_phone = cleaned_phone[-10:]
         
     # 4. साफ़ किया हुआ नंबर सेशन स्टेट में सेव करें
-    st.session_state.u_phone = cleaned_phone
+    #st.session_state.u_phone = cleaned_phone
 
     # 5. अगर 10 अंक नहीं हैं तो एरर दिखाएं
     if len(cleaned_phone) != 10:
@@ -822,7 +754,7 @@ if submit:
             .stTabs [data-baseweb="tab"] div,
             .stTabs [data-baseweb="tab"] p,
             .stTabs [data-baseweb="tab"] span {
-                font-size: 19px !important;
+                font-size: 19px !important;-p
                 font-weight: 900 !important;
             }
             </style>
