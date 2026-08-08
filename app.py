@@ -31,7 +31,7 @@ if not firebase_admin._apps:
         pass
 
 # 📸 नया बैनर यहाँ से शुरू है
-st.image("banner.png", use_container_width=True)
+st.image("app_banner.png", use_container_width=True)
 from io import BytesIO
 
 # ✨ प्रीमियम हेडर: चमकते पीले बटन्स और ब्लैक स्टाइलिंग
