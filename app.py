@@ -426,7 +426,7 @@ remedy_info = {
     }
 }
 # ५. ऐप इंटरफेस
-st.subheaderheader("📋 विवरण भरें")
+st.subheader("📋 विवरण भरें")
 import datetime
 # --- इनपुट विभाग (Input Section) ---
 
