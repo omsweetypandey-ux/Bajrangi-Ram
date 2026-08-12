@@ -12,6 +12,7 @@ from gtts import gTTS
 from elevenlabs.client import ElevenLabs
 import base64
 import time
+from collections import Counter
 import uuid  
 import os
 import asyncio
@@ -19,7 +20,7 @@ import edge_tts
 import json
 
 # 📸 नया बैनर यहाँ से शुरू है
-st.image("app_banner.png", use_container_width=True)
+st.image("banner.png", use_container_width=True)
 from io import BytesIO
 
 # ✨ प्रीमियम हेडर: चमकते पीले बटन्स और ब्लैक स्टाइलिंग
@@ -486,8 +487,12 @@ if submit:
             # २. मिसिंग नंबर और उपाय
             all_present_nums = set(dob_digits) | {mulank, bhagyank, name_num, kua}
             missing_nums = [n for n in range(1, 10) if n not in all_present_nums]
-    # --- राजयोग चेक करने का लॉजिक ---
-        
+
+            # mobile_jyotish.py के लिए मास्टर ग्रिड का काउंटर सेव करें
+            all_app_digits = list(dob_digits) + [str(mulank), str(bhagyank), str(name_num), str(kua)]
+            st.session_state['master_loshu_counts'] = Counter([str(x) for x in all_app_digits if str(x) in "123456789"])
+            # --- राजयोग चेक करने का लॉजिक ---
+                
             active_rajyog = []
             # चेक करने के लिए सभी ८ कॉम्बिनेशन
             planes = [
