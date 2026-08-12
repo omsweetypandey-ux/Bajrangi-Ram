@@ -106,7 +106,7 @@ def analyze_planet_relation(single_digit, m_ank, b_ank, title_context):
     else:
         b_relation = "🟡 **सम (Neutral) संबंध है।** भाग्य के दृष्टिकोण से यह सामान्य रहेगा।"
 
-    st.markdown(f"#### 📊 {title_context} (एकल अंक: `{single_digit}` - {graha_dict.get(single_digit, 'अज्ञात')})")
+    st.markdown(f"##### 📊 {title_context} (एकल अंक: `{single_digit}` - {graha_dict.get(single_digit, 'अज्ञात')})")
     col_m, col_b = st.columns(2)
     with col_m:
         st.info(f"💼 **मूलांक ({m_ank}) के साथ संबंध:**\n\n{m_relation}")
@@ -242,109 +242,80 @@ if mobile_submit:
 # आगे की मुख्य गणना तभी चलेगी जब नंबर बिल्कुल सही (10 अंकों का) होगा
 if st.session_state.get('mobile_analyzed', False):
     if cust_mobile:
-        # मुख्य फ़ाइल से मूलांक और भाग्यांक उठाना
-        user_mulank = st.session_state.get('app_mulank')
-        user_bhagyank = st.session_state.get('app_bhagyank')
-        u_name = st.session_state.get('app_user_name', 'user')
+        # मुख्य फ़ाइल से डेटा उठाना (सुरक्षित फ़ॉलबैक के साथ)
+        user_mulank = st.session_state.get('app_mulank', st.session_state.get('mulank', 1))
+        user_bhagyank = st.session_state.get('app_bhagyank', st.session_state.get('bhagyank', 1))
+        u_name = st.session_state.get('app_user_name', st.session_state.get('user_name', 'उपयोगकर्ता'))
 
-        if user_mulank is None or user_bhagyank is None:
-            st.error("⚠️ मुख्य पेज से मूलांक और भाग्यांक का डेटा नहीं मिल पाया! कृपया पहले मुख्य पेज पर जन्म विवरण भरकर 'विवरण देखें' पर क्लिक करें।")
-        else:
-            # A. पूरे १० अंकों का एकल अंक निकालना
-            digit_sum = sum(int(d) for d in cust_mobile)
-            while digit_sum > 9:
-                digit_sum = sum(int(d) for d in str(digit_sum))
-            
-            # B. आखिरी ४ अंकों का एकल अंक निकालना
-            last_4_digits = cust_mobile[-4:]
-            last_4_sum = sum(int(d) for d in last_4_digits)
-            while last_4_sum > 9:
-                last_4_sum = sum(int(d) for d in str(last_4_sum))
-            
-            # C. एसेंडिंग / डिसेंडिंग चेक करना
-            is_ascending = int(last_4_digits[0]) < int(last_4_digits[-1])
-            is_descending = int(last_4_digits[0]) > int(last_4_digits[-1])
-            
-            # स्वामी ग्रहों के नाम निकालना
-            mobile_graha = graha_dict.get(digit_sum, "अज्ञात")
-            mulank_graha = graha_dict.get(user_mulank, "अज्ञात")
-            bhagyank_graha = graha_dict.get(user_bhagyank, "अज्ञात")
-
-            # सुंदर ३ मुख्य डिब्बे (Cards Layout)
-            st.markdown("### 🪐 मुख्य अंक एवं संबंधित ग्रहों का विवरण")
-            
-            card_col1, card_col2, card_col3 = st.columns(3)
-            with card_col1:
-                st.markdown(
-                    f"""
-                    <div style="background-color: #e8f4f8; padding: 3px; border-radius: 4px; border-left: 3px solid #2980b9; text-align: center;">
-                        <h4 style="color: #2980b9; margin: 0;">📱 मोबाइल कुल योग</h4>
-                        <p style="font-size: 32px; font-weight: bold; margin: 20px 0; color: #2c3e50;">{digit_sum}</p>
-                        <span style="font-size: 14px; color: #7f8c8d; font-weight: bold;">स्वामी: {mobile_graha}</span>
-                    </div>
-                    """, 
-                    unsafe_allow_html=True
-                )
-                
-            with card_col2:
-                st.markdown(
-                    f"""
-                    <div style="background-color: #eafaf1; padding: 3px; border-radius: 4px; border-left: 3px solid #27ae60; text-align: center;">
-                        <h4 style="color: #27ae60; margin: 0;">👤 आपका मूलांक</h4>
-                        <p style="font-size: 32px; font-weight: bold; margin: 20px 0; color: #2c3e50;">{user_mulank}</p>
-                        <span style="font-size: 14px; color: #14f8c8d; font-weight: bold;">स्वामी: {mulank_graha}</span>
-                    </div>
-                    """, 
-                    unsafe_allow_html=True
-                )
-                
-            with card_col3:
-                st.markdown(
-                    f"""
-                    <div style="background-color: #fef9e7; padding: 3px; border-radius: 4px; border-left: 3px solid #f1c40f; text-align: center;">
-                        <h4 style="color: #d4ac0d; margin: 0;">🚀 आपका भाग्यांक</h4>
-                        <p style="font-size: 32px; font-weight: bold; margin: 20px 0; color: #2c3e50;">{user_bhagyank}</p>
-                        <span style="font-size: 14px; color: #7f8c8d; font-weight: bold;">स्वामी: {bhagyank_graha}</span>
-                    </div>
-                    """, 
-                    unsafe_allow_html=True
-                )
-            
-            # १. दोनों स्तरों का ग्रहों से संबंध दिखाना
-            st.markdown("#### 📱 १. पूरे १० अंकों के योग का प्रभाव")
-            analyze_planet_relation(digit_sum, user_mulank, user_bhagyank, "संपूर्ण मोबाइल नंबर योग")
-            
-            st.markdown("#### 🔮 २. आखिरी ४ अंकों के योग का प्रभाव")
-            analyze_planet_relation(last_4_sum, user_mulank, user_bhagyank, "अंतिम ४ अंकों का विशेष योग")
-            # ==============================================================================
-        # 🪐 ३. मोबाइल नंबर के बीच बनने वाली ग्रहों की युति (Pairs) स्क्रीन पर दिखाना
-        # ==============================================================================
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("##### 🔮 ३. मोबाइल नंबर में ग्रहों की विशेष युति का प्रभाव")
+        # मास्टर ग्रिड लोड करें
+        loshu_counts = st.session_state.get('master_loshu_counts', {})
+        # A. पूरे १० अंकों का एकल अंक निकालना
+        digit_sum = sum(int(d) for d in cust_mobile)
+        while digit_sum > 9:
+            digit_sum = sum(int(d) for d in str(digit_sum))
         
-        found_any_pair_screen = False
+        # B. आखिरी ४ अंकों का एकल अंक निकालना
+        last_4_digits = cust_mobile[-4:]
+        last_4_sum = sum(int(d) for d in last_4_digits)
+        while last_4_sum > 9:
+            last_4_sum = sum(int(d) for d in str(last_4_sum))
         
-        # सुरक्षा जांच: क्या pairs_dict कोड में उपलब्ध है
-        if 'pairs_dict' in locals():
-            for i in range(len(cust_mobile) - 1):
-                current_pair = cust_mobile[i:i+2]
-                
-                # अगर वह जोड़ा हमारी डिक्शनरी में मौजूद है
-                if current_pair in pairs_dict:
-                    found_any_pair_screen = True
-                    pair_info = pairs_dict[current_pair]
-                    
-                    # दोष या संघर्ष वाले योगों के लिए चेतावनी (Warning Box)
-                    if "दोष" in pair_info['title'] or "मतभेद" in pair_info['title'] or "संघर्ष" in pair_info['title'] or "विवाद" in pair_info['title'] or "दुर्घटना" in pair_info['title']:
-                        st.warning(f"⚠️ **{pair_info['title']} (अंक {current_pair}):** {pair_info['desc']}")
-                    else:
-                        # शुभ लक्ष्मी नारायण या चतुर व्यापार योग के लिए (Success Box)
-                        st.success(f"✨ **{pair_info['title']} (अंक {current_pair}):** {pair_info['desc']}")
-                        
-            # अगर पूरे नंबर में कोई भी विशिष्ट युति नहीं मिली
-            if not found_any_pair_screen:
-                st.info("✨ **अद्भुत योग:** आपके मोबाइल नंबर के बीच में कोई भी नकारात्मक या संघर्षकारी ग्रहों की युति नहीं बन रही है, जो कि आपके लिए बहुत ही उत्तम स्थिति है।")
+        # C. एसेंडिंग / डिसेंडिंग चेक करना
+        is_ascending = int(last_4_digits[0]) < int(last_4_digits[-1])
+        is_descending = int(last_4_digits[0]) > int(last_4_digits[-1])
+        
+        # स्वामी ग्रहों के नाम निकालना
+        mobile_graha = graha_dict.get(digit_sum, "अज्ञात")
+        mulank_graha = graha_dict.get(user_mulank, "अज्ञात")
+        bhagyank_graha = graha_dict.get(user_bhagyank, "अज्ञात")
 
+        # सुंदर ३ मुख्य डिब्बे (Cards Layout)
+        st.markdown("### 🪐 मुख्य अंक एवं संबंधित ग्रहों का विवरण")
+        
+        card_col1, card_col2, card_col3 = st.columns(3)
+        with card_col1:
+            st.markdown(
+                f"""
+                <div style="background-color: #e8f4f8; padding: 3px; border-radius: 4px; border-left: 3px solid #2980b9; text-align: center;">
+                    <h4 style="color: #2980b9; margin: 0;">📱 मोबाइल कुल योग</h4>
+                    <p style="font-size: 32px; font-weight: bold; margin: 20px 0; color: #2c3e50;">{digit_sum}</p>
+                    <span style="font-size: 14px; color: #7f8c8d; font-weight: bold;">स्वामी: {mobile_graha}</span>
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
+            
+        with card_col2:
+            st.markdown(
+                f"""
+                <div style="background-color: #eafaf1; padding: 3px; border-radius: 4px; border-left: 3px solid #27ae60; text-align: center;">
+                    <h4 style="color: #27ae60; margin: 0;">👤 आपका मूलांक</h4>
+                    <p style="font-size: 32px; font-weight: bold; margin: 20px 0; color: #2c3e50;">{user_mulank}</p>
+                    <span style="font-size: 14px; color: #14f8c8d; font-weight: bold;">स्वामी: {mulank_graha}</span>
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
+            
+        with card_col3:
+            st.markdown(
+                f"""
+                <div style="background-color: #fef9e7; padding: 3px; border-radius: 4px; border-left: 3px solid #f1c40f; text-align: center;">
+                    <h4 style="color: #d4ac0d; margin: 0;">🚀 आपका भाग्यांक</h4>
+                    <p style="font-size: 32px; font-weight: bold; margin: 20px 0; color: #2c3e50;">{user_bhagyank}</p>
+                    <span style="font-size: 14px; color: #7f8c8d; font-weight: bold;">स्वामी: {bhagyank_graha}</span>
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
+        
+          # १. पूरे १० अंकों के योग का प्रभाव
+    st.markdown("#### 📱 १. पूरे १० अंकों के योग का प्रभाव")
+    analyze_planet_relation(digit_sum, user_mulank, user_bhagyank, "संपूर्ण मोबाइल नंबर योग")
+
+    # २. आखिरी ४ अंकों के योग का प्रभाव
+    st.markdown("#### 📱 २. आखिरी ४ अंकों के योग का प्रभाव")
+    analyze_planet_relation(last_4_sum, user_mulank, user_bhagyank, "अंतिम ४ अंकों का विशेष योग")
         # ==========================================
 # ४. मूल लू-शू ग्रिड (DOB + मूलांक + भाग्यांक + कुआ + नामांक)
 # ==========================================
@@ -352,7 +323,8 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.markdown("### 🔮 ४. मूल लू-शू ग्रिड एवं मिसिंग अंक विश्लेषण")
 
 # app.py से सीधा मास्टर ग्रिड डेटा प्राप्त करें
-loshu_counts = st.session_state.get('master_loshu_counts', {})
+# लू-शू ग्रिड डेटा प्राप्त करें (फॉलबैक के साथ)
+loshu_counts = st.session_state.get('master_loshu_counts', st.session_state.get('loshu_counts', {}))
 
 # ४. मिसिंग एवं उपस्थित अंक रिपोर्ट
 missing_numbers = sorted(list(set("123456789") - set(loshu_counts.keys())))
