@@ -1,568 +1,447 @@
-from collections import Counter
 import streamlit as st
-import random
+import json
 import os
-import uuid
+import re
 import asyncio
 import edge_tts
-from io import BytesIO
-# =====================================================================
-# १. पेज की प्राथमिक सेटिंग और हेडर
-# =====================================================================
-# =====================================================================
-# 🔐 मूलांक और भाग्यांक को सुरक्षित रूप से सेशन से निकालना
-# =====================================================================
-user_mulank = st.session_state.get('app_mulank', 2)     # यदि न मिले तो डिफ़ॉल्ट २ लेगा
-user_bhagyank = st.session_state.get('app_bhagyank', 9) # यदि न मिले तो डिफ़ॉल्ट ९ लेगा
-# =====================================================================
-st.markdown("### 📱 मोबाइल नंबर ज्योतिष विश्लेषण")
-st.markdown("अपने मोबाइल नंबर के भाग्य और अनुकूलता की गहरी जांच करें।")
-st.markdown("---")
-
-# अंकों से ग्रहों के नाम की डिक्शनरी
-graha_dict = {
-    1: "सूर्य (Sun)", 2: "चंद्रमा (Moon)", 3: "बृहस्पति/गुरु (Jupiter)",
-    4: "राहु (Rahu)", 5: "बुध (Mercury)", 6: "शुक्र (Venus)",
-    7: "केतु (Ketu)", 8: "शनि (Saturn)", 9: "मंगल (Mars)"
-}
-
-# शत्रु ग्रहों की सूची (मूलांक के आधार पर)
-anti_numbers_dict = {
-    1: [8], 2: [4, 8, 9], 3: [6], 4: [1, 2, 9], 
-    5: [], 6: [1, 2, 3], 7: [2], 8: [1, 2, 4, 9], 9: [4, 6]
-}
-
-# ✨ गुरु जी, आपकी नई युति फलादेश डिक्शनरी बिल्कुल सही जगह पर सेट है:
-pairs_dict = {
-    "28": {
-        "title": "🪐 चंद्रमा + शनि (विष योग दोष)",
-        "desc": "आपके मोबाइल में २ और ८ की युति लगातार है। २ नंबर चंद्रमा (मन) का है और ८ नंबर शनि देव (संघर्ष) का है। यह दोनों मिलकर **'विष योग'** बनाते हैं, जिसके कारण व्यक्ति को मानसिक तनाव, ओवरथिंकिंग, अनिद्रा (Insomnia) और कार्यों में अकारण देरी का सामना करना पड़ सकता है।"
-    },
-    "82": {
-        "title": "🪐 शनि + चंद्रमा (विष योग दोष)",
-        "desc": "आपके मोबाइल में ८ और २ की युति लगातार है। ८ नंबर शनि देव का है और २ नंबर चंद्रमा का है। यह युति **'विष योग'** का निर्माण करती है, जो मानसिक अशांति, मूड स्विंग्स और बनते हुए कार्यों में ऐन वक्त पर रुकावटें पैदा करती है।"
-    },
-    "18": {
-        "title": "🪐 सूर्य + शनि (वैचारिक मतभेद योग)",
-        "desc": "आपके मोबाइल में १ और ८ की युति है। १ नंबर सूर्य (पिता/सफलता) का है और ८ नंबर शनि (पुत्र/अवरोध) का है। इन दोनों में शत्रुता होने के कारण यह युति करियर में सरकारी बाधाएं, अधिकारियों से अनबन या पिता के साथ वैचारिक मतभेद पैदा कर सकती है।"
-    },
-    "81": {
-        "title": "🪐 शनि + सूर्य (संघर्ष योग)",
-        "desc": "आपके मोबाइल में ८ और १ की युति है। शनि और सूर्य की यह स्थिति जीवन में मान-सम्मान के लिए अत्यधिक संघर्ष कराती है। कार्यक्षेत्र में मेहनत का पूरा क्रेडिट मिलने में रुकावट आती है।"
-    },
-    "49": {
-        "title": "🪐 राहु + मंगल (अंगारक/विवाद योग)",
-        "desc": "आपके मोबाइल में ४ और ९ की युति है। ४ नंबर राहु (भ्रम/अचानक घटना) का है और ९ नंबर मंगल (अग्नि/क्रोध) का है। यह युति **'अंगारक योग'** जैसा प्रभाव देती है, जिससे व्यक्ति में अचानक अत्यधिक क्रोध आना, जल्दबाजी में गलत फैसले लेना या कानूनी विवादों में फंसने की आशंका रहती है।"
-    },
-    "94": {
-        "title": "🪐 मंगल + राहु (दुर्घटना/आवेग योग)",
-        "desc": "आपके मोबाइल में ९ और ४ की युति है। मंगल और राहु का यह मेल स्वभाव में उग्रता देता है। वाहन चलाते समय या बड़े आर्थिक निवेश करते समय विशेष सावधानी रखनी चाहिए, क्योंकि यह अचानक चोट या नुकसान का योग बनाता है।"
-    },
-    "36": {
-        "title": "🪐 बृहस्पति + शुक्र (वैचारिक द्वंद्व योग)",
-        "desc": "आपके मोबाइल में ३ और ६ की युति है। ३ नंबर देवगुरु बृहस्पति का है और ६ नंबर दैत्यगुरु शुक्र का है। दोनों ही अत्यंत शुभ ग्रह हैं, परंतु विरोधी विचारधारा के होने के कारण यह युति व्यक्ति के वैवाहिक जीवन में मीठी अनबन, खर्चों की अधिकता या सही निर्णय लेने में भ्रम पैदा करती है।"
-    },
-    "63": {
-        "title": "🪐 शुक्र + बृहस्पति (ज्ञान बनाम विलासिता)",
-        "desc": "आपके मोबाइल में ६ और ३ की युति है। यह स्थिति ज्ञान और भौतिक सुखों के बीच संतुलन बनाने में संघर्ष देती है। व्यक्ति बहुत ज्ञानी होता है, लेकिन धन के संचय (Savings) में रुकावटें आती हैं।"
-    },
-    "45": {
-        "title": "🪐 राहु + बुध (चतुर व्यापारिक योग - शुभ)",
-        "desc": "आपके मोबाइल में ४ और ५ की युति है। ४ नंबर राहु (आउट ऑफ बॉक्स सोच) और ५ नंबर बुध (व्यापार/बुद्धि) का है। यह बहुत ही चतुर और तेज दिमाग देता है। ऐसा व्यक्ति व्यापार, शेयर मार्केट या कूटनीति में बहुत जल्दी तरक्की करता है।"
-    },
-    "56": {
-        "title": "🪐 बुध + शुक्र (लक्ष्मी नारायण योग - शुभ)",
-        "desc": "आपके मोबाइल में ५ और ६ की युति है। ५ नंबर बुध (बुद्धि) का है और ६ नंबर शुक्र (लक्जरी/धन) का है। यह एक अत्यंत **शुभ लक्ष्मी नारायण योग** बनाता है, जो व्यक्ति को समाज में आकर्षण, वैभव, मीडिया-ग्लेमर में सफलता और प्रचुर धन-संपत्ति दिलाता है।"
-    }
-}
-
-# =====================================================================
-# २. संबंध विश्लेषक फंक्शन (Unified Administrative Logic)
-# =====================================================================
-def analyze_planet_relation(single_digit, m_ank, b_ank, title_context):
-    friendship_matrix = {
-        1: {"friends": [1, 2, 3, 5, 9], "enemies": [6, 8], "neutral": [4, 7]},
-        2: {"friends": [1, 2, 3, 5], "enemies": [4, 7, 8], "neutral": [6, 9]},
-        3: {"friends": [1, 2, 3, 5, 7, 9], "enemies": [6], "neutral": [4, 8]},
-        4: {"friends": [5, 6, 7, 8], "enemies": [1, 2, 9], "neutral": [3, 4]},
-        5: {"friends": [1, 2, 3, 5, 6, 7, 8], "enemies": [], "neutral": [4, 9]},
-        6: {"friends": [5, 6, 7, 8], "enemies": [1, 2, 3], "neutral": [4, 9]},
-        7: {"friends": [1, 3, 4, 5, 6, 8, 9], "enemies": [2], "neutral": [7]},
-        8: {"friends": [4, 5, 6, 7], "enemies": [1, 2, 9], "neutral": [3, 8]},
-        9: {"friends": [1, 2, 3, 5, 7, 9], "enemies": [4, 6], "neutral": [8]}
-    }
-    
-    if m_ank in friendship_matrix.get(single_digit, {}).get("friends", []):
-        m_relation = "🔴 **मित्रता का संबंध है (अत्यंत शुभ)!** यह अंक आपके स्वभाव के अनुकूल है।"
-    elif m_ank in friendship_matrix.get(single_digit, {}).get("enemies", []):
-        m_relation = "❌ **शत्रुता का संबंध है (अशुभात्मक)!** यह अंक आपके मूलांक के अनुकूल नहीं है।"
-    else:
-        m_relation = "🟡 **सम (Neutral) संबंध है।** यह अंक आपके मूलांक के प्रति सामान्य है।"
-
-    if b_ank in friendship_matrix.get(single_digit, {}).get("friends", []):
-        b_relation = "🔴 **मित्रता का संबंध है (परम भाग्यशाली)!** यह अंक आपके भाग्य को बल देगा।"
-    elif b_ank in friendship_matrix.get(single_digit, {}).get("enemies", []):
-        b_relation = "❌ **शत्रुता का संबंध है (बाधाकारक)!** यह अंक आपके भाग्य में रुकावट ला सकता है।"
-    else:
-        b_relation = "🟡 **सम (Neutral) संबंध है।** भाग्य के दृष्टिकोण से यह सामान्य रहेगा।"
-
-    st.markdown(f"##### 📊 {title_context} (एकल अंक: `{single_digit}` - {graha_dict.get(single_digit, 'अज्ञात')})")
-    col_m, col_b = st.columns(2)
-    with col_m:
-        st.info(f"💼 **मूलांक ({m_ank}) के साथ संबंध:**\n\n{m_relation}")
-    with col_b:
-        st.success(f"🚀 **भाग्यांक ({b_ank}) के साथ संबंध:**\n\n{b_relation}")
-    st.markdown("---")
 
 # =========================================================
-# ३. लू-शू ग्रिड एवं मिसिंग नंबर फिल्टर फ़ंक्शन
+# 1. एडमिन कॉन्फ़िग लोड करना
 # =========================================================
-def isValidMobileByLoshu(candidate_mobile, user_dob, mulank, bhagyank, namank=""):
-    # यूजर की ग्रिड के अंक (0 को छोड़कर)
-    user_digits = [c for c in (str(user_dob) + str(mulank) + str(bhagyank) + str(namank)) if c.isdigit() and c != "0"]
-    user_counts = Counter(user_digits)
-    missing_nums = set("123456789") - set(user_counts.keys())
+CONFIG_FILE = "config.json"
 
-    mobile_digits = [c for c in str(candidate_mobile) if c.isdigit()]
-    mobile_counts = Counter(mobile_digits)
-
-    # १. मिसिंग अंकों में से कम से कम १ या २ अंक मोबाइल में होने चाहिए
-    if missing_nums:
-        has_missing = any(mobile_counts.get(m, 0) >= 1 for m in missing_nums)
-        if not has_missing:
-            return False
-
-    # २. कंबाइंड ग्रिड सीमा: कोई भी अंक पूरी ग्रिड में २ से अधिक बार न आए
-    total_counts = user_counts + mobile_counts
-    for digit, count in total_counts.items():
-        if digit != "0" and count > 2:
-            return False
-        return True
-    import random
-
-def generate_lucky_mobile_numbers_v2(mulank, bhagyank, anti_dict, count=10):
-    """
-    यूज़र के मूलांक और भाग्यांक के अनुसार परफेक्ट 10 मोबाइल नंबर सजेस्ट करने का उन्नत लॉजिक।
-    """
-    lucky_numbers = []
-    
-    # मूलांक और भाग्यांक के मित्र अंकों की यूनिवर्सल डिक्शनरी
-    friendship_matrix_local = {
-        1: [1, 2, 3, 5, 9], 2: [1, 2, 3, 5], 3: [1, 2, 3, 5, 7, 9],
-        4: [1, 5, 6], 5: [1, 2, 3, 5, 6, 8], 6: [1, 5, 6, 7, 8],
-        7: [1, 3, 5, 6], 8: [5, 6], 9: [1, 2, 3, 5, 9]
+def load_admin_config():
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {
+        "rule_friendship": True,
+        "rule_ascending": True,
+        "rule_anti_digits": True,
+        "custom_notice_text": "कृपया अपने मूलांक और भाग्यांक के अनुकूल ही लकी मोबाइल नंबर का चयन करें।",
+        "custom_banner_url": ""
     }
-    
-    m_friends = friendship_matrix_local.get(mulank, [5])
-    b_friends = friendship_matrix_local.get(bhagyank, [5])
-    
-    # शत्रु अंकों को हटाकर शुद्ध मित्र अंक फिल्टर करना
-    shatru_numbers = anti_dict.get(mulank, []) + anti_dict.get(bhagyank, [])
-    target_totals = [num for num in m_friends if num in b_friends and num not in shatru_numbers]
-    
-    # बैकअप: अगर कोई कॉमन मित्र न मिले तो 5 और 6 सबसे सुरक्षित भौतिक/व्यापारिक अंक हैं
-    if not target_totals:
-        target_totals = [5, 6]
-        
-    # वैरायटी देने के लिए शुभ और बढ़ते क्रम वाले विभिन्न अंतिम 4 अंकों के पूल्स (Tails)
-    best_tails = [
-        '1569', '2356', '3456', '5679', '1356', '1256', 
-        '3569', '1579', '2456', '5689', '4567', '2367',
-        '5566', '1155', '3366', '7889', '2345', '6789'
+
+config = load_admin_config()
+
+# =========================================================
+# 2. Edge-TTS वॉइस फ़ंक्शन
+# =========================================================
+async def generate_speech(text, output_file="output_mobile.mp3"):
+    communicate = edge_tts.Communicate(text, "hi-IN-SwaraNeural") # या आपकी पसंदीदा वॉइस
+    await communicate.save(output_file)
+
+def speak_text(text, filename="output_mobile.mp3"):
+    asyncio.run(generate_speech(text, filename))
+    if os.path.exists(filename):
+        st.audio(filename, format="audio/mp3", autoplay=True)
+
+# =========================================================
+# 3. पेज कॉन्फ़िगरेशन व स्टाइलिंग
+# =========================================================
+st.markdown("""
+    <style>
+    .main-title { font-size: 26px; font-weight: bold; color: #1E3A8A; text-align: center; }
+    .stAlert { border-radius: 8px; }
+    </style>
+""", unsafe_allow_html=True)
+
+if config.get("custom_banner_url"):
+    st.image(config.get("custom_banner_url"), use_column_width=True)
+
+if config.get("custom_notice_text"):
+    st.info(f"📌 **विशेष निर्देश:** {config.get('custom_notice_text')}")
+
+st.title("📱 मोबाइल ज्योतिष विश्लेषण एवं लकी नंबर")
+
+# =========================================================
+# 4. इनपुट फ़ील्ड व टैब संरचना
+# =========================================================
+cust_mobile = st.text_input("Enter your 10 digits no", max_chars=10, key="cust_mob_input")
+
+tab1, tab2 = st.tabs(["Check Your No", "My Lucky No"])
+
+# =========================================================
+# 5. अंक ज्योतिष डेटाबेस
+# =========================================================
+FRIENDSHIP_TABLE = {
+    1: {"friends": [1, 2, 3, 5, 9], "enemies": [8], "neutral": [4, 6, 7]},
+    2: {"friends": [1, 2, 3, 5], "enemies": [4, 8, 9], "neutral": [6, 7]},
+    3: {"friends": [1, 2, 3, 5, 9], "enemies": [6], "neutral": [4, 7, 8]},
+    4: {"friends": [5, 6, 7, 8], "enemies": [1, 2, 9], "neutral": [3]},
+    5: {"friends": [1, 2, 3, 5, 6, 8], "enemies": [], "neutral": [4, 7, 9]},
+    6: {"friends": [4, 5, 6, 7, 8], "enemies": [3], "neutral": [1, 2, 9]},
+    7: {"friends": [4, 6, 9], "enemies": [1, 2], "neutral": [3, 5, 7, 8]},
+    8: {"friends": [4, 5, 6], "enemies": [1, 2, 9], "neutral": [3, 7, 8]},
+    9: {"friends": [1, 2, 3, 7], "enemies": [4, 8], "neutral": [5, 6, 9]}
+}
+
+def check_friendship_status(user_num, target_num):
+    f_info = FRIENDSHIP_TABLE.get(user_num, {})
+    friends = f_info.get("friends", [])
+    enemies = f_info.get("enemies", [])
+    if target_num in friends:
+        return "मित्र 🟢"
+    elif target_num in enemies:
+        return "शत्रु 🔴"
+    return "सम 🟠"
+
+PLANET_PAIRS = {
+    "11": "सूर्य-सूर्य: अत्यधिक आत्म-विश्वास, नेतृत्व क्षमता में वृद्धि, किंतु अहंकार का खतरा।",
+    "12": "सूर्य-चंद्र: राजयोग कारक युति, समाज में मान-सम्मान और प्रशासनिक कार्यों में सफलता।",
+    "13": "सूर्य-गुरु: ज्ञान, आध्यात्मिक उन्नति, उच्च पद और प्रतिष्ठा का योग।",
+    "14": "सूर्य-राहु: ग्रहण योग, मानसिक भ्रम, पिता से विचार-भेद या अचानक बाधाएं।",
+    "15": "सूर्य-बुध: बुधादित्य योग, तीक्ष्ण बुद्धि, वाक्पटुता और व्यापार में भारी लाभ।",
+    "16": "सूर्य-शुक्र: कलात्मक रुचि, किंतु सौंदर्य और विलासिता में अधिक व्यय।",
+    "17": "सूर्य-केतु: आध्यात्मिक दृष्टि, गूढ़ विद्याओं में रुचि, यदा-कदा अलगाव।",
+    "18": "सूर्य-शनि: पिता-पुत्र में वैचारिक दूरी, कार्यों में विलंब व कड़ा संघर्ष।",
+    "19": "सूर्य-मंगल: अत्यधिक साहसी स्वभाव, ऊर्जावान, किंतु क्रोध पर नियंत्रण आवश्यक।",
+    "22": "चंद्र-चंद्र: अत्यधिक भावुकता, कल्पनाशक्ति, मन की चंचलता और यात्रा योग।",
+    "23": "चंद्र-गुरु: गजकेसरी योग का प्रभाव, मानसिक शांति, समृद्धि और सम्मान।",
+    "24": "चंद्र-राहु: ग्रहण दोष, अकारण चिंता, तनाव और मानसिक अशंति।",
+    "25": "चंद्र-बुध: तीक्ष्ण याददाश्त, व्यापारिक सूझ-बूझ और मिलनसार व्यक्तित्व।",
+    "26": "चंद्र-शुक्र: कला, संगीत और सौंदर्य के प्रति विशेष रुझान, सुख-सुविधाएं।",
+    "27": "चंद्र-केतु: अति-संवेदनशील मन, अंतर्ज्ञान शक्ति में वृद्धि।",
+    "28": "चंद्र-शनि: विष योग प्रभाव, कार्यों में मानसिक दबाव और उतावलापन।",
+    "29": "चंद्र-मंगल: महालक्ष्मी योग प्रभाव, साहसी निर्णय और आर्थिक प्रगति।",
+    "33": "गुरु-गुरु: अपार ज्ञान, धार्मिकता, शिक्षण व मार्गदर्शन में विशेष सफलता।",
+    "34": "गुरु-राहु: गुरु-चांडाल योग प्रभाव, अपरंपरागत विचार, निर्णयों में सतर्कता रखें।",
+    "35": "गुरु-बुध: ज्ञान और बुद्धि का उत्तम मेल, शिक्षण, लेखन व कंसल्टेंसी में सफलता।",
+    "36": "गुरु-शुक्र: दो महान ग्रहों का योग, ज्ञान और भौतिक सुखों का अनूठा संगम।",
+    "37": "गुरु-केतु: परम आध्यात्मिक योग, शोध और अध्यात्म में सफलता।",
+    "38": "गुरु-शनि: न्यायप्रियता, गंभीर सोच और दीर्घकालिक सफलता।",
+    "39": "गुरु-मंगल: धर्म-ज्ञान और पराक्रम का मेल, साहसी और न्यायप्रिय नेतृत्व।",
+    "44": "राहु-राहु: अत्यधिक महत्वाकांक्षा, डिजिटल व अचानक सफलता का योग।",
+    "45": "राहु-बुध: अत्यंत चतुर बुद्धि, शेयर मार्केट व तकनीक में त्वरित सफलता।",
+    "46": "राहु-शुक्र: आकर्षण, मीडिया, ग्लैमर और भौतिक सुख-सुविधाओं की प्राप्ति।",
+    "47": "राहु-केतु: रहस्यमयी सोच, जीवन में अचानक बड़े बदलाव।",
+    "48": "राहु-शनि: कड़ा संघर्ष, तकनीकी क्षेत्र में सफलता, कानूनी मामलों में सतर्कता।",
+    "49": "राहु-मंगल: अंगारक योग प्रभाव, अत्यधिक आक्रामकता, निर्णयों में जल्दबाजी से बचें।",
+    "55": "बुध-बुध: व्यापारिक कुशलता, हिसाब-किताब में निपुणता और उत्तम वाणी।",
+    "56": "बुध-शुक्र: लक्ष्मी-नारायण योग, सुंदर अभिव्यक्ति, मीडिया व कला में सफलता।",
+    "57": "बुध-केतु: विश्लेषणात्मक बुद्धि, कोडिंग व रिसर्च में सफलता।",
+    "58": "बुध-शनि: व्यावहारिक सोच, अनुशासन और सीए/अकाउंट्स में तरक्की।",
+    "59": "बुध-मंगल: त्वरित निर्णय क्षमता, तर्क-वितर्क में निपुणता।",
+    "66": "शुक्र-शुक्र: लक्जरी जीवन, वाहन, आभूषण और उत्तम जीवनशैली।",
+    "67": "शुक्र-केतु: कला में गहराई, किंतु संबंधों में वैराग्य या उदासीनता।",
+    "68": "शुक्र-शनि: प्रॉपर्टी व रियल्टी क्षेत्र में लाभ, धीरे-धीरे स्थायी सुख।",
+    "69": "शुक्र-मंगल: आकर्षण, अत्यधिक ऊर्जा और रोमांटिक स्वभाव।",
+    "77": "केतु-केतु: शोधत्मक सोच, गूढ़ विद्याओं और योग-ध्यान में सफलता।",
+    "78": "केतु-शनि: एकांतप्रियता, कड़ा परिश्रम और गूढ़ विषयों में ज्ञान।",
+    "79": "केतु-मंगल: साहसी, सर्जिकल या तकनीकी कार्यों में विशेष निपुणता।",
+    "88": "शनि-शनि: अत्यधिक अनुशासन, कड़ा संघर्ष और जीवन के उत्तरार्ध में स्थायी सफलता।",
+    "89": "शनि-मंगल: लोहा, मशीनरी, कंस्ट्रक्शन में सफलता, दुर्घटनाओं से सावधान।",
+    "99": "मंगल-मंगल: अपार साहस, भूमि-भवन लाभ, आक्रामकता पर नियंत्रण आवश्यक।"
+}
+
+# =========================================================
+# 6. हेल्पिंग फ़ंक्शंस
+# =========================================================
+def calculate_single_digit(num_str):
+    total = sum(int(d) for d in str(num_str) if d.isdigit())
+    while total > 9:
+        total = sum(int(d) for d in str(total))
+    return total
+
+def check_ascending_descending(last_4_str):
+    digits = [int(d) for d in last_4_str if d.isdigit()]
+    if len(digits) < 4:
+        return False, False
+    is_asc = all(digits[i] <= digits[i+1] for i in range(len(digits)-1))
+    is_desc = all(digits[i] >= digits[i+1] for i in range(len(digits)-1))
+    return is_asc, is_desc
+
+# शुद्ध लो-शू ग्रिड: केवल जन्मतिथि, मूलांक, भाग्यांक, नामांक और कुआं नंबर
+def render_pure_lo_shu_grid(dob_list, mulank, bhagyank, namank, kua):
+    grid_pos = {4:(0,0), 9:(0,1), 2:(0,2), 3:(1,0), 5:(1,1), 7:(1,2), 8:(2,0), 1:(2,1), 6:(2,2)}
+    display_grid = [[[] for _ in range(3)] for _ in range(3)]
+
+    # 1. DOB के नंबर (Black)
+    for n in dob_list:
+        if n in grid_pos:
+            r, c = grid_pos[n]
+            display_grid[r][c].append(f"<span style='color:black; font-weight:bold;'>{n}</span>")
+
+    # 2. विशेष नंबरों को जोड़ना (Colors)
+    special_nums = [
+        (mulank, c),
+        (bhagyank, "#0055B8"),
+        (namank, "#008000"),
+        (kua, "#800080")
     ]
     
-    attempts = 0
-    # जब तक पूरे 10 यूनीक नंबर नहीं मिल जाते, लूप चलता रहेगा (मैक्सिमम 3000 एटेम्पट्स तक)
-    while len(lucky_numbers) < count and attempts < 10000:
-        attempts += 1
-        
-        # भारतीय टेलीकॉम के अनुसार शुरुआत 9, 8, 7 या 6 से
-        start_digit = random.choice(['9', '8', '7', '6'])
-        tail = random.choice(best_tails)
-        
-        # बीच के 5 अंक (0 को छोड़कर ताकि ग्रिड की एनर्जी कम न हो)
-        middle = "".join(str(random.randint(1, 9)) for _ in range(5))
-        
-        potential_num = start_digit + middle + tail
-        
-        # नियम १: पूरे 10 अंकों का एकल योग निकालना
-        total_sum = sum(int(d) for d in potential_num)
-        while total_sum > 9:
-            total_sum = sum(int(d) for d in str(total_sum))
-            
-        # नियम २: चेक करना कि कुल योग मित्र सूची में है या नहीं
-    if total_sum in target_totals:
+    for num, color in special_nums:
+        if num in grid_pos:
+            r, c = grid_pos[num]
+            display_grid[r][c].append(f"<span style='color:{color}; font-weight:bold;'>{num}</span>")
 
-        # लू-शू ग्रिड और मिसिंग नंबर की जांच
-        user_dob = st.session_state.get(
-            'user_dob', st.session_state.get('dob', '')
-        )
-        namank = st.session_state.get('namank', '')
+    # 3. HTML टेबल बनाना
+    grid_rows_html = ""
+    for row in display_grid:
+        grid_rows_html += "<tr style='height:45px;'>"
+        for cell_list in row:
+            content = "".join(cell_list) if cell_list else "&nbsp;"
+            grid_rows_html += f"<td style='border:1px solid #d3d3d3; font-size:18px; text-align:center;'>{content}</td>"
+        grid_rows_html += "</tr>"
 
-        # पूरे १० अंकों का कुल योग (Total Sum / Single Digit) निकालना
-        total_sum = sum(int(d) for d in potential_num if d.isdigit())
-        while total_sum > 9:
-            total_sum = sum(int(d) for d in str(total_sum))
+    return f"<table style='width:100%; border-collapse:collapse; background-color:#fffdfa;'>{grid_rows_html}</table>"
+# =========================================================
+# [टैब 1] Check Your No
+# =========================================================
+with tab1:
+       # Session State से मान प्राप्त करना (मुख्य app.py की Keys से 100% सिंक)
+    user_m = st.session_state.get("app_mulank", 1)
+    user_b = st.session_state.get("app_bhagyank", 1)
+    user_n = st.session_state.get("app_namank", 1)
+    user_k = st.session_state.get("app_kua", 1)
 
-        # मित्र अंकों की सूची (कॉमन मित्र न होने पर मूलांक के मित्र)
-        common_friends = list(set(m_friends).intersection(set(b_friends)))
-        target_totals = common_friends if common_friends else m_friends
+    dob_digits = st.session_state.get("app_dob_digits", [1, 9, 8, 6, 4, 1, 8])
 
-        # कुल योग और लू-शू ग्रिड दोनों की सही जाँच
-        if total_sum in target_totals:
-            if isValidMobileByLoshu(potential_num, user_dob, mulank, bhagyank, namank):
-                if potential_num not in lucky_numbers:
-                    lucky_numbers.append(potential_num)
-            
-    return lucky_numbers
+    # 1. शुद्ध लो-शू ग्रिड डिस्प्ले (केवल मूल अंक)
+    c_head1, c_head2 = st.columns([1, 1])
+    with c_head1:
+        st.markdown(f"""
+            <div style="background-color:#fef8f5; padding:15px; border-radius:8px; border-left:4px solid #8B0000;">
+                <p style="margin:2px; color:#8B0000; font-weight:bold;">मूलांक: {user_m}</p>
+                <p style="margin:2px; color:#0055B8; font-weight:bold;">भाग्यांक: {user_b}</p>
+                <p style="margin:2px; color:#008000; font-weight:bold;">नामांक: {user_n}</p>
+                <p style="margin:2px; color:#800080; font-weight:bold;">कुआं नंबर: {user_k}</p>
+            </div>
+        """, unsafe_allow_html=True)
 
-# =====================================================================
-# ३. इनपुट फॉर्म और मुख्य गणना
-# =====================================================================
-cust_mobile = st.text_input("अपना १० अंकों का मोबाइल नंबर दर्ज करें:", key="cust_mobile_input")
-mobile_submit = st.button("विवरण देखें 🔍", use_container_width=True)
+    with c_head2:
+        st.markdown("📅 **लो-शू ग्रिड**", unsafe_allow_html=True)
+        grid_html = render_pure_lo_shu_grid(dob_digits, user_m, user_b, user_n, user_k)
+        st.markdown(grid_html, unsafe_allow_html=True)
 
-if mobile_submit:
-    # 📱 मोबाइल नंबर के अंकों की लंबाई जांचना
-    phone_len = len(cust_mobile)
+    # 2. केवल मिसिंग नंबरों की गणना करना (बिना मोबाइल नंबर को ग्रिड में डाले)
+    birth_present = set(dob_digits + [user_m, user_b, user_n, user_k])
+    missing_digits = [n for n in range(1, 10) if n not in birth_present]
+    st.session_state["missing_numbers"] = missing_digits
+
+    # 225 नंबर लाइन की जगह यह कोड डालें
+    missing_str = ', '.join(map(str, missing_digits)) if missing_digits else "कोई नहीं"
     
-    if phone_len < 10:
-        st.error(f"❌ आपके नंबर में केवल {phone_len} अंक हैं। आपकी संख्या 10 से कम है, कृपया अपने नंबर की जांच करें।")
-        st.session_state.mobile_analyzed = False
-    elif phone_len > 10:
-        st.error(f"❌ आपके नंबर में {phone_len} अंक हो गए हैं। आपकी संख्या 10 से अधिक है, कृपया अपने नंबर की जांच करें।")
-        st.session_state.mobile_analyzed = False
-    elif not cust_mobile.isdigit():
-        st.error("❌ कृपया मोबाइल नंबर में केवल अंक (0-9) ही दर्ज करें।")
-        st.session_state.mobile_analyzed = False
-    else:
-        # अगर पूरे 10 अंक हैं, तभी ट्रू होगा और आगे बढ़ेगा
-        st.session_state.mobile_analyzed = True
+    st.markdown(f"""
+        <div style="background-color: #f8f9fa; border-left: 5px solid #d9534f; padding: 12px 18px; border-radius: 8px; margin-top: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <p style="font-size: 19px; font-weight: 600; color: #2c3e50; margin: 0;">
+                🔍 ग्रिड में अनुपस्थित (मिसिंग) अंक: 
+                <span style="font-size: 24px; color: #d9534f; font-weight: bold; margin-left: 5px;">{missing_str}</span>
+            </p>
+            <p style="font-size: 18px; color: #8B0000; margin-top: 8px; margin-bottom: 0px; font-style: italic;">
+                नोट: लो-शू ग्रिड में जो अंकअनुपस्थित हैं, उन्हें मोबाइल नंबर में जोड़ कर ग्रहों को संतुलित किया जा सकता है|
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
 
-# आगे की मुख्य गणना तभी चलेगी जब नंबर बिल्कुल सही (10 अंकों का) होगा
-if st.session_state.get('mobile_analyzed', False):
-    if cust_mobile:
-        # मुख्य फ़ाइल से डेटा उठाना (सुरक्षित फ़ॉलबैक के साथ)
-        user_mulank = st.session_state.get('app_mulank', st.session_state.get('mulank', 1))
-        user_bhagyank = st.session_state.get('app_bhagyank', st.session_state.get('bhagyank', 1))
-        u_name = st.session_state.get('app_user_name', st.session_state.get('user_name', 'उपयोगकर्ता'))
+    st.divider()
 
-        # मास्टर ग्रिड लोड करें
-        loshu_counts = st.session_state.get('master_loshu_counts', {})
-        # A. पूरे १० अंकों का एकल अंक निकालना
-        digit_sum = sum(int(d) for d in cust_mobile)
-        while digit_sum > 9:
-            digit_sum = sum(int(d) for d in str(digit_sum))
-        
-        # B. आखिरी ४ अंकों का एकल अंक निकालना
-        last_4_digits = cust_mobile[-4:]
-        last_4_sum = sum(int(d) for d in last_4_digits)
-        while last_4_sum > 9:
-            last_4_sum = sum(int(d) for d in str(last_4_sum))
-        
-        # C. एसेंडिंग / डिसेंडिंग चेक करना
-        is_ascending = int(last_4_digits[0]) < int(last_4_digits[-1])
-        is_descending = int(last_4_digits[0]) > int(last_4_digits[-1])
-        
-        # स्वामी ग्रहों के नाम निकालना
-        mobile_graha = graha_dict.get(digit_sum, "अज्ञात")
-        mulank_graha = graha_dict.get(user_mulank, "अज्ञात")
-        bhagyank_graha = graha_dict.get(user_bhagyank, "अज्ञात")
+    # 3. मोबाइल नंबर का पृथक विश्लेषण
+    if cust_mobile and len(cust_mobile) == 10 and cust_mobile.isdigit():
+        st.subheader(f"📱 मोबाइल नंबर: {cust_mobile} का विश्लेषण")
 
-        # सुंदर ३ मुख्य डिब्बे (Cards Layout)
-        st.markdown("### 🪐 मुख्य अंक एवं संबंधित ग्रहों का विवरण")
-        
-        card_col1, card_col2, card_col3 = st.columns(3)
-        with card_col1:
-            st.markdown(
-                f"""
-                <div style="background-color: #e8f4f8; padding: 3px; border-radius: 4px; border-left: 3px solid #2980b9; text-align: center;">
-                    <h4 style="color: #2980b9; margin: 0;">📱 मोबाइल कुल योग</h4>
-                    <p style="font-size: 32px; font-weight: bold; margin: 20px 0; color: #2c3e50;">{digit_sum}</p>
-                    <span style="font-size: 14px; color: #7f8c8d; font-weight: bold;">स्वामी: {mobile_graha}</span>
-                </div>
-                """, 
-                unsafe_allow_html=True
-            )
-            
-        with card_col2:
-            st.markdown(
-                f"""
-                <div style="background-color: #eafaf1; padding: 3px; border-radius: 4px; border-left: 3px solid #27ae60; text-align: center;">
-                    <h4 style="color: #27ae60; margin: 0;">👤 आपका मूलांक</h4>
-                    <p style="font-size: 32px; font-weight: bold; margin: 20px 0; color: #2c3e50;">{user_mulank}</p>
-                    <span style="font-size: 14px; color: #14f8c8d; font-weight: bold;">स्वामी: {mulank_graha}</span>
-                </div>
-                """, 
-                unsafe_allow_html=True
-            )
-            
-        with card_col3:
-            st.markdown(
-                f"""
-                <div style="background-color: #fef9e7; padding: 3px; border-radius: 4px; border-left: 3px solid #f1c40f; text-align: center;">
-                    <h4 style="color: #d4ac0d; margin: 0;">🚀 आपका भाग्यांक</h4>
-                    <p style="font-size: 32px; font-weight: bold; margin: 20px 0; color: #2c3e50;">{user_bhagyank}</p>
-                    <span style="font-size: 14px; color: #7f8c8d; font-weight: bold;">स्वामी: {bhagyank_graha}</span>
-                </div>
-                """, 
-                unsafe_allow_html=True
-            )
-        
-          # १. पूरे १० अंकों के योग का प्रभाव
-    st.markdown("#### 📱 १. पूरे १० अंकों के योग का प्रभाव")
-    analyze_planet_relation(digit_sum, user_mulank, user_bhagyank, "संपूर्ण मोबाइल नंबर योग")
+        tot_sum = calculate_single_digit(cust_mobile)
+        l4_sum = calculate_single_digit(cust_mobile[-4:])
+        is_asc, is_desc = check_ascending_descending(cust_mobile[-4:])
 
-    # २. आखिरी ४ अंकों के योग का प्रभाव
-    st.markdown("#### 📱 २. आखिरी ४ अंकों के योग का प्रभाव")
-    analyze_planet_relation(last_4_sum, user_mulank, user_bhagyank, "अंतिम ४ अंकों का विशेष योग")
-        # ==========================================
-# ४. मूल लू-शू ग्रिड (DOB + मूलांक + भाग्यांक + कुआ + नामांक)
-# ==========================================
-st.markdown("<br>", unsafe_allow_html=True)
-st.markdown("### 🔮 ४. मूल लू-शू ग्रिड एवं मिसिंग अंक विश्लेषण")
+        m_status = check_friendship_status(user_m, tot_sum)
+        b_status = check_friendship_status(user_b, tot_sum)
 
-# app.py से सीधा मास्टर ग्रिड डेटा प्राप्त करें
-# लू-शू ग्रिड डेटा प्राप्त करें (फॉलबैक के साथ)
-loshu_counts = st.session_state.get('master_loshu_counts', st.session_state.get('loshu_counts', {}))
+        l4_m_status = check_friendship_status(user_m, l4_sum)
+        l4_b_status = check_friendship_status(user_b, l4_sum)
 
-# ४. मिसिंग एवं उपस्थित अंक रिपोर्ट
-missing_numbers = sorted(list(set("123456789") - set(loshu_counts.keys())))
-missing_report = ", ".join(missing_numbers) if missing_numbers else "कोई नहीं"
+        # देखना कि यह मोबाइल नंबर मिसिंग अंकों को पूरा कर रहा है या नहीं
+        mob_digits = set(int(d) for d in cust_mobile if d != '0')
+        covered_missing = [d for d in missing_digits if d in mob_digits]
 
-st.info(f"📌 **आपके मूल चार्ट में मिसिंग अंक:** {missing_report}")
+        col_m1, col_m2 = st.columns(2)
+        with col_m1:
+            st.metric("10 अंकों का कुल योग (Total Single Digit)", f"{tot_sum}")
+            st.write(f"• मूलांक ({user_m}) से संबंध: **{m_status}**")
+            st.write(f"• भाग्यांक ({user_b}) से संबंध: **{b_status}**")
 
-# ५. ग्रह मैपिंग
-planet_names = {
-    "1": "सूर्य", "2": "चंद्र", "3": "गुरु", "4": "राहु",
-    "5": "बुध", "6": "शुक्र", "7": "केतु", "8": "शनि", "9": "मंगल"
-}
+        with col_m2:
+            st.metric("अंतिम 4 अंकों का योग (Last 4 Digit Sum)", f"{l4_sum}")
+            st.write(f"• मूलांक ({user_m}) से संबंध: **{l4_m_status}**")
+            st.write(f"• भाग्यांक ({user_b}) से संबंध: **{l4_b_status}**")
 
-# ६. ग्रिड सेल डेटा फ़ॉर्मेटर फ़ंक्शन
-def format_grid_cell(num_str):
-    c = loshu_counts.get(num_str, 0)
-    p_name = planet_names.get(num_str, "")
-    if c > 0:
-        val_display = num_str * c
-        return f"<div style='background-color:#e8f5e9; border:1px solid #2e7d32; border-radius:8px; padding:10px; text-align:center;'><b>{num_str} ({p_name})</b><br><span style='color:#2e7d32; font-size:18px; font-weight:bold;'>{val_display}</span></div>"
-    else:
-        return f"<div style='background-color:#ffebee; border:1px solid #c62828; border-radius:8px; padding:10px; text-align:center;'><b>{num_str} ({p_name})</b><br><span style='color:#c62828; font-size:18px; font-weight:bold;'>❌</span></div>"
+        st.info(f"✨ **यह मोबाइल नंबर आपके मिसिंग अंकों की पूर्ति करता है:** {', '.join(map(str, covered_missing)) if covered_missing else 'कोई नहीं'}")
 
-# ७. ३x३ लू-शू ग्रिड डिस्प्ले
-grid_html = f"""
-<div style="border: 2px solid #d4ac0d; border-radius: 12px; padding: 15px; background-color: #fffde7;">
-    <h4 style="text-align: center; color: #b7950b; margin-top: 0;">🔮 मूल लू-शू ग्रिड 🔮</h4>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-        {format_grid_cell('4')} {format_grid_cell('9')} {format_grid_cell('2')}
-        {format_grid_cell('3')} {format_grid_cell('5')} {format_grid_cell('7')}
-        {format_grid_cell('8')} {format_grid_cell('1')} {format_grid_cell('6')}
-    </div>
-</div>
-"""
+        st.divider()
 
-st.markdown(grid_html, unsafe_allow_html=True)
-
-if missing_numbers:
-    st.warning(f"⚠️ **आपके जन्म चार्ट में मिसिंग अंक:** {', '.join(missing_numbers)}")
-    st.markdown("💡 **विशेष परामर्श:** आपके चार्ट में ये अंक अनुपस्थित हैं। इसलिए आपके सुझाए गए मोबाइल नंबर में इन अंकों का संतुलन होना अति आवश्यक है।")
-else:
-    st.success("🎉 बधाई हो! आपके चार्ट में सभी ९ अंक उपस्थित हैं।")
-
-st.markdown("---")
-
-           # ==============================================================================
-# 🧮 १. मुख्य गणितीय गणनाएं (Variables Definition)
-# ==============================================================================
-if cust_mobile and len(cust_mobile) == 10:
-    # पूरे १० अंकों का एकल योग (Single Digit Sum) निकालना
-    digit_sum = sum(int(d) for d in cust_mobile if d.isdigit())
-    while digit_sum > 9:
-        digit_sum = sum(int(d) for d in str(digit_sum))
-        
-    # आखिरी ४ अंकों का एकल योग निकालना
-    last_4_digits = cust_mobile[-4:]
-    last_4_sum = sum(int(d) for d in last_4_digits if d.isdigit())
-    while last_4_sum > 9:
-        last_4_sum = sum(int(d) for d in str(last_4_sum))
-else:
-    digit_sum = 1
-    last_4_sum = 1
-
-# ==============================================================================
-# 🚦 २. एसेंडिंग / डिसेंडिंग / न्यूट्रल का वास्तविक गणितीय लॉजिक
-# ==============================================================================
-is_ascending = False
-is_descending = False
-
-if cust_mobile and len(cust_mobile) == 10:
-    # गणितीय सटीक जांच
-    is_ascending = all(last_4_digits[i] <= last_4_digits[i+1] for i in range(3)) and (last_4_digits[0] < last_4_digits[-1])
-    is_descending = all(last_4_digits[i] >= last_4_digits[i+1] for i in range(3)) and (last_4_digits[0] > last_4_digits[-1])
-
-    # 🖥️ स्क्रीन पर क्रम का प्रदर्शन (मूलांक/भाग्यांक के डिब्बों के ठीक नीचे)
-    if is_ascending:
-        st.success("🟢 **शुभ योग:** आपके मोबाइल के आखिरी अंक बढ़ते क्रम (Ascending Order) में हैं, जो जीवन में निरंतर प्रगति और उन्नति को दर्शाते हैं।")
-    elif is_descending:
-        st.warning("⚠️ **चेतावनी:** आपके मोबाइल के आखिरी अंक घटते क्रम (Descending Order) में हैं, जो जीवन में संघर्ष को बढ़ा सकते हैं।")
-    else:
-        st.info("🔵 **सामान्य योग:** आपके मोबाइल के आखिरी अंक मिश्रित क्रम (Neutral/Mixed Order) में हैं। यह जीवन में स्थिरता और उतार-चढ़ाव के बीच संतुलन को दर्शाता है, जो कि एक सामान्य स्थिति है।")
-else:
-    st.info("📱 कृपया ऊपर अपना १० अंकों का वैध मोबाइल नंबर दर्ज करें ताकि फलादेश की गणना की जा सके।")
-
-
-# 🪐 (नोट: स्क्रीन पर दोबारा दिखाने वाला 'भाग ३' यहाँ से हटा दिया गया है ताकि डबल न दिखे)
-
-
-# ==============================================================================
-# 🎙️ ४. गुरु रोबोट की आवाज का जादू (Complete Master Audio Block)
-# ==============================================================================
-if cust_mobile and len(cust_mobile) == 10:
-    
-    # 👤 यूजर का नाम सुरक्षित रूप से निकालना
-    user_name_extracted = st.session_state.get('u_name', '')
-
-    if user_name_extracted:
-        speech_script = f"जय श्री राम {user_name_extracted} जी! आपके मोबाइल नंबर का ज्योतिष विश्लेषण इस प्रकार है। "
-    else:
-        speech_script = "जय श्री राम! आपके मोबाइल नंबर का ज्योतिष विश्लेषण इस प्रकार है। "
-
-    try:
-        # १. मूलांक और भाग्यांक की जानकारी जोड़ना
-        speech_script += f"आपका मूलांक {user_mulank} है और भाग्यांक {user_bhagyank} है। "
-
-        speech_script += f"आपके पूरे मोबाइल नंबर के कुल अंकों का एकल योग {digit_sum} आता है। "
-        
-        # मूलांक और भाग्यांक के साथ वास्तविक मित्रता/शत्रुता की जांच
-        friendship_matrix = st.session_state.get('friendship_matrix', {})
-        m_rel_total = friendship_matrix.get(user_mulank, {}).get("friends", [])
-        m_shatru_total = friendship_matrix.get(user_mulank, {}).get("enemies", [])
-        
-        b_rel_total = friendship_matrix.get(user_bhagyank, {}).get("friends", [])
-        b_shatru_total = friendship_matrix.get(user_bhagyank, {}).get("enemies", [])
-
-        # मूलांक से संबंध की सटीक आवाज
-        if digit_sum in m_rel_total:
-            speech_script += f"यह कुल योग आपके मूलांक {user_mulank} का परम मित्र है, "
-        elif digit_sum in m_shatru_total:
-            speech_script += f"यह कुल योग आपके मूलांक {user_mulank} का शत्रु अंक है, "
+        st.subheader("📈 अंतिम 4 अंकों का क्रम (Order Analysis)")
+        if is_asc:
+            st.success("🟢 अंतिम 4 अंक बढ़ते क्रम (Ascending Order) में हैं! यह उन्नति का संकेत है।")
+        elif is_desc:
+            st.error("🔴 अंतिम 4 अंक घटते क्रम (Descending Order) में हैं! यह संघर्ष का संकेत है।")
         else:
-            speech_script += f"यह कुल योग आपके मूलांक {user_mulank} के साथ सम संबंध रखता है, "
+            st.warning("🟠 अंतिम 4 अंक मिश्रित क्रम में हैं। जीवन में उतर चढाव बना रहेगा")
 
-        # भाग्यांक से संबंध की सटीक आवाज
-        if digit_sum in b_rel_total:
-            speech_script += f"और आपके भाग्यांक {user_bhagyank} का भी मित्र अंक है। "
-        elif digit_sum in b_shatru_total:
-            speech_script += f"और आपके भाग्यांक {user_bhagyank} का शत्रु अंक होने के कारण रुकावट ला सकता है। "
-        else:
-            speech_script += f"और आपके भाग्यांक {user_bhagyank} के साथ सामान्य संबंध रखता है। "
+        st.divider()
 
+        st.subheader("🔮 मोबाइल नंबर के दो-अंकों के संयोजन (युति फलादेश)")
+        found_pairs = False
+        for i in range(len(cust_mobile) - 1):
+            pair = cust_mobile[i:i+2]
+            if pair in PLANET_PAIRS:
+                found_pairs = True
+                st.write(f"• **{pair}**: {PLANET_PAIRS[pair]}")
+        if not found_pairs:
+            st.write("कोई विशेष ग्रहीय युति नहीं पाई गई।")
 
-        # ==============================================================================
-        # 🎙️ ३. आखिरी ४ अंकों के विशेष योग का सटीक फलादेश (रिप्लेसमेंट ब्लॉक)
-        # ==============================================================================
-        speech_script += f"इसके साथ ही, आपके मोबाइल नंबर के आखिरी चार अंकों का विशेष एकल योग {last_4_sum} आता है। "
+        # -------------------------------------------------------------
+            # वॉयस ऑटो-प्ले एवं कॉल/WhatsApp संपर्क बटन्स
+            # -------------------------------------------------------------
+            st.divider()
 
-        # आखिरी ४ अंकों की मूलांक से जांच
-        if last_4_sum in m_rel_total:
-            speech_script += f"यह विशेष योग आपके मूलांक {user_mulank} का मित्र है, "
-        elif last_4_sum in m_shatru_total:
-            speech_script += f"यह विशेष योग आपके मूलांक {user_mulank} का शत्रु होने से दैनिक कार्यों में संघर्ष दे सकता है, "
-        else:
-            speech_script += f"यह विशेष योग आपके मूलांक {user_mulank} के प्रति न्यूट्रल यानी सामान्य है, "
+            # 1. सेफ वेरिएबल चेकिंग (येलो लाइन पूरी तरह हटाने के लिए)
+        u_missing = locals().get('user_missing_digits', st.session_state.get('missing_numbers', []))
+        t_sum = locals().get('total_sum', '')
+        l4_sum = locals().get('last_4_sum', '')
 
-        # आखिरी ४ अंकों की भाग्यांक से जांच
-        if last_4_sum in b_rel_total:
-            speech_script += f"और आपके भाग्यांक {user_bhagyank} का मित्र होने से भाग्य उन्नति में सहायक सिद्ध होता है। "
-        elif last_4_sum in b_shatru_total:
-            speech_script += f"और आपके भाग्यांक {user_bhagyank} का शत्रु अंक है। "
-        else:
-            speech_script += f"और आपके भाग्यांक {user_bhagyank} के साथ सामान्य संबंध दर्शाता है। "
-        # ५. ग्रहों की युति (Pairs Analysis) का फलादेश
-        found_any_pair_audio = False
-        if 'pairs_dict' in locals():
-            for i in range(len(cust_mobile) - 1):
-                current_pair = cust_mobile[i:i+2]
-                if current_pair in pairs_dict:
-                    found_any_pair_audio = True
-                    pair_info = pairs_dict[current_pair]
-                    clean_desc = pair_info['desc'].replace("***", "")
-                    speech_script += f" आपके नंबर में {pair_info['title']} बन रहा है। इसका प्रभाव यह है कि {clean_desc} "
+        missing_str = ", ".join(map(str, u_missing)) if u_missing else "कोई नहीं"
+        covered_str = ", ".join(map(str, covered_missing)) if 'covered_missing' in locals() and covered_missing else "कोई नहीं"
 
-        if not found_any_pair_audio:
-            speech_script += " अद्भुत! आपके मोबाइल नंबर के बीच में कोई भी नकारात्मक या शत्रु ग्रहों की युति नहीं है, जो कि एक बहुत अच्छी बात है। "
+        order_text = "बढ़ते क्रम" if 'is_asc' in locals() and is_asc else ("घटते क्रम" if 'is_desc' in locals() and is_desc else "मिश्रित क्रम")
 
-    except Exception as e:
-        if user_name_extracted:
-            speech_script = f"जय श्री राम {user_name_extracted} जी! आपके मोबाइल नंबर का विश्लेषण तैयार है। कृपया स्क्रीन पर अपनी रिपोर्ट देखें।"
-        else:
-            speech_script = "जय श्री राम! आपके मोबाइल नंबर का विश्लेषण तैयार है। कृपया स्क्रीन पर अपनी रिपोर्ट देखें।"
-    # 🎙️ गुरु रोबोट की अंतिम सलाह (आवाज के लिए)
-        speech_script += " सही मोबाइल नंबर की सटीक जानकारी और उचित चुनाव करने के लिए आप ज्योतिषाचार्य विशाल विक्रम पांडे जी से संपर्क कर सकते हैं। धन्यवाद।"
-    # =========================================================================
-    # 🌟 ६. भाग्यशाली मोबाइल नंबर सुझाव (१० बेस्ट ऑप्शंस)
-    # =========================================================================
-    if st.session_state.get('mobile_analyzed', False):
-        st.markdown("---")
-        st.markdown("### 📞 आचार्य जी से व्यक्तिगत परामर्श प्राप्त करें")
+        # 2. वॉइस स्क्रिप्ट तैयार करना
+        analysis_voice_script = f"""
+        मोबाइल ज्योतिष विश्लेषण में आपका स्वागत है।
+        आपके लो शू ग्रिड में अनुपस्थित यानी मिसिंग अंक हैं: {missing_str}।
+        नोट: लो शू ग्रिड में जो अंक अनुपस्थित हैं, उन्हें मोबाइल नंबर में जोड़कर ग्रहों को संतुलित किया जा सकता है।
 
-        consult_text = (
-            "उपर्युक्त शर्तों के अनुसार अपने भाग्य में वृद्धि एवं जीवन में उन्नति के लिए "
-            "आप नीचे दिए गए बटन पर क्लिक करें। इससे आपकी सीधी बात आचार्य विशाल विक्रम पांडे जी से होगी "
-            "और आपके मोबाइल नंबर एवं हस्ताक्षर (Signature) आदि के संबंध में आपको गुरु से परामर्श मिलेगा।"
-        )
+        आपके मोबाइल नंबर का 10 अंकों का कुल योग {t_sum} है।
+        अंतिम 4 अंकों का योग {l4_sum} है।
+        यह मोबाइल नंबर आपके मिसिंग अंक {covered_str} की पूर्ति करता है।
+        अंतिम 4 अंक {order_text} में हैं।
 
-        st.info(f"💡 {consult_text}")
+        मोबाइल नंबर की अधिक जानकारी के लिए आप ऊपर माय लकी नंबर पर क्लिक कर सकते हैं, अन्यथा विशाल विक्रम पांडे जी से कॉल करके बात कर सकते हैं।
+        """.strip()
 
-        # वॉइस प्लेयर स्क्रिप्ट में संदेश जोड़ना
-        speech_script += f" {consult_text}"
-
-        # कॉल नाउ और व्हाट्सएप बटन
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.markdown(
-                """
-                <a href="tel:+916392311093" style="text-decoration: none;">
-                    <div style="background-color: #1e3a8a; color: white; padding: 14px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                        📞 अभी कॉल करें (Call Now)
-                    </div>
-                </a>
-                """,
-                unsafe_allow_html=True
-            )
-
-        with col2:
-            whatsapp_msg = "प्रणाम गुरु जी, मुझे अपने मूलांक और भाग्यांक के अनुसार लकी मोबाइल नंबर और हस्ताक्षर परामर्श चाहिए।"
-            st.markdown(
-                f"""
-                <a href="https://wa.me/916392311093?text={whatsapp_msg}" target="_blank" style="text-decoration: none;">
-                    <div style="background-color: #25D366; color: white; padding: 14px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                        💬 व्हाट्सएप पर परामर्श लें
-                    </div>
-                </a>
-                """,
-                unsafe_allow_html=True
-            )
-    # =========================================================================
-    # 🎦 ५. TTS ऑडियो प्लेयर जनरेशन (अब यह सबसे नीचे आ गया है ताकि सब कुछ रिकॉर्ड हो सके)
-    # =========================================================================
-    st.markdown("---")
-    st.markdown("### 🎙️ गुरु मुख से फलादेश सुनें")
-
-    # अंतिम सलाह जोड़ना
-    speech_script += " जय श्री राम! आशा करती हूँ यह गणना आपके जीवन में सुख और समृद्धि लाएगी।"
-
-    with st.spinner("गुरु आपकी रिपोर्ट तैयार कर रही हैं, कृपया क्षण भर प्रतीक्षा करें..."):
+        # 3. वॉइस जनरेट करना और बजना
         try:
-            # टेक्स्ट को साफ़ करना ताकि विशेष चिन्हों से आवाज़ न अटके
-            clean_text = speech_script.replace("*", "").replace("#", "").replace("-", " ")
-
-            async def _generate_edge():
-                communicate = edge_tts.Communicate(clean_text, "hi-IN-MadhurNeural")
-                await communicate.save("output_mobile.mp3")
-
-            asyncio.run(_generate_edge())
-            st.audio("output_mobile.mp3", format="audio/mp3")
-
+            speak_text(analysis_voice_script, "output_mobile.mp3")
         except Exception as e:
-            st.error(f"आवाज़ तैयार करने में कुछ तकनीकी त्रुटि आई है: {e}")
+            pass
+
+        # 4. कॉल व WhatsApp संपर्क बटन्स
+        st.info("💡 **मोबाइल नंबर की अधिक जानकारी के लिए आप ऊपर 'My Lucky No' पर क्लिक कर सकते हैं अन्यथा विशाल विक्रम पांडे से आप कॉल करके बात कर सकते हैं।**")
+
+        phone_number = "919838123456" # यहाँ अपना सही व्हाट्सएप/कॉलिंग नंबर डालें
+        whatsapp_msg = "जय श्री राम विशाल जी, मुझे अपने मोबाइल नंबर के ज्योतिष विश्लेषण और लकी नंबर के बारे में जानकारी चाहिए।"
+
+        col_call, col_wa = st.columns(2)
+        with col_call:
+            st.markdown(f'''
+                <a href="tel:+{phone_number}" target="_blank" style="text-decoration: none;">
+                    <div style="background-color: #0d6efd; color: white; text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                        📞 विशाल जी को कॉल करें
+                    </div>
+                </a>
+            ''', unsafe_allow_html=True)
+
+        with col_wa:
+            st.markdown(f'''
+                <a href="https://wa.me/{6392311093}?text={whatsapp_msg}" target="_blank" style="text-decoration: none;">
+                    <div style="background-color: #25d366; color: white; text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                        💬 WhatsApp पर बात करें
+                    </div>
+                </a>
+            ''', unsafe_allow_html=True)
+
+    else:
+        st.warning("कृपया ऊपर 10 अंकों का सही मोबाइल नंबर दर्ज करें।")
+
+   
+# =========================================================
+# [टैब 2] My Lucky No
+# =========================================================
+with tab2:
+    st.header("✨ आपके लिए सबसे सटीक लकी मोबाइल नंबर")
+
+    user_m = st.session_state.get("app_mulank") or st.session_state.get("user_mulank") or 8
+    user_b = st.session_state.get("app_bhagyank") or st.session_state.get("user_bhagyank") or 4
+    user_missing_digits = st.session_state.get("missing_numbers", [2, 3, 7])
+
+    c_inf1, c_inf2, c_inf3 = st.columns(3)
+    with c_inf1:
+        st.info(f"👤 **आपका मूलांक:** {user_m}")
+    with c_inf2:
+        st.info(f"🌟 **आपका भाग्यांक:** {user_b}")
+    with c_inf3:
+        st.warning(f"🔍 **मिसिंग अंक:** {', '.join(map(str, user_missing_digits))}")
+
+    if "show_lucky_btn" not in st.session_state:
+        st.session_state["show_lucky_btn"] = False
+
+    if st.button("सर्वश्रेष्ठ लकी नंबर खोजें", type="primary"):
+        st.session_state["show_lucky_btn"] = True
+
+    if st.session_state["show_lucky_btn"]:
+        m_friends = FRIENDSHIP_TABLE.get(user_m, {}).get("friends", [1, 2, 3, 5, 9])
+        b_friends = FRIENDSHIP_TABLE.get(user_b, {}).get("friends", [5, 6, 7, 8])
+        common_friends = list(set(m_friends).intersection(set(b_friends)))
+
+       # अलग-अलग सीरीज (Prefixes) और सफिक्स से डायनामिक नंबर पूल तैयार करना
+        prefixes = [
+            "9838", "9919", "9792", "9450", "9651", "9889", 
+            "8887", "8707", "8574", "7007", "7275", "7388",
+            "9935", "9140", "9559", "8004", "7800", "6386"
+        ]
+        
+        suffixes = [
+            "123456", "234567", "345678", "456789", "567890",
+            "578123", "578345", "878523", "357812", "357822",
+            "157823", "835781", "385782", "578111", "578222"
+        ]
+
+        raw_number_pool = []
+        for p in prefixes:
+            for s in suffixes:
+                raw_number_pool.append(p + s)
+
+        evaluated_numbers = []
+
+        for num in raw_number_pool:
+            total_sum = calculate_single_digit(num)
+            last_4_sum = calculate_single_digit(num[-4:])
+            is_asc, _ = check_ascending_descending(num[-4:])
+
+            is_total_friendly = (total_sum in common_friends) or (total_sum in m_friends)
+            is_last4_friendly = (last_4_sum in common_friends) or (last_4_sum in m_friends)
+
+            num_digits = set(int(d) for d in num if d != '0')
+            covered_missing = [d for d in user_missing_digits if d in num_digits]
+            missing_count = len(covered_missing)
+
+            if is_asc and missing_count >= 3:
+                tag = "⭐ सर्वोत्तम (आरोही + 3+ मिसिंग अंक)"
+            elif is_asc and missing_count >= 2:
+                tag = "🥇 बहुत बढ़िया (आरोही + 2 मिसिंग अंक)"
+            elif is_asc:
+                tag = "🥈 उत्तम (आरोही क्रम)"
+            else:
+                tag = "👍 अनुकूल विकल्प"
+
+            evaluated_numbers.append({
+                "श्रेणी": tag,
+                "मोबाइल नंबर": num,
+                "10 अंकों का कुल योग": f"{total_sum} ({'🟢 मित्र' if is_total_friendly else '🟠 सामान्य'})",
+                "अंतिम 4 अंकों का योग": f"{last_4_sum} ({'🟢 मित्र' if is_last4_friendly else '🟠 सामान्य'})",
+                "कवर हुए मिसिंग अंक": f"{', '.join(map(str, covered_missing)) if covered_missing else 'कोई नहीं'}",
+                "आरोही क्रम": "हाँ 📈" if is_asc else "सामान्य",
+                "asc_score": 1 if is_asc else 0,
+                "missing_score": missing_count,
+                "friend_score": (1 if is_total_friendly else 0) + (1 if is_last4_friendly else 0)
+            })
+
+        evaluated_numbers.sort(
+            key=lambda x: (x["asc_score"], x["missing_score"], x["friend_score"]),
+            reverse=True
+        )
+
+        st.subheader("📋 आपके लिए अनुशंसित लकी नंबरों की प्राथमिकता सूची:")
+        st.dataframe(evaluated_numbers[:10], use_container_width=True)
