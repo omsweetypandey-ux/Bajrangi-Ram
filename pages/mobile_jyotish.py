@@ -5,6 +5,52 @@ import re
 import asyncio
 import edge_tts
 
+PLANET_MAP = {
+    '1': 'सूर्य', '2': 'चंद्र', '3': 'गुरु', 
+    '4': 'राहु', '5': 'बुध', '6': 'शुक्र', 
+    '7': 'केतु', '8': 'शनि', '9': 'मंगल'
+}
+
+def format_with_planets(num_input):
+    if not num_input or num_input == "कोई नहीं":
+        return "कोई नहीं"
+    
+    text = str(num_input)
+    # 1 से 9 तक के हर अंक को 'अंक N (ग्रह)' में बदलने का सटीक तरीका
+    for num, planet in PLANET_MAP.items():
+        # \b यह सुनिश्चित करता है कि केवल सिंगल नंबर ही रिप्लेस हो
+        text = re.sub(rf'\b{num}\b', f"अंक {num} ({planet})", text)
+        
+    return text
+            
+def format_single_sum(num):
+    # अगर नंबर उपलब्ध न हो तो खाली लौटाए
+    if num is None or str(num).strip() == "":
+        return ""
+
+    # नंबर को स्ट्रिंग में बदलें
+    s_num = str(num).strip()
+
+    # PLANET_MAP से ग्रह का नाम ढूँढें
+    planet = PLANET_MAP.get(s_num, "")
+    if planet:
+        return f"अंक {s_num} ({planet})"
+    else:
+        return f"अंक {s_num}"
+
+# --- Memory Check & Fallback Protection ---
+if not st.session_state.get("user_logged_in", False):
+    st.warning("⚠️ कृपया पहले मुख्य पेज (Home Page / app.py) पर जाकर अपना विवरण दर्ज करें!")
+    st.stop()  # यह डिफ़ॉल्ट मान 1 उठाने से रोक देगा
+
+# सुरक्षित रूप से मेमोरी से मान प्राप्त करें
+user_m = st.session_state.get("app_mulank")
+user_b = st.session_state.get("app_bhagyank")
+user_n = st.session_state.get("app_namank", 0)
+user_k = st.session_state.get("app_kua")
+user_name = st.session_state.get("app_user_name", "यूज़र")
+dob_digits = st.session_state.get("app_dob_digits", [])
+
 # =========================================================
 # 1. एडमिन कॉन्फ़िग लोड करना
 # =========================================================
@@ -37,7 +83,7 @@ async def generate_speech(text, output_file="output_mobile.mp3"):
 def speak_text(text, filename="output_mobile.mp3"):
     asyncio.run(generate_speech(text, filename))
     if os.path.exists(filename):
-        st.audio(filename, format="audio/mp3", autoplay=True)
+        st.audio(filename, format="audio/mp3",)
 
 # =========================================================
 # 3. पेज कॉन्फ़िगरेशन व स्टाइलिंग
@@ -137,6 +183,14 @@ PLANET_PAIRS = {
     "99": "मंगल-मंगल: अपार साहस, भूमि-भवन लाभ, आक्रामकता पर नियंत्रण आवश्यक।"
 }
 
+PLANET_MAP = {
+    1: "सूर्य", 2: "चंद्रमा", 3: "गुरु", 4: "राहु",
+    5: "बुध", 6: "शुक्र", 7: "केतु", 8: "शनि", 9: "मंगल"
+}
+
+def get_num_with_planet(num):
+    return f"{num} ({PLANET_MAP.get(int(num), '')})"
+
 # =========================================================
 # 6. हेल्पिंग फ़ंक्शंस
 # =========================================================
@@ -203,12 +257,12 @@ with tab1:
     # 1. शुद्ध लो-शू ग्रिड डिस्प्ले (केवल मूल अंक)
     c_head1, c_head2 = st.columns([1, 1])
     with c_head1:
-        st.markdown(f"""
-            <div style="background-color:#fef8f5; padding:15px; border-radius:8px; border-left:4px solid #8B0000;">
-                <p style="margin:2px; color:#8B0000; font-weight:bold;">मूलांक: {user_m}</p>
-                <p style="margin:2px; color:#0055B8; font-weight:bold;">भाग्यांक: {user_b}</p>
-                <p style="margin:2px; color:#008000; font-weight:bold;">नामांक: {user_n}</p>
-                <p style="margin:2px; color:#800080; font-weight:bold;">कुआं नंबर: {user_k}</p>
+       st.markdown(f"""
+            <div style="background-color:#fef8f5; padding:15px; border-radius:10px;">
+                <p style="margin:2px; color:#880000; font-weight:bold;">मूलांक: {get_num_with_planet(user_m)}</p>
+                <p style="margin:2px; color:#0055B8; font-weight:bold;">भाग्यांक: {get_num_with_planet(user_b)}</p>
+                <p style="margin:2px; color:#008000; font-weight:bold;">नामांक: {get_num_with_planet(user_n)}</p>
+                <p style="margin:2px; color:#800080; font-weight:bold;">कुआं नंबर: {get_num_with_planet(user_k)}</p>
             </div>
         """, unsafe_allow_html=True)
 
@@ -222,8 +276,9 @@ with tab1:
     missing_digits = [n for n in range(1, 10) if n not in birth_present]
     st.session_state["missing_numbers"] = missing_digits
 
-    # 225 नंबर लाइन की जगह यह कोड डालें
-    missing_str = ', '.join(map(str, missing_digits)) if missing_digits else "कोई नहीं"
+   
+    # format_with_planets फ़ंक्शन का इस्तेमाल किया है
+    missing_str = format_with_planets(', '.join(map(str, sorted(list(missing_digits))))) if missing_digits else "कोई नहीं"
     
     st.markdown(f"""
         <div style="background-color: #f8f9fa; border-left: 5px solid #d9534f; padding: 12px 18px; border-radius: 8px; margin-top: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
@@ -245,6 +300,8 @@ with tab1:
 
         tot_sum = calculate_single_digit(cust_mobile)
         l4_sum = calculate_single_digit(cust_mobile[-4:])
+        tot_sum_planet = get_num_with_planet(tot_sum)
+        l4_sum_planet = get_num_with_planet(l4_sum)
         is_asc, is_desc = check_ascending_descending(cust_mobile[-4:])
 
         m_status = check_friendship_status(user_m, tot_sum)
@@ -259,12 +316,12 @@ with tab1:
 
         col_m1, col_m2 = st.columns(2)
         with col_m1:
-            st.metric("10 अंकों का कुल योग (Total Single Digit)", f"{tot_sum}")
+            st.metric("10 अंकों का कुल योग (Total Single Digit)", get_num_with_planet(tot_sum))
             st.write(f"• मूलांक ({user_m}) से संबंध: **{m_status}**")
             st.write(f"• भाग्यांक ({user_b}) से संबंध: **{b_status}**")
 
         with col_m2:
-            st.metric("अंतिम 4 अंकों का योग (Last 4 Digit Sum)", f"{l4_sum}")
+            st.metric("अंतिम 4 अंकों का योग (Last 4 Digit Sum)",get_num_with_planet (l4_sum))
             st.write(f"• मूलांक ({user_m}) से संबंध: **{l4_m_status}**")
             st.write(f"• भाग्यांक ({user_b}) से संबंध: **{l4_b_status}**")
 
@@ -302,31 +359,88 @@ with tab1:
         t_sum = locals().get('total_sum', '')
         l4_sum = locals().get('last_4_sum', '')
 
+        # --- ग्रहों के साथ मिसिंग व कवर्ड अंक तैयार करना ---
         missing_str = ", ".join(map(str, u_missing)) if u_missing else "कोई नहीं"
         covered_str = ", ".join(map(str, covered_missing)) if 'covered_missing' in locals() and covered_missing else "कोई नहीं"
 
-        order_text = "बढ़ते क्रम" if 'is_asc' in locals() and is_asc else ("घटते क्रम" if 'is_desc' in locals() and is_desc else "मिश्रित क्रम")
+        # --- 1. डेटा डायनामिक रूप से तैयार करना ---
+        missing_planets_text = format_with_planets(missing_str)
 
-        # 2. वॉइस स्क्रिप्ट तैयार करना
+        if covered_str and covered_str != "कोई नहीं":
+            covered_speech = f"आपके इस मोबाइल नंबर से ग्रिड के मिसिंग नंबरों में से {format_with_planets(covered_str)} नंबर संतुलित हो रहे हैं।"
+        else:
+            covered_speech = "कोई भी मिसिंग नंबर आपके मोबाइल नंबर द्वारा संतुलित नहीं हो रहा है।"
+
+       # नई लाइनें (इन्हें लिखना है):
+        t_sum_text = format_single_sum(t_sum)
+        l4_sum_text = format_single_sum(l4_sum)
+
+        m_rel = locals().get('mulank_relation', 'अनुकूल')
+        b_rel = locals().get('bhagyank_relation', 'अनुकूल')
+
+        if 'is_asc' in locals() and is_asc:
+            order_speech = "आपके मोबाइल के अंतिम चार अंक बढ़ते क्रम में हैं, अतः जीवन में सदैव बढ़ोतरी होगी।"
+        elif 'is_desc' in locals() and is_desc:
+            order_speech = "आपके मोबाइल के अंतिम चार अंक घटते क्रम में हैं, अतः जीवन में कदम-कदम पर परेशानियां आ सकती हैं।"
+        else:
+            order_speech = "आपके मोबाइल के अंतिम चार अंक मिश्रित क्रम में हैं, अतः जीवन में उतार-चढ़ाव बना रहेगा।"
+
+        pairs_speech = ""
+        if 'cust_mobile' in locals() and cust_mobile:
+            found_pair_texts = []
+            for i in range(len(cust_mobile) - 1):
+                pair = cust_mobile[i:i+2]
+                if 'PLANET_PAIRS' in locals() and pair in PLANET_PAIRS:
+                    found_pair_texts.append(f"अंक संयोजन {pair} का प्रभाव है: {PLANET_PAIRS[pair]}")
+            if found_pair_texts:
+                pairs_speech = "मोबाइल नंबर के दो अंकों के प्रमुख संयोजन फल इस प्रकार हैं: " + "। ".join(found_pair_texts) + "।"
+            else:
+                pairs_speech = "मोबाइल नंबर में कोई विशेष ग्रहीय युति संयोजन नहीं पाया गया।"
+
+            # --- 3. वॉइस स्क्रिप्ट जनरेट करना ---
+        # योग और ग्रह का नाम सही तरीके से निकालने के लिए फ़ंक्शन
+        def get_planet_voice_text(num):
+            planet = PLANET_MAP.get(num, "")
+            return f"{num} यानी {planet}" if planet else f"{num}"
+
+            # 10 अंकों और अंतिम 4 अंकों का योग (वॉइस के लिए)
+        t_sum_num = calculate_single_digit(cust_mobile)
+        t_sum_voice = get_planet_voice_text(t_sum_num)
+
+        last4_num = calculate_single_digit(cust_mobile[-4:])
+        last4_voice = get_planet_voice_text(last4_num)
+
+        # मूलांक और भाग्यांक के साथ संबंध (मित्र/शत्रु/सम)
+        m_rel_status = check_friendship_status(user_m, t_sum_num)
+        b_rel_status = check_friendship_status(user_b, t_sum_num)
+
+        l4_m_rel_status = check_friendship_status(user_m, last4_num)
+        l4_b_rel_status = check_friendship_status(user_b, last4_num)
+
+        # वॉइस स्क्रिप्ट तैयार करना
         analysis_voice_script = f"""
-        मोबाइल ज्योतिष विश्लेषण में आपका स्वागत है।
-        आपके लो शू ग्रिड में अनुपस्थित यानी मिसिंग अंक हैं: {missing_str}।
-        नोट: लो शू ग्रिड में जो अंक अनुपस्थित हैं, उन्हें मोबाइल नंबर में जोड़कर ग्रहों को संतुलित किया जा सकता है।
+        नमस्कार {user_name} जी! आपके मोबाइल ज्योतिष विश्लेषण में आपका स्वागत है।
 
-        आपके मोबाइल नंबर का 10 अंकों का कुल योग {t_sum} है।
-        अंतिम 4 अंकों का योग {l4_sum} है।
-        यह मोबाइल नंबर आपके मिसिंग अंक {covered_str} की पूर्ति करता है।
-        अंतिम 4 अंक {order_text} में हैं।
+        सर्वप्रथम आपके मोबाइल नंबर का आपके जीवन में क्या प्रभाव पड़ रहा है, यह देखते हैं।
 
-        मोबाइल नंबर की अधिक जानकारी के लिए आप ऊपर माय लकी नंबर पर क्लिक कर सकते हैं, अन्यथा विशाल विक्रम पांडे जी से कॉल करके बात कर सकते हैं।
-        """.strip()
+        आपके मोबाइल नंबर के 10 अंकों का कुल योग {t_sum_voice} है। यह अंक आपके मूलांक का {m_rel_status} है तथा आपके भाग्यांक का {b_rel_status} है।
 
-        # 3. वॉइस जनरेट करना और बजना
+        ठीक इसी प्रकार आपके मोबाइल नंबर के अंतिम 4 अंकों का कुल योग {last4_voice} है। यह अंक भी आपके मूलांक का {l4_m_rel_status} तथा भाग्यांक का {l4_b_rel_status} है।
+
+        {missing_planets_text}
+
+        {order_speech}
+
+        {pairs_speech}
+        अपने लकी नंबर को जानने के लिए ऊपर दिए गए लकी नंबर पर क्लिक करें।
+        अपने किसी भी प्रश्नों के उत्तर के लिए आप विशाल विक्रम पांडे जी से संपर्क कर सकते हैं।
+        """
+
+        # 4. वॉइस जनरेट करना
         try:
             speak_text(analysis_voice_script, "output_mobile.mp3")
         except Exception as e:
             pass
-
         # 4. कॉल व WhatsApp संपर्क बटन्स
         st.info("💡 **मोबाइल नंबर की अधिक जानकारी के लिए आप ऊपर 'My Lucky No' पर क्लिक कर सकते हैं अन्यथा विशाल विक्रम पांडे से आप कॉल करके बात कर सकते हैं।**")
 
@@ -360,19 +474,27 @@ with tab1:
 # [टैब 2] My Lucky No
 # =========================================================
 with tab2:
-    st.header("✨ आपके लिए सबसे सटीक लकी मोबाइल नंबर")
+    st.header("📱 आपके लिए सबसे सटीक लकी मोबाइल नंबर")
 
     user_m = st.session_state.get("app_mulank") or st.session_state.get("user_mulank") or 8
     user_b = st.session_state.get("app_bhagyank") or st.session_state.get("user_bhagyank") or 4
     user_missing_digits = st.session_state.get("missing_numbers", [2, 3, 7])
+    
+    # ग्रिड में अंकों की आवृत्ति (दोहराव रोकने के लिए)
+    grid_counts = st.session_state.get("grid_counts", {})
+    overused_digits = [digit for digit, count in grid_counts.items() if count >= 2]
 
     c_inf1, c_inf2, c_inf3 = st.columns(3)
     with c_inf1:
-        st.info(f"👤 **आपका मूलांक:** {user_m}")
+        st.info(f"👤 **आपका मूलांक:** {format_single_sum(user_m)}")
     with c_inf2:
-        st.info(f"🌟 **आपका भाग्यांक:** {user_b}")
+        st.info(f"⭐ **आपका भाग्यांक:** {format_single_sum(user_b)}")
     with c_inf3:
-        st.warning(f"🔍 **मिसिंग अंक:** {', '.join(map(str, user_missing_digits))}")
+        cov_m_str = ", ".join([format_single_sum(d) for d in user_missing_digits]) if user_missing_digits else "कोई नहीं"
+        st.warning(f"🔍 **मिसिंग अंक:** {cov_m_str}")
+
+    if overused_digits:
+        st.caption(f"⚠️ **अत्यधिक आवृत्ति वाले अंक (फ़िल्टर लागू):** {overused_digits} (इन अंकों की अधिकता वाले नंबरों को प्राथमिकता से हटाया जा रहा है)")
 
     if "show_lucky_btn" not in st.session_state:
         st.session_state["show_lucky_btn"] = False
@@ -385,17 +507,22 @@ with tab2:
         b_friends = FRIENDSHIP_TABLE.get(user_b, {}).get("friends", [5, 6, 7, 8])
         common_friends = list(set(m_friends).intersection(set(b_friends)))
 
-       # अलग-अलग सीरीज (Prefixes) और सफिक्स से डायनामिक नंबर पूल तैयार करना
+        # 1. विस्तृत प्रीफ़िक्स संग्रह
         prefixes = [
-            "9838", "9919", "9792", "9450", "9651", "9889", 
-            "8887", "8707", "8574", "7007", "7275", "7388",
-            "9935", "9140", "9559", "8004", "7800", "6386"
+            "6386", "6399", "6200", "6300", "6350", "6360", "6370", "6390", "6391", "6392",
+            "6387", "6388", "6389", "6260", "6261", "6262", "6393", "6394", "6395", "6396",
+            "7007", "7275", "7388", "7800", "7905", "7317", "7355", "7398", "7080", "7054",
+            "8004", "8574", "8707", "8887", "8318", "8840", "8052", "8853", "8115", "8795",
+            "9838", "9919", "9792", "9450", "9651", "9889", "9935", "9140", "9559", "9125"
         ]
-        
+
+        # 2. विस्तृत सफिक्स संग्रह (अंतिम 4 अंकों के आरोही क्रम व विविध कॉम्बिनेशन)
         suffixes = [
-            "123456", "234567", "345678", "456789", "567890",
-            "578123", "578345", "878523", "357812", "357822",
-            "157823", "835781", "385782", "578111", "578222"
+            "123456", "234567", "345678", "456789", "567890", "135789", "246789", "123567",
+            "234678", "345789", "124578", "235689", "134679", "245789", "356890", "145789",
+            "578123", "578345", "878523", "357812", "357822", "157823", "835781", "385782",
+            "578111", "578222", "991234", "882345", "773456", "664567", "555678", "446789",
+            "112345", "223456", "334567", "445678", "556789", "351234", "352345", "353456"
         ]
 
         raw_number_pool = []
@@ -410,38 +537,141 @@ with tab2:
             last_4_sum = calculate_single_digit(num[-4:])
             is_asc, _ = check_ascending_descending(num[-4:])
 
+            # १. पहली प्राथमिकता: योग की मित्रता
             is_total_friendly = (total_sum in common_friends) or (total_sum in m_friends)
             is_last4_friendly = (last_4_sum in common_friends) or (last_4_sum in m_friends)
+            
+            friend_score = 0
+            if is_total_friendly and is_last4_friendly:
+                friend_score = 100
+            elif is_total_friendly:
+                friend_score = 60
+            elif is_last4_friendly:
+                friend_score = 40
 
-            num_digits = set(int(d) for d in num if d != '0')
-            covered_missing = [d for d in user_missing_digits if d in num_digits]
-            missing_count = len(covered_missing)
+            # २. दूसरी प्राथमिकता: अंतिम 4 अंकों का आरोही क्रम
+            asc_score = 50 if is_asc else 0
 
-            if is_asc and missing_count >= 3:
-                tag = "⭐ सर्वोत्तम (आरोही + 3+ मिसिंग अंक)"
-            elif is_asc and missing_count >= 2:
-                tag = "🥇 बहुत बढ़िया (आरोही + 2 मिसिंग अंक)"
-            elif is_asc:
-                tag = "🥈 उत्तम (आरोही क्रम)"
-            else:
-                tag = "👍 अनुकूल विकल्प"
+            # ३. तीसरी प्राथमिकता: मिसिंग अंकों का संतुलन
+            mob_digits = set(int(d) for d in num if d != '0')
+            covered_missing = [d for d in user_missing_digits if d in mob_digits]
+            missing_score = len(covered_missing) * 10
+
+            # ४. दोहराव जाँच (ओवरयूज्ड डिजिट्स)
+            has_overused = False
+            overused_details = []
+            for digit in overused_digits:
+                c = num.count(str(digit))
+                if c >= 2:
+                    has_overused = True
+                    overused_details.append(f"अंक {digit} {c} बार आया")
+
+            # कुल अंक गणितीय स्कोर
+            total_score = friend_score + asc_score + missing_score
+            if has_overused:
+                total_score -= 80  # दोहराव होने पर दंड/कम अंक
 
             evaluated_numbers.append({
-                "श्रेणी": tag,
-                "मोबाइल नंबर": num,
-                "10 अंकों का कुल योग": f"{total_sum} ({'🟢 मित्र' if is_total_friendly else '🟠 सामान्य'})",
-                "अंतिम 4 अंकों का योग": f"{last_4_sum} ({'🟢 मित्र' if is_last4_friendly else '🟠 सामान्य'})",
-                "कवर हुए मिसिंग अंक": f"{', '.join(map(str, covered_missing)) if covered_missing else 'कोई नहीं'}",
-                "आरोही क्रम": "हाँ 📈" if is_asc else "सामान्य",
-                "asc_score": 1 if is_asc else 0,
-                "missing_score": missing_count,
-                "friend_score": (1 if is_total_friendly else 0) + (1 if is_last4_friendly else 0)
+                "num": num,
+                "total_sum": total_sum,
+                "last_4_sum": last_4_sum,
+                "is_asc": is_asc,
+                "covered_missing": covered_missing,
+                "has_overused": has_overused,
+                "overused_details": overused_details,
+                "friend_score": friend_score,
+                "asc_score": asc_score,
+                "missing_score": missing_score,
+                "total_score": total_score
             })
 
-        evaluated_numbers.sort(
-            key=lambda x: (x["asc_score"], x["missing_score"], x["friend_score"]),
-            reverse=True
-        )
+        if evaluated_numbers:
+            # प्राथमिकताओं के आधार पर सॉर्टिंग (1. योग मित्रता -> 2. आरोही क्रम -> 3. मिसिंग अंक)
+            evaluated_numbers.sort(
+                key=lambda x: (x["friend_score"], x["asc_score"], x["missing_score"], x["total_score"]),
+                reverse=True
+            )
 
-        st.subheader("📋 आपके लिए अनुशंसित लकी नंबरों की प्राथमिकता सूची:")
-        st.dataframe(evaluated_numbers[:10], use_container_width=True)
+            st.subheader("📱 आपके लिए अनुशंसित लकी नंबरों की प्राथमिकता सूची:")
+
+            top_lucky_numbers = evaluated_numbers[:10]
+            tab2_voice_script_parts = [f"नमस्कार जी! आपकी प्राथमिकताओं के अनुसार सर्वश्रेष्ठ लकी मोबाइल नंबर तैयार हैं।"]
+
+            def get_badge_html(status):
+                if "मित्र" in str(status):
+                    return '<span style="color: #27ae60; font-weight: bold;">🟢 मित्र</span>'
+                elif "शत्रु" in str(status):
+                    return '<span style="color: #e74c3c; font-weight: bold;">🔴 शत्रु</span>'
+                else:
+                    return '<span style="color: #e67e22; font-weight: bold;">🟠 सामान्य</span>'
+
+            for idx, item in enumerate(top_lucky_numbers, 1):
+                num = item["num"]
+                
+                # 10 अंकों का कुल योग व ग्रह
+                tot_sum = item["total_sum"]
+                tot_planet_str = format_single_sum(tot_sum)
+                tot_m_stat = check_friendship_status(user_m, tot_sum)
+                tot_b_stat = check_friendship_status(user_b, tot_sum)
+                
+                # अंतिम 4 अंकों का कुल योग व ग्रह
+                l4_sum = item["last_4_sum"]
+                l4_planet_str = format_single_sum(l4_sum)
+                l4_m_stat = check_friendship_status(user_m, l4_sum)
+                l4_b_stat = check_friendship_status(user_b, l4_sum)
+                
+                m_with_p = format_single_sum(user_m)
+                b_with_p = format_single_sum(user_b)
+
+                # क्रम
+                if item["is_asc"]:
+                    order_text = "अंतिम के 4 अंक बढ़ते क्रम में हैं।"
+                else:
+                    order_text = "अंतिम के 4 अंक मिश्रित क्रम में हैं।"
+
+                # मिसिंग नंबर
+                cov_missing = item["covered_missing"]
+                if cov_missing:
+                    cov_str = ", ".join([format_single_sum(d) for d in cov_missing])
+                    missing_text = f"मिसिंग न० {cov_str} संतुलित हो रहे हैं।"
+                else:
+                    missing_text = "कोई भी मिसिंग नंबर संतुलित नहीं हो रहा है।"
+
+                # दोहराव चेतावनी टेक्स्ट
+                if item["has_overused"]:
+                    repeat_warning_html = f'<p style="color: #c0392b; font-size: 14px; margin: 4px 0;">⚠️ <b>ध्यान दें:</b> इस नंबर में {", ".join(item["overused_details"])} है जो आपकी ग्रिड में पहले से अधिक है।</p>'
+                else:
+                    repeat_warning_html = '<p style="color: #27ae60; font-size: 14px; margin: 4px 0;">✅ आपकी ग्रिड के अनुसार अंकों का सही संतुलन (कोई अवांछित दोहराव नहीं)।</p>'
+
+                # कार्ड UI
+                card_html = f"""
+                <div style="border: 2px solid #2980b9; border-radius: 12px; padding: 16px; margin-bottom: 20px; background-color: #ffffff; color: #111111; box-shadow: 2px 2px 8px rgba(0,0,0,0.08);">
+                    <h3 style="color: #1b4f72; margin-top:0; font-size: 22px;">
+                        {idx} - <span style="font-size: 26px; font-weight: bold; color: #000000;">{num}</span> ➔ 10 अंकों का कुल योग {tot_planet_str}
+                    </h3>
+                    <p style="font-size: 16px; margin: 6px 0;">
+                        मूलांक {m_with_p} {get_badge_html(tot_m_stat)}, &nbsp;&nbsp;&nbsp;&nbsp; भाग्यांक {b_with_p} {get_badge_html(tot_b_stat)}
+                    </p>
+                    <hr style="border: 0.5px solid #d6dbdf; margin: 10px 0;">
+                    <h4 style="margin: 5px 0; color: #2c3e50; font-size: 18px;">अंतिम 4 अंकों का कुल योग {l4_planet_str}</h4>
+                    <p style="font-size: 16px; margin: 6px 0;">
+                        मूलांक {m_with_p} {get_badge_html(l4_m_stat)}, &nbsp;&nbsp;&nbsp;&nbsp; भाग्यांक {b_with_p} {get_badge_html(l4_b_stat)}
+                    </p>
+                    <hr style="border: 0.5px solid #d6dbdf; margin: 10px 0;">
+                    <p style="font-size: 16px; font-weight: bold; color: #2e4053; margin: 5px 0;">📈 {order_text}</p>
+                    <p style="font-size: 16px; font-weight: bold; color: #1e8449; margin: 5px 0;">✨ {missing_text}</p>
+                    {repeat_warning_html}
+                </div>
+                """
+                st.markdown(card_html, unsafe_allow_html=True)
+
+                if idx <= 3:
+                    tab2_voice_script_parts.append(
+                        f"विकल्प {idx}: नंबर {num}। इसका कुल योग {tot_planet_str} है। {order_text} {missing_text}"
+                    )
+
+            tab2_final_script = "\n\n".join(tab2_voice_script_parts)
+            try:
+                speak_text(tab2_final_script, "output_tab2_lucky.mp3")
+            except Exception as e:
+                pass
