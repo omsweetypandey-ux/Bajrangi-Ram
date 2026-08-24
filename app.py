@@ -28,37 +28,7 @@ import os
 if os.path.exists("banner.png"):
     st.image("banner.png", use_container_width=True)
 
-# -------------------------------------------------------------------
-# २. हेडर एवं पॉपओवर नेविगेशन मेनू
-# -------------------------------------------------------------------
-col_title, col_menu = st.columns([3, 1])
 
-with col_title:
-    st.markdown("<h3 style='margin: 0; color: #FF9933;'>बजरंगी राम ज्योतिष</h3>", unsafe_allow_html=True)
-
-with col_menu:
-    with st.popover("☰ मेनू / कैटेगरी"):
-        st.markdown("### 📂 अंक ज्योतिष सेवाएँ")
-        
-        if st.button("📊 मूलांक-भाग्यांक फल", key="m1", use_container_width=True):
-            st.switch_page("pages/mulank_bhagyank.py")
-            
-        if st.button("👤 नाम-भाग्य विचार", key="m2", use_container_width=True):
-            st.switch_page("pages/naam_bhagya.py")
-            
-        if st.button("🔲 ग्रिड एवं उपाय", key="m3", use_container_width=True):
-            st.switch_page("pages/grid_upay.py")
-            
-        st.divider()
-        st.markdown("### 📱 अन्य सेवाएँ")
-        
-        if st.button("📱 मोबाइल नंबर विचार", key="m4", use_container_width=True):
-            st.switch_page("pages/mobile_jyotish.py")
-# ---------------------------------------------------------
-    
-    # --- प्रोफाइल सर्च और नया विवरण (Tabs) ---
-    # इसके बाद आपका पुराना फॉर्म वाला कोड (नाम, जन्मतिथि, आदि) जारी रहेगा
-    # सुनिश्चित करें कि आपके इनपुट फील्ड्स में key='u_name', key='u_phone' आदि दिए हुए हैं।
 def bol_web(text, part_id):
     try:
         clean_text = text.replace("*", "").replace("#", "")
@@ -599,10 +569,19 @@ with col2:
         # 📂 मेनू से सिंक होने वाले एक्टिव टैब्स
         # ---------------------------------------------------------
         tab_names = ["📊 मूलांक-भाग्यांक फल", "👤 नाम-भाग्य विचार", "🔲 ग्रिड एवं उपाय", "📱 मोबाइल नंबर विचार"]
-
-        # टैब्स बनाएं
+       
         tab1, tab2, tab3, tab4 = st.tabs(tab_names)
-
+        # सुंदर गोल्डन चमकती हुई लाइन और गैपिंग
+         # === १. यहाँ बीच में डिवाइडर और स्पेस जोड़ें ===
+        st.divider()  # इससे एक सुंदर पतली बॉर्डर लाइन आ जाएगी
+        st.markdown("<br>", unsafe_allow_html=True)  # इससे कैटेगरी और नीचे के कंटेंट में परफेक्ट स्पेस (गैपिंग) बन जाएगा
+        
+        # === २. आपके टैब्स बनाने का कोड (जैसा है वैसा ही रहेगा) ===
+                # टैब्स बनाएं
+                # सुंदर गोल्डन चमकती हुई लाइन और गैपिंग
+        st.markdown("""
+        <hr style="border: 0; height: 2px; background: linear-gradient(90deg, rgba(255,153,51,0) 0%, rgba(255,153,51,1) 50%, rgba(255,153,51,0) 100%); margin-top: 25px; margin-bottom: 25px;">
+        """, unsafe_allow_html=True)
         with tab1:
 
                 # १. डेटा को सुरक्षित रूप से निकालें
