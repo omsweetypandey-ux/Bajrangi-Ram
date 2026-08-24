@@ -489,87 +489,71 @@ with col2:
             # ====================================================
             जादुई_कैटेगरी_स्टाइल = """
             <style>
-            /* १. टैब्स को २-२ की ग्रिड में बदलना (कोई स्क्रोलिंग नहीं) */
-            .stTabs [data-baseweb="tab-list"] {
+            /* १. टैब पट्टी को स्क्रोल से हटाकर 2-2 की ग्रिड में तोड़ना */
+            div[data-testid="stTabs"] > div:first-child {
                 display: flex !important;
                 flex-wrap: wrap !important;
-                gap: 10px !important;
                 width: 100% !important;
-                justify-content: space-between !important;
+                gap: 10px !important;
                 background: transparent !important;
-                padding: 5px 0px !important;
-                border: none !important;
             }
 
-            /* २. कंटीन्यूअस कलर-शिफ्ट और पल्स ऐनिमेशन */
-            @keyframes continuousGlow {
-                0% {
-                    transform: scale(0.98);
-                    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-                    border-color: #ffd700;
-                    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
-                }
-                50% {
-                    transform: scale(1.03);
-                    background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%);
-                    border-color: #ffffff;
-                    box-shadow: 0 0 16px rgba(239, 68, 68, 0.8);
-                }
-                100% {
-                    transform: scale(0.98);
-                    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-                    border-color: #ffd700;
-                    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
-                }
-            }
-
-            /* ३. चारों बटनों की स्टाइलिंग (२ ऊपर, २ नीचे) */
-            .stTabs [data-baseweb="tab"] {
+            /* २. हर एक बटन का डिज़ाइन (बड़ा, मोटा और 50% चौड़ाई) */
+            button[data-baseweb="tab"] {
                 flex: 1 1 calc(50% - 10px) !important;
-                min-width: 130px !important;
-                min-height: 90px !important;
+                width: 48% !important;
+                height: 65px !important;
+                margin: 0 !important;
                 border-radius: 12px !important;
-                border: 2px solid #ffd700 !important;
-                padding: 8px 5px !important;
-                justify-content: center !important;
-                animation: continuousGlow 3s infinite ease-in-out !important;
+                border: 2px solid #FFD700 !important;
+                animation: pulseGlow 2.5s infinite alternate !important;
             }
 
-            /* ४. बटनों के टेक्स्ट का आकार और रंग */
-            .stTabs [data-baseweb="tab"] div,
-            .stTabs [data-baseweb="tab"] p,
-            .stTabs [data-baseweb="tab"] span {
-                color: #ffffff !important;
-                font-size: 15px !important;
-                font-weight: 800 !important;
+            /* ३. अक्षरों का साइज़ बड़ा और बोल्ड (मोटा) करना */
+            button[data-baseweb="tab"] p, 
+            button[data-baseweb="tab"] div, 
+            button[data-baseweb="tab"] span {
+                font-size: 16px !important;
+                font-weight: 900 !important;
+                color: white !important;
                 white-space: normal !important;
                 text-align: center !important;
                 line-height: 1.2 !important;
             }
 
-            /* ५. एक्टिव टैब का स्पेशल ग्लो */
-            .stTabs [aria-selected="true"] {
-                border: 2px solid #ffffff !important;
-                box-shadow: 0 0 20px #ffd700 !important;
+            /* ४. कंटीन्यूअस कलर चेंज और पल्स ऐनिमेशन */
+            @keyframes pulseGlow {
+                0% {
+                    transform: scale(0.97);
+                    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%) !important;
+                    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6) !important;
+                }
+                100% {
+                    transform: scale(1.02);
+                    background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%) !important;
+                    box-shadow: 0 0 16px rgba(239, 68, 68, 0.9) !important;
+                }
             }
 
-            /* ६. नीचे की डिफ़ॉल्ट रेड लाइन हटाना */
-            .stTabs [data-baseweb="tab-highlight"] {
+            /* ५. सिलेक्टेड टैब का स्पेशल लुक */
+            button[aria-selected="true"] {
+                border: 3px solid #FFFFFF !important;
+                box-shadow: 0 0 20px #FFD700 !important;
+            }
+
+            /* ६. डिफ़ॉल्ट नीचे की पतली रेड लाइन हटाना */
+            div[data-baseweb="tab-highlight"] {
                 display: none !important;
             }
             </style>
             """
-
             st.markdown(जादुई_कैटेगरी_स्टाइल, unsafe_allow_html=True)
-                        # Ab aapke purane tabs yahan se shuru honge
-                    # यहाँ हमने चौथा टैब "📱 मोबाइल नंबर विचार" नाम से जोड़ दिया है
-                    # 'key="current_active_tab"' जोड़ने से स्ट्रीमलिट याद रखेगा कि यूजर किस टैब पर था
             
             # ---------------------------------------------------------
         # 📂 मेनू से सिंक होने वाले एक्टिव टैब्स
         # ---------------------------------------------------------
         tab_names = ["📊 मूलांक-भाग्यांक फल", "👤 नाम-भाग्य विचार", "🔲 ग्रिड एवं उपाय", "📱 मोबाइल नंबर विचार"]
-       
+        st.markdown("<hr style='border:1px solid #FF9933; margin-top:20px; margin-bottom:20px;'>", unsafe_allow_html=True)
         tab1, tab2, tab3, tab4 = st.tabs(tab_names)
         # सुंदर गोल्डन चमकती हुई लाइन और गैपिंग
          # === १. यहाँ बीच में डिवाइडर और स्पेस जोड़ें ===
@@ -580,7 +564,7 @@ with col2:
                 # टैब्स बनाएं
                 # सुंदर गोल्डन चमकती हुई लाइन और गैपिंग
         st.markdown("""
-        <hr style="border: 0; height: 2px; background: linear-gradient(90deg, rgba(255,153,51,0) 0%, rgba(255,153,51,1) 50%, rgba(255,153,51,0) 100%); margin-top: 25px; margin-bottom: 25px;">
+        <hr style="border: 2; height: 20px; background: linear-gradient(90deg, rgba(255,153,51,0) 0%, rgba(255,153,51,1) 50%, rgba(255,153,51,0) 100%); margin-top: 25px; margin-bottom: 25px;">
         """, unsafe_allow_html=True)
         with tab1:
 
