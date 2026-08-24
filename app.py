@@ -28,7 +28,37 @@ import os
 if os.path.exists("banner.png"):
     st.image("banner.png", use_container_width=True)
 
+# -------------------------------------------------------------------
+# २. हेडर एवं पॉपओवर नेविगेशन मेनू
+# -------------------------------------------------------------------
+col_title, col_menu = st.columns([3, 1])
 
+with col_title:
+    st.markdown("<h3 style='margin: 0; color: #FF9933;'>बजरंगी राम ज्योतिष</h3>", unsafe_allow_html=True)
+
+with col_menu:
+    with st.popover("☰ मेनू / कैटेगरी"):
+        st.markdown("### 📂 अंक ज्योतिष सेवाएँ")
+        
+        if st.button("📊 मूलांक-भाग्यांक फल", key="m1", use_container_width=True):
+            st.switch_page("pages/mulank_bhagyank.py")
+            
+        if st.button("👤 नाम-भाग्य विचार", key="m2", use_container_width=True):
+            st.switch_page("pages/naam_bhagya.py")
+            
+        if st.button("🔲 ग्रिड एवं उपाय", key="m3", use_container_width=True):
+            st.switch_page("pages/grid_upay.py")
+            
+        st.divider()
+        st.markdown("### 📱 अन्य सेवाएँ")
+        
+        if st.button("📱 मोबाइल नंबर विचार", key="m4", use_container_width=True):
+            st.switch_page("pages/mobile_jyotish.py")
+# ---------------------------------------------------------
+    
+    # --- प्रोफाइल सर्च और नया विवरण (Tabs) ---
+    # इसके बाद आपका पुराना फॉर्म वाला कोड (नाम, जन्मतिथि, आदि) जारी रहेगा
+    # सुनिश्चित करें कि आपके इनपुट फील्ड्स में key='u_name', key='u_phone' आदि दिए हुए हैं।
 def bol_web(text, part_id):
     try:
         clean_text = text.replace("*", "").replace("#", "")
@@ -489,83 +519,116 @@ with col2:
             # ====================================================
             जादुई_कैटेगरी_स्टाइल = """
             <style>
-            /* १. टैब पट्टी को स्क्रोल से हटाकर 2-2 की ग्रिड में तोड़ना */
-            div[data-testid="stTabs"] > div:first-child {
+            /* १. मुख्य बाहरी डिब्बा (२-२ बटनों के लिए ग्रिड) */
+            .stTabs [data-baseweb="tab-list"] {
                 display: flex !important;
                 flex-wrap: wrap !important;
-                width: 100% !important;
                 gap: 10px !important;
+                width: 100% !important;
+                justify-content: space-between !important;
                 background: transparent !important;
+                padding: 5px 0px !important;
+                border: none !important;
             }
 
-            /* २. हर एक बटन का डिज़ाइन (बड़ा, मोटा और 50% चौड़ाई) */
-            button[data-baseweb="tab"] {
+            /* २. एनिमेटेड अन-सिलेक्टेड कैटेगरी बटन्स */
+            .stTabs [data-baseweb="tab"] {
                 flex: 1 1 calc(50% - 10px) !important;
-                width: 48% !important;
-                height: 65px !important;
-                margin: 0 !important;
+                min-width: 140px !important;
+                min-height: 55px !important;
+                background: #ffffff !important;
+                border: 2px solid #3b82f6 !important;
                 border-radius: 12px !important;
-                border: 2px solid #FFD700 !important;
-                animation: pulseGlow 2.5s infinite alternate !important;
+                box-shadow: 0px 4px 12px rgba(59, 130, 246, 0.15) !important;
+                transition: all 0.3s ease-in-out !important;
+                padding: 8px 6px !important;
+                justify-content: center !important;
+                animation: pulseGlow 2.5s infinite alternate !important; /* बटन्स के लिए एनिमेशन */
             }
 
-            /* ३. अक्षरों का साइज़ बड़ा और बोल्ड (मोटा) करना */
-            button[data-baseweb="tab"] p, 
-            button[data-baseweb="tab"] div, 
-            button[data-baseweb="tab"] span {
+            /* बटन्स के लिए ग्लोइंग एनिमेशन प्रभाव */
+            @keyframes pulseGlow {
+                0% {
+                    border-color: #3b82f6;
+                    box-shadow: 0px 2px 8px rgba(59, 130, 246, 0.2);
+                    transform: scale(0.99);
+                }
+                50% {
+                    border-color: #ec4899;
+                    box-shadow: 0px 4px 15px rgba(236, 72, 153, 0.4);
+                    transform: scale(1.02);
+                }
+                100% {
+                    border-color: #8b5cf6;
+                    box-shadow: 0px 2px 8px rgba(139, 92, 246, 0.2);
+                    transform: scale(0.99);
+                }
+            }
+
+            /* ३. बटनों के अक्षरों का डिज़ाइन (मोटा, बड़ा और स्पष्ट फ़ॉन्ट) */
+            .stTabs [data-baseweb="tab"] div,
+            .stTabs [data-baseweb="tab"] p,
+            .stTabs [data-baseweb="tab"] span {
+                color: #1e293b !important;
+                font-weight: 800 !important;
                 font-size: 16px !important;
-                font-weight: 900 !important;
-                color: white !important;
                 white-space: normal !important;
                 text-align: center !important;
                 line-height: 1.2 !important;
             }
 
-            /* ४. कंटीन्यूअस कलर चेंज और पल्स ऐनिमेशन */
-            @keyframes pulseGlow {
-                0% {
-                    transform: scale(0.97);
-                    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%) !important;
-                    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6) !important;
-                }
-                100% {
-                    transform: scale(1.02);
-                    background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%) !important;
-                    box-shadow: 0 0 16px rgba(239, 68, 68, 0.9) !important;
-                }
+            /* ४. जो टैब सिलेक्ट होगा (Active Tab) - वो और भी ज़्यादा चमकेगा */
+            .stTabs [aria-selected="true"] {
+                background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+                border: 2px solid #ffffff !important;
+                animation: activeGlow 1.8s infinite alternate !important;
             }
 
-            /* ५. सिलेक्टेड टैब का स्पेशल लुक */
-            button[aria-selected="true"] {
-                border: 3px solid #FFFFFF !important;
-                box-shadow: 0 0 20px #FFD700 !important;
+            .stTabs [aria-selected="true"] div,
+            .stTabs [aria-selected="true"] p,
+            .stTabs [aria-selected="true"] span {
+                color: #ffffff !important;
+                text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3) !important;
             }
 
-            /* ६. डिफ़ॉल्ट नीचे की पतली रेड लाइन हटाना */
-            div[data-baseweb="tab-highlight"] {
+            @keyframes activeGlow {
+                0% { box-shadow: 0 0 8px #2563eb; }
+                100% { box-shadow: 0 0 18px #2563eb, 0 0 8px #ec4899; }
+            }
+
+            /* ५. नीचे की पतली रेड लाइन हटाना */
+            .stTabs [data-baseweb="tab-highlight"] {
                 display: none !important;
+            }
+
+            /* ६. बटनों का साइज़ और अक्षरों को बड़ा करना (Large Tabs) */
+            .stTabs [data-baseweb="tab"] {
+                min-height: 65px !important;
+                padding: 12px 10px !important;
+            }
+
+            .stTabs [data-baseweb="tab"] div,
+            .stTabs [data-baseweb="tab"] p,
+            .stTabs [data-baseweb="tab"] span {
+                font-size: 19px !important;-p
+                font-weight: 900 !important;
             }
             </style>
             """
+
             st.markdown(जादुई_कैटेगरी_स्टाइल, unsafe_allow_html=True)
+                        # Ab aapke purane tabs yahan se shuru honge
+                    # यहाँ हमने चौथा टैब "📱 मोबाइल नंबर विचार" नाम से जोड़ दिया है
+                    # 'key="current_active_tab"' जोड़ने से स्ट्रीमलिट याद रखेगा कि यूजर किस टैब पर था
             
             # ---------------------------------------------------------
         # 📂 मेनू से सिंक होने वाले एक्टिव टैब्स
         # ---------------------------------------------------------
         tab_names = ["📊 मूलांक-भाग्यांक फल", "👤 नाम-भाग्य विचार", "🔲 ग्रिड एवं उपाय", "📱 मोबाइल नंबर विचार"]
-        st.markdown("<hr style='border:1px solid #FF9933; margin-top:20px; margin-bottom:20px;'>", unsafe_allow_html=True)
+
+        # टैब्स बनाएं
         tab1, tab2, tab3, tab4 = st.tabs(tab_names)
-        # सुंदर गोल्डन चमकती हुई लाइन और गैपिंग
-         # === १. यहाँ बीच में डिवाइडर और स्पेस जोड़ें ===
-        st.divider()  # इससे एक सुंदर पतली बॉर्डर लाइन आ जाएगी
-        st.markdown("<br>", unsafe_allow_html=True)  # इससे कैटेगरी और नीचे के कंटेंट में परफेक्ट स्पेस (गैपिंग) बन जाएगा
-        
-        # === २. आपके टैब्स बनाने का कोड (जैसा है वैसा ही रहेगा) ===
-                # टैब्स बनाएं
-                # सुंदर गोल्डन चमकती हुई लाइन और गैपिंग
-        st.markdown("""
-        <hr style="border: 2; height: 20px; background: linear-gradient(90deg, rgba(255,153,51,0) 0%, rgba(255,153,51,1) 50%, rgba(255,153,51,0) 100%); margin-top: 25px; margin-bottom: 25px;">
-        """, unsafe_allow_html=True)
+
         with tab1:
 
                 # १. डेटा को सुरक्षित रूप से निकालें
