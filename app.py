@@ -527,7 +527,7 @@ with col2:
             .stTabs [data-baseweb="tab"] {
                 flex: 1 1 calc(50% - 10px) !important;
                 min-width: 130px !important;
-                min-height: 60px !important;
+                min-height: 90px !important;
                 border-radius: 12px !important;
                 border: 2px solid #ffd700 !important;
                 padding: 8px 5px !important;
