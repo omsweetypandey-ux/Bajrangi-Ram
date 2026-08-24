@@ -519,7 +519,7 @@ with col2:
             # ====================================================
             जादुई_कैटेगरी_स्टाइल = """
             <style>
-            /* १. मुख्य बाहरी डिब्बा (२-२ बटनों के लिए ग्रिड) */
+            /* १. टैब्स को २-२ की ग्रिड में बदलना (कोई स्क्रोलिंग नहीं) */
             .stTabs [data-baseweb="tab-list"] {
                 display: flex !important;
                 flex-wrap: wrap !important;
@@ -531,87 +531,61 @@ with col2:
                 border: none !important;
             }
 
-            /* २. एनिमेटेड अन-सिलेक्टेड कैटेगरी बटन्स */
-            .stTabs [data-baseweb="tab"] {
-                flex: 1 1 calc(50% - 10px) !important;
-                min-width: 140px !important;
-                min-height: 55px !important;
-                background: #ffffff !important;
-                border: 2px solid #3b82f6 !important;
-                border-radius: 12px !important;
-                box-shadow: 0px 4px 12px rgba(59, 130, 246, 0.15) !important;
-                transition: all 0.3s ease-in-out !important;
-                padding: 8px 6px !important;
-                justify-content: center !important;
-                animation: pulseGlow 2.5s infinite alternate !important; /* बटन्स के लिए एनिमेशन */
-            }
-
-            /* बटन्स के लिए ग्लोइंग एनिमेशन प्रभाव */
-            @keyframes pulseGlow {
+            /* २. कंटीन्यूअस कलर-शिफ्ट और पल्स ऐनिमेशन */
+            @keyframes continuousGlow {
                 0% {
-                    border-color: #3b82f6;
-                    box-shadow: 0px 2px 8px rgba(59, 130, 246, 0.2);
-                    transform: scale(0.99);
+                    transform: scale(0.98);
+                    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+                    border-color: #ffd700;
+                    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
                 }
                 50% {
-                    border-color: #ec4899;
-                    box-shadow: 0px 4px 15px rgba(236, 72, 153, 0.4);
-                    transform: scale(1.02);
+                    transform: scale(1.03);
+                    background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%);
+                    border-color: #ffffff;
+                    box-shadow: 0 0 16px rgba(239, 68, 68, 0.8);
                 }
                 100% {
-                    border-color: #8b5cf6;
-                    box-shadow: 0px 2px 8px rgba(139, 92, 246, 0.2);
-                    transform: scale(0.99);
+                    transform: scale(0.98);
+                    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+                    border-color: #ffd700;
+                    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
                 }
             }
 
-            /* ३. बटनों के अक्षरों का डिज़ाइन (मोटा, बड़ा और स्पष्ट फ़ॉन्ट) */
+            /* ३. चारों बटनों की स्टाइलिंग (२ ऊपर, २ नीचे) */
+            .stTabs [data-baseweb="tab"] {
+                flex: 1 1 calc(50% - 10px) !important;
+                min-width: 130px !important;
+                min-height: 60px !important;
+                border-radius: 12px !important;
+                border: 2px solid #ffd700 !important;
+                padding: 8px 5px !important;
+                justify-content: center !important;
+                animation: continuousGlow 3s infinite ease-in-out !important;
+            }
+
+            /* ४. बटनों के टेक्स्ट का आकार और रंग */
             .stTabs [data-baseweb="tab"] div,
             .stTabs [data-baseweb="tab"] p,
             .stTabs [data-baseweb="tab"] span {
-                color: #1e293b !important;
+                color: #ffffff !important;
+                font-size: 15px !important;
                 font-weight: 800 !important;
-                font-size: 16px !important;
                 white-space: normal !important;
                 text-align: center !important;
                 line-height: 1.2 !important;
             }
 
-            /* ४. जो टैब सिलेक्ट होगा (Active Tab) - वो और भी ज़्यादा चमकेगा */
+            /* ५. एक्टिव टैब का स्पेशल ग्लो */
             .stTabs [aria-selected="true"] {
-                background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
                 border: 2px solid #ffffff !important;
-                animation: activeGlow 1.8s infinite alternate !important;
+                box-shadow: 0 0 20px #ffd700 !important;
             }
 
-            .stTabs [aria-selected="true"] div,
-            .stTabs [aria-selected="true"] p,
-            .stTabs [aria-selected="true"] span {
-                color: #ffffff !important;
-                text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3) !important;
-            }
-
-            @keyframes activeGlow {
-                0% { box-shadow: 0 0 8px #2563eb; }
-                100% { box-shadow: 0 0 18px #2563eb, 0 0 8px #ec4899; }
-            }
-
-            /* ५. नीचे की पतली रेड लाइन हटाना */
+            /* ६. नीचे की डिफ़ॉल्ट रेड लाइन हटाना */
             .stTabs [data-baseweb="tab-highlight"] {
                 display: none !important;
-            }
-
-            /* ६. बटनों का साइज़ और अक्षरों को बड़ा करना (Large Tabs) */
-            .stTabs [data-baseweb="tab"] {
-                min-height: 65px !important;
-                padding: 12px 10px !important;
-            }
-
-            .stTabs [data-baseweb="tab"] div,
-            .stTabs [data-baseweb="tab"] p,
-            .stTabs [data-baseweb="tab"] span {
-                font-size: 19px !important;-p
-                font-weight: 900 !important;
             }
             </style>
             """
