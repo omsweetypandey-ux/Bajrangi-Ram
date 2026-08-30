@@ -11,6 +11,64 @@ PLANET_MAP = {
     '7': 'केतु', '8': 'शनि', '9': 'मंगल'
 }
 
+PREFIX_DB = {
+    "उत्तर प्रदेश (East)": {
+        "Jio": ["7007", "7905", "6386", "6300", "7355", "7800"],
+        "Airtel": ["9838", "9935", "9415", "9792", "9140", "9651"],
+        "Vi": ["8800", "8527", "8707", "8887", "8318", "8840"]
+    },
+    "उत्तर प्रदेश (West) / उत्तराखंड": {
+        "Jio": ["7001", "6396", "7906", "8218"],
+        "Airtel": ["9719", "9758", "9837", "8439"],
+        "Vi": ["9719", "9012", "8449", "9412"]
+    },
+    "दिल्ली / NCR": {
+        "Jio": ["8800", "9310", "7827", "9999"],
+        "Airtel": ["9810", "9871", "9910", "9811"],
+        "Vi": ["9891", "9818", "9899", "9958"]
+    },
+    "महाराष्ट्र / मुंबई": {
+        "Jio": ["7021", "7977", "8369", "9137"],
+        "Airtel": ["9820", "9819", "9821", "9892"],
+        "Vi": ["9820", "9833", "9821", "9819"]
+    },
+    "बिहार / झारखंड": {
+        "Jio": ["7004", "6200", "7903", "9122"],
+        "Airtel": ["9934", "9431", "8210", "9570"],
+        "Vi": ["9334", "9835", "7764", "9199"]
+    },
+    "गुजरात": {
+        "Jio": ["7016", "7990", "9313", "9328"],
+        "Airtel": ["9825", "9898", "9925", "9824"],
+        "Vi": ["9825", "9898", "9904", "9824"]
+    },
+    "राजस्थान": {
+        "Jio": ["7014", "7877", "9351", "9460"],
+        "Airtel": ["9829", "9828", "9414", "9928"],
+        "Vi": ["9829", "9828", "9414", "9887"]
+    },
+    "मध्य प्रदेश / छत्तीसगढ़": {
+        "Jio": ["7000", "7999", "9301", "9340"],
+        "Airtel": ["9826", "9893", "9425", "9981"],
+        "Vi": ["9826", "9893", "9425", "9827"]
+    },
+    "पश्चिम बंगाल / कोलकाता": {
+        "Jio": ["7003", "7980", "8240", "9163"],
+        "Airtel": ["9830", "9831", "9433", "9836"],
+        "Vi": ["9830", "9831", "9832", "9433"]
+    },
+    "पंजाब / हरियाणा": {
+        "Jio": ["7009", "7986", "9878", "9888"],
+        "Airtel": ["9814", "9872", "9888", "9417"],
+        "Vi": ["9814", "9872", "9888", "9815"]
+    },
+    "दक्षिण भारत (कर्नाटक/तमिलनाडु/आंध्र)": {
+        "Jio": ["7019", "7975", "8310", "9148"],
+        "Airtel": ["9845", "9844", "9880", "9900"],
+        "Vi": ["9845", "9844", "9880", "9945"]
+    }
+}
+
 def format_with_planets(num_input):
     if not num_input or num_input == "कोई नहीं":
         return "कोई नहीं"
@@ -76,8 +134,8 @@ config = load_admin_config()
 # =========================================================
 # 2. Edge-TTS वॉइस फ़ंक्शन
 # =========================================================
-async def generate_speech(text, output_file="output_mobile.mp3"):
-    communicate = edge_tts.Communicate(text, "hi-IN-SwaraNeural") # या आपकी पसंदीदा वॉइस
+async def generate_speech(text, output_file="output.mp3"):
+    communicate = edge_tts.Communicate(text, "hi-IN-MadhurNeural") # या आपकी पसंदीदा वॉइस
     await communicate.save(output_file)
 
 def speak_text(text, filename="output_mobile.mp3"):
@@ -496,10 +554,51 @@ with tab2:
     if overused_digits:
         st.caption(f"⚠️ **अत्यधिक आवृत्ति वाले अंक (फ़िल्टर लागू):** {overused_digits} (इन अंकों की अधिकता वाले नंबरों को प्राथमिकता से हटाया जा रहा है)")
 
+# --- राज्य और ऑपरेटर चुनने का एनिमेटेड ड्रॉपडाउन व बटन स्टाइल ---
+    st.markdown("""
+    <style>
+    @keyframes orangeGlow {
+        0% { box-shadow: 0 0 4px rgba(255, 111, 0, 0.3); border-color: #ff9800; }
+        50% { box-shadow: 0 0 15px rgba(255, 111, 0, 0.7); border-color: #e65100; }
+        100% { box-shadow: 0 0 4px rgba(255, 111, 0, 0.3); border-color: #ff9800; }
+    }
+    .stSelectbox {
+        animation: orangeGlow 3s infinite alternate;
+        border-radius: 8px;
+    }
+    /* एनिमेटेड पल्सिंग बटन */
+    @keyframes pulseBtn {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 111, 0, 0.7); }
+        70% { transform: scale(1.03); box-shadow: 0 0 12px 6px rgba(255, 111, 0, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 111, 0, 0); }
+    }
+    div.stButton > button {
+        animation: pulseBtn 2s infinite;
+        font-weight: bold !important;
+        font-size: 18px !important;
+        border-radius: 12px !important;
+        background: linear-gradient(45deg, #ff6f00, #ff9800) !important;
+        color: white !important;
+        border: none !important;
+        width: 100%;
+        padding: 10px 0px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("##### 📍 **सटीक लकी नंबर सुझाव हेतु विवरण चुनें:**")
+    col_st1, col_st2 = st.columns(2)
+
+    with col_st1:
+        selected_state = st.selectbox("अपना राज्य / सर्किल चुनें", list(PREFIX_DB.keys()))
+
+    with col_st2:
+        selected_operator = st.selectbox("पसंदीदा ऑपरेटर चुनें", ["सभी ऑपरेटर", "Jio", "Airtel", "Vi"])
+
     if "show_lucky_btn" not in st.session_state:
         st.session_state["show_lucky_btn"] = False
 
-    if st.button("सर्वश्रेष्ठ लकी नंबर खोजें", type="primary"):
+    if st.button("✨ सर्वश्रेष्ठ लकी नंबर खोजें ✨", type="primary"):
         st.session_state["show_lucky_btn"] = True
 
     if st.session_state["show_lucky_btn"]:
@@ -507,28 +606,38 @@ with tab2:
         b_friends = FRIENDSHIP_TABLE.get(user_b, {}).get("friends", [5, 6, 7, 8])
         common_friends = list(set(m_friends).intersection(set(b_friends)))
 
-        # 1. विस्तृत प्रीफ़िक्स संग्रह
-        prefixes = [
-            "6386", "6399", "6200", "6300", "6350", "6360", "6370", "6390", "6391", "6392",
-            "6387", "6388", "6389", "6260", "6261", "6262", "6393", "6394", "6395", "6396",
-            "7007", "7275", "7388", "7800", "7905", "7317", "7355", "7398", "7080", "7054",
-            "8004", "8574", "8707", "8887", "8318", "8840", "8052", "8853", "8115", "8795",
-            "9838", "9919", "9792", "9450", "9651", "9889", "9935", "9140", "9559", "9125"
-        ]
+        # 1. चुने हुए राज्य और ऑपरेटर के अनुसार प्रीफिक्स निकालना
+        state_data = PREFIX_DB.get(selected_state, {})
+        if isinstance(state_data, dict):
+            if selected_operator != "सभी ऑपरेटर":
+                prefixes = state_data.get(selected_operator, [])
+            else:
+                prefixes = [p for op_list in state_data.values() for p in op_list]
+        elif isinstance(state_data, list):
+            prefixes = state_data
+        else:
+            prefixes = []
 
-        # 2. विस्तृत सफिक्स संग्रह (अंतिम 4 अंकों के आरोही क्रम व विविध कॉम्बिनेशन)
+        # यदि कोई प्रीफिक्स न मिले तो बैकअप प्रीफिक्स
+        if not prefixes:
+            prefixes = ["6386", "6399", "6200", "6300", "7007", "7275", "8004", "9838"]
+
+        # 2. विस्तृत सफिक्स संग्रह (अंतिम 4 अंकों के रैंडम आरोही/Ascending क्रम वाले कॉम्बिनेशन)
         suffixes = [
-            "123456", "234567", "345678", "456789", "567890", "135789", "246789", "123567",
-            "234678", "345789", "124578", "235689", "134679", "245789", "356890", "145789",
-            "578123", "578345", "878523", "357812", "357822", "157823", "835781", "385782",
-            "578111", "578222", "991234", "882345", "773456", "664567", "555678", "446789",
-            "112345", "223456", "334567", "445678", "556789", "351234", "352345", "353456"
+            # बढ़ते क्रम वाले 6-अंकीय सफिक्स (अंतिम 4 अंक रैंडम असेंडिंग)
+            "123456", "234567", "345678", "456789", "567890", "135789", "246789",
+            "123589", "134679", "235789", "124689", "135689", "245789", "145789",
+            "235689", "123679", "345789", "135679", "234789", "125789", "246890",
+            # अन्य लोकप्रिय कॉम्बिनेशन (जिनमें अंतिम 4 अंक बढ़ते क्रम में हों)
+            "571236", "872358", "981359", "572479", "831479", "991358", "882369",
+            "773468", "661459", "552379", "351258", "352468", "353589", "445689"
         ]
 
+            # रैंडम नंबर पूल और इवैल्यूएशन लिस्ट शुरू करना
         raw_number_pool = []
         for p in prefixes:
             for s in suffixes:
-                raw_number_pool.append(p + s)
+                raw_number_pool.append(str(p) + str(s))
 
         evaluated_numbers = []
 
