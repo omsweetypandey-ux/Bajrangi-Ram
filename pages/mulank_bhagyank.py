@@ -3,7 +3,14 @@ import subprocess
 import asyncio
 import edge_tts
 import streamlit as st
+import os
+import sys
 
+# १. बाहर वाले मुख्य (Root) फ़ोल्डर का पाथ Python में जोड़ें
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# २. अब बाहर रखी data_logic.py से सारे फ़ंक्शन और डिक्शनरी इंपोर्ट करें
+from data_logic import *
 # =========================================================
 # 1. ऑडियो (TTS) फ़ंक्शन - एरर-फ्री वर्ज़न
 # =========================================================
