@@ -405,7 +405,7 @@ with col2:
     my_contact_number = "+916392311093"
     
     call_html = f'''
-    <a href="tel:{my_contact_number}" target="_self" style="
+    <a href="tel:+916392311093" target="_self" style="
         text-decoration: none;
         display: flex;
         align-items: center;
