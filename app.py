@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 # नीचे वाला कोड यहाँ पेस्ट करें:
 hide_streamlit_style = """
               <style>
@@ -405,7 +406,7 @@ with col2:
     my_contact_number = "+916392311093"
     
     call_html = f'''
-    <a href="tel:+916392311093" target="_self" style="
+   <a href="tel:+916392311093" target="_self" style="
         text-decoration: none;
         display: flex;
         align-items: center;

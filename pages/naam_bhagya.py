@@ -5,22 +5,23 @@ import streamlit as st
 # ==========================================
 # 1. ऑडियो (TTS) फ़ंक्शन - पीली लाइन हटाने के लिए
 # ==========================================
-def bol_web(text, part_id):
+def bol_web(text, part_id, container=None):
     try:
-        clean_text = text.replace("*", "").replace("#", "")
-        
-        # Edge-TTS (Madhur - Male Voice) से ऑडियो बनाना
+        clean_text = text.replace("-", " ").replace("*", "").replace("#", "")
+        filename = f"output_{part_id}.mp3"
+
         async def _generate_edge():
             communicate = edge_tts.Communicate(clean_text, "hi-IN-MadhurNeural")
-            await communicate.save("output.mp3")
+            await communicate.save(filename)
 
         asyncio.run(_generate_edge())
-        st.audio("output.mp3", format="audio/mp3")
+
+        if container:
+            container.audio(filename, format="audio/mp3")
+        else:
+            st.audio(filename, format="audio/mp3")
     except Exception as e:
         st.error(f"ऑडियो जनरेट करने में त्रुटि आई: {e}")
-
-st.set_page_config(page_title="नामांक एवं नाम भाग्य", page_icon="🔤")
-
 # ==========================================
 # 1. आवश्यक मास्टर डेटा (Master Dictionaries)
 # ==========================================
@@ -117,6 +118,19 @@ friendship_logic = {
                 9: {'friends': [1, 2, 3, 5], 'enemies': [4, 7, 8], 'neutral': [6]}
             }
 
+# ग्रहों के सकारात्मक, नकारात्मक व शारीरिक/भाग्य फल
+planet_traits = {
+    1: {"name": "सूर्य", "pos": "आत्मविश्वास, नेतृत्व क्षमता और मान-सम्मान देता है।", "neg": "अहंकार और मान-प्रतिष्ठा में कमी लाता है।", "body_neg": "सिरदर्द, आँखों की समस्या व हड्डियों में कमजोरी आ सकती है।", "bhagya_neg": "सरकारी या प्रशासनिक कार्यों में बाधाएं आ सकती हैं।"},
+    2: {"name": "चंद्रमा", "pos": "मानसिक शांति, रचनात्मकता और जन-संपर्क प्रदान करता है।", "neg": "मानसिक तनाव, चंचलता और अनिर्णय की स्थिति देता है।", "body_neg": "कफ, सर्दी-जुकाम व मन में अनावश्यक बैचेनी रह सकती है।", "bhagya_neg": "भाग्य में निरंतर उतार-चढ़ाव देखा जा सकता है।"},
+    3: {"name": "गुरु", "pos": "ज्ञान, बुद्धिमत्ता और धन वृद्धि प्रदान करता है।", "neg": "गलत सलाह और अवसरों की अनदेखी कराता है।", "body_neg": "पाचन तंत्र या लिवर से जुड़ी समस्याएं आ सकती हैं।", "bhagya_neg": "उच्च शिक्षा या गुरुओं के सहयोग में बाधा आ सकती है।"},
+    4: {"name": "राहु", "pos": "अचानक सफलता और आउट-ऑफ-द-बॉक्स सोच देता है।", "neg": "भ्रम, गलतफहमी और अनजाना भय पैदा करता है।", "body_neg": "अचानक होने वाली शारीरिक व्याधियां या अनिद्रा रह सकती है।", "bhagya_neg": "अचानक बनते हुए काम बिगड़ने की संभावना रहती है।"},
+    5: {"name": "बुध", "pos": "तीव्र बुद्धि, व्यापारिक कुशलता और वाक्-पटुता देता है।", "neg": "वाणी में कड़वाहट और व्यापारिक निर्णय में चूक कराता है।", "body_neg": "त्वचा संबंधी समस्या या नर्वस सिस्टम में तनाव हो सकता है।", "bhagya_neg": "व्यापार में अचानक घाटा या नेटवर्किंग में नुकसान हो सकता है।"},
+    6: {"name": "शुक्र", "pos": "भौतिक सुख, सौंदर्य और आकर्षण बढ़ाता है।", "neg": "दिखावा, आलस्य और धन का अपव्यय कराता है।", "body_neg": "हार्मोनल असंतुलन या शरीर में सुस्ती बनी रह सकती है।", "bhagya_neg": "सुख-सुविधाओं की प्राप्ति में बाधा आ सकती है।"},
+    7: {"name": "केतु", "pos": "गहरा शोध, सूक्ष्म दृष्टि और अंतर्ज्ञान बढ़ाता है।", "neg": "अकेलापन, वैराग्य और अलगाव पैदा करता है।", "body_neg": "शरीर के निचले हिस्से में दर्द या एलर्जी हो सकती है।", "bhagya_neg": "मेहनत के बाद भी श्रेय न मिलना संभव है।"},
+    8: {"name": "शनि", "pos": "कठोर परिश्रम, अनुशासन और स्थायित्व देता है।", "neg": "अत्यधिक विलंब, संघर्ष और रुकावटें लाता है।", "body_neg": "जोड़ों में दर्द, जकड़न व शारीरिक थकान रह सकती है।", "bhagya_neg": "हर कार्य में अत्यधिक विलंब देखा जा सकता है।"},
+    9: {"name": "मंगल", "pos": "अदम्य साहस, ऊर्जा और त्वरित कार्रवाई की क्षमता देता है।", "neg": "अत्यधिक क्रोध, विवाद और जल्दबाजी कराता है।", "body_neg": "रक्त विकार, बीपी की समस्या या चोट-चपेट हो सकती है।", "bhagya_neg": "क्रोध के कारण बने-बनाए अवसरों का हाथ से निकलना संभव है।"}
+}
+
 # 1. सुरक्षा जाँच (Session State Validation)
 u_dob = st.session_state.get('u_dob')
 
@@ -147,20 +161,68 @@ def get_g_n(n):
     return grah_data.get(int(n), {}).get('grah', 'अंक')
 
 n_g, m_g, b_g = get_g_n(name_num), get_g_n(mulank), get_g_n(bhagyank)
-tab2_audio = f"Namaste! Aapka namank {name_num} hai jo {n_g} ka ank hai."
 
 st.subheader("💡 गुरु का वैज्ञानिक परामर्श")
+audio_box = st.empty()
 
-# संपर्क संदेश ऑडियो में जोड़ना
-contact_msg = "सूक्ष्म गणना हेतु विशाल विक्रम पांडे जी से संपर्क करें।"
-if contact_msg not in tab2_audio:
-    tab2_audio += f" {contact_msg}"
-
-# बिना किसी क्लिक के ऑटोमैटिक ऑडियो प्लेयर यहाँ बन जाएगा
-bol_web(tab2_audio, "tab2_voice")
+# ऑडियो स्क्रिप्ट की शुरुआत
+tab2_audio = f"नमस्ते {u_name} जी! "
 
 st.markdown("<p style='text-align: center; color: gray;'>© आचार्य विशाल विक्रम पांडे</p>", unsafe_allow_html=True)
 st.write("---")
+
+ # -------------------------------------------------------------
+# आपकी existing friendship_logic से मैत्री जाँचना
+# -------------------------------------------------------------
+name_planet = name_num
+
+# मूलांक और भाग्यांक से संबंध चेक करना
+mul_friends = friendship_logic.get(mulank, {}).get('friends', [])
+mul_enemies = friendship_logic.get(mulank, {}).get('enemies', [])
+
+bhag_friends = friendship_logic.get(bhagyank, {}).get('friends', [])
+bhag_enemies = friendship_logic.get(bhagyank, {}).get('enemies', [])
+
+# मूलांक से स्थिति (1: मित्र, -1: शत्रु, 0: सम)
+rel_mulank = 1 if name_planet in mul_friends else (-1 if name_planet in mul_enemies else 0)
+
+# भाग्यांक से स्थिति (1: मित्र, -1: शत्रु, 0: सम)
+rel_bhagyank = 1 if name_planet in bhag_friends else (-1 if name_planet in bhag_enemies else 0)
+
+p_info = planet_traits.get(name_planet, {})
+p_name = p_info.get("name", "ग्रह")
+
+# ४ कंडीशन्स का फ़ैसला
+if rel_mulank >= 0 and rel_bhagyank >= 0:
+    res_text = f"🌟 **अति शुभ स्थिति:** आपका नामांक स्वामी **{p_name}** आपके मूलांक व भाग्यांक दोनों का मित्र है। यह आपको {p_info['pos']}"
+    audio_res = f"आपका नामांक स्वामी {p_name} आपके मूलांक और भाग्यांक का मित्र है। यह आपको {p_info['pos']}"
+
+elif rel_mulank < 0 and rel_bhagyank < 0:
+    res_text = f"⚠️ **सावधानी:** आपका नामांक स्वामी **{p_name}** मूलांक व भाग्यांक दोनों का शत्रु है। इसके कारण {p_info['neg']}"
+    audio_res = f"आपका नामांक स्वामी {p_name} आपके मूलांक और भाग्यांक का शत्रु है। इसके कारण {p_info['neg']}"
+
+elif rel_mulank < 0 and rel_bhagyank >= 0:
+    res_text = f"🩺 **शारीरिक व व्यक्तिगत तनाव:** आपका नामांक **{p_name}** मूलांक का शत्रु है परंतु भाग्यांक का मित्र है। भाग्य में लाभ रहेगा, लेकिन {p_info['body_neg']}"
+    audio_res = f"आपका नामांक {p_name} मूलांक का शत्रु और भाग्यांक का मित्र है। भाग्य में लाभ मिलेगा लेकिन {p_info['body_neg']}"
+
+else: # rel_mulank >= 0 and rel_bhagyank < 0
+    res_text = f"📉 **भाग्य में रुकावट:** आपका नामांक **{p_name}** मूलांक का मित्र है पर भाग्यांक का शत्रु है। स्वास्थ्य ठीक रहेगा, परंतु {p_info['bhagya_neg']}"
+    audio_res = f"आपका नामांक {p_name} मूलांक का मित्र और भाग्यांक का शत्रु है। स्वास्थ्य ठीक रहेगा लेकिन {p_info['bhagya_neg']}"
+
+# ऑडियो में जोड़ना
+tab2_audio += f" {audio_res} "
+
+# =============================================================
+# १. नामांक एवं मूलांक विवरण (UI Layout)
+# =============================================================
+col1, col2 = st.columns([1, 2])
+
+with col1:
+    st.info(f"### 📘 नामांक: **{name_num}** ({p_name})\n**मूलांक:** {mulank} | **भाग्यांक:** {bhagyank}")
+
+with col2:
+    st.success(f"### ⭐ नामांक {name_num} ({p_name}) का विश्लेषण")
+    st.write(res_text)
             
 # name_sum ko define karna taaki peeli line hat jaye
 if 'name_sum' not in locals() and 'name_sum' not in globals():
@@ -188,30 +250,51 @@ if name_sum > 1:
     
     # ऑडियो स्क्रिप्ट तैयार करना (ताकि अंत में गुरु इसे बोलकर सुनाएं)
     # लाइन नंबर 734 को ऐसा बदलें:
-    compound_audio_text = f"{u_name} जी, आपके नाम के अक्षरों का कुल योग, यानी आपका संयुक्त..."
-    
-    # इसे टैब ३ के मुख्य ऑडियो वेरिएबल में जोड़ना (बिना पुराना डेटा हटाए)
+    compound_audio_text = f"{u_name} जी, आपके नाम के अक्षरों का कुल योग, यानी आपका संयुक्त {c_num} है जिसका फल इस प्रकार है {compound_fal}"
     tab2_audio += compound_audio_text
 
-    st.divider()
-                
     # 2. Maitree Analysis (Grah aur Ank ke Naam ke Saath)
     st.subheader(f"📊 अंक मैत्री विवरण {name_num} ({n_g})")
+
+    # मूलांक और भाग्यांक के मित्र, शत्रु और सम की लिस्ट
+    m_f = friendship_logic.get(int(mulank), {}).get('friends', [])
     m_en = friendship_logic.get(int(mulank), {}).get('enemies', [])
+
+    b_f = friendship_logic.get(int(bhagyank), {}).get('friends', [])
     b_en = friendship_logic.get(int(bhagyank), {}).get('enemies', [])
 
-    shatru_list = []
-    if name_num in m_en: shatru_list.append(f"मूलांक {mulank} ({m_g})")
-    if name_num in b_en: shatru_list.append(f"भाग्यांक {bhagyank} ({b_g})")
-
-    if not shatru_list:
-        msg = f"नामांक {name_num} ({n_g}), मूलांक {mulank} ({m_g}) और भाग्यांक {bhagyank} ({b_g}) दोनों का मित्र है।"
-        st.success(f"✅ {msg}")
-        tab2_audio += f"{msg} "
+    # मूलांक के साथ संबंध
+    if name_num in m_f:
+        m_rel = "मित्र"
+    elif name_num in m_en:
+        m_rel = "शत्रु"
     else:
-        msg = f"नामांक {name_num} ({n_g}) आपके {' और '.join(shatru_list)} का शत्रु है।"
-        st.error(f"❌ {msg}")
-        tab2_audio += f"{msg} "
+        m_rel = "सम (तटस्थ)"
+
+    # भाग्यांक के साथ संबंध
+    if name_num in b_f:
+        b_rel = "मित्र"
+    elif name_num in b_en:
+        b_rel = "शत्रु"
+    else:
+        b_rel = "सम (तटस्थ)"
+
+    # स्क्रीन और ऑडियो संदेश बनाना
+    msg_m = f"मूलांक {mulank} ({m_g}) के साथ: **{m_rel}**"
+    msg_b = f"भाग्यांक {bhagyank} ({b_g}) के साथ: **{b_rel}**"
+
+    full_msg = f"नामांक {name_num} ({n_g}), आपके मूलांक {mulank} ({m_g}) के साथ {m_rel} संबंध रखता है और भाग्यांक {bhagyank} ({b_g}) के साथ {b_rel} संबंध रखता है।"
+
+    # UI डिस्प्ले (मूलांक और भाग्यांक दोनों का स्पष्ट संबंध)
+    if m_rel == "मित्र" and b_rel == "मित्र":
+        st.success(f"🌟 **अति शुभ:** {full_msg}")
+    elif m_rel == "शत्रु" and b_rel == "शत्रु":
+        st.error(f"⚠️ **सावधानी:** {full_msg}")
+    else:
+        st.info(f"👉 **विश्लेषण:** {full_msg}")
+
+    # ऑडियो संदेश में जोड़ना
+    tab2_audio += f" {full_msg} "
 
     st.write("---")
 
@@ -260,32 +343,88 @@ if name_sum > 1:
     ]
     राजयोग_मिला = False
 
+    राजयोग_मिला = False
+
+# -------------------------------------------------------------
+# 🌟 १. नामांक से स्वयं राजयोग बनने की जाँच (Single occurrence check)
+# -------------------------------------------------------------
+# केवल जन्मतिथि के असली अंक (बिना नामांक के)
+dob_only_list = [int(char) for char in (str(mulank) + str(bhagyank) + str(locals().get('kua_num', '')) + str(locals().get('dob_digits', ''))) if char.isdigit()]
+
+# नामांक कितनी बार आया है और क्या वह मित्र/सम है?
+name_count = मौजूद_अंक_लिस्ट.count(name_num)
+is_friendly_name = (name_num not in m_en) and (name_num not in b_en)
+
+# क्या नामांक ही राजयोग का टारगेट पूरा कर रहा है?
+for p in priorities:
+    target = p['t']
+    if target == name_num and name_count == 1 and is_friendly_name:
+        # क्या बाकी दोनों अंक DOB में पहले से मौजूद हैं?
+        if all(x in dob_only_list for x in p['others']):
+            n_g_name = get_g_n(name_num)
+            msg = f"आपका नामांक **{name_num} ({n_g_name})** आपकी जन्मतिथि के साथ मिलकर **{p['name']}** पूर्ण कर रहा है। आपका नामांक आपके मूलांक व भाग्यांक के अनुकूल है। इस कारण आपका नाम आपकी जन्मतिथि के अनुसार बिल्कुल सही है, इसे बदलने की कोई आवश्यकता नहीं है।"
+            
+            st.success(f"🌟 **उत्तम स्थिति:** {msg}")
+            tab2_audio += f" Vishesh suchna: {msg} "
+            राजयोग_मिला = True
+            break
+
+# -------------------------------------------------------------
+# 🌟 २. नए राजयोग का सुझाव (यदि नामांक से राजयोग न बन रहा हो)
+# -------------------------------------------------------------
+if not राजयोग_मिला:
+    # -------------------------------------------------------------
+    # 🌟 १. पहले अधूरे राजयोगों की जाँच करना (यदि कोई मित्र अंक से पूरा हो रहा हो)
+    # -------------------------------------------------------------
     for p in priorities:
         target = p['t']
-        
-        # शर्त १: जो अंक चाहिए (target) वह यूज़र के पास मौजूद नहीं होना चाहिए
-        # शर्त २: राजयोग को पूरा करने वाले बाकी दोनों अंक यूज़र के पास सच में मौजूद होने चाहिए
         if (target not in मौजूद_अंक_लिस्ट) and all(x in मौजूद_अंक_लिस्ट for x in p['others']):
-            
-            # शत्रु अंकों की जांच (मूलांक और भाग्यांक से)
+            # यदि टारगेट अंक मित्र है
             if target not in m_en and target not in b_en:
                 t_grah = get_g_n(target)
-                msg = f"{p['name']} पूरा करने हेतु {target} ({t_grah}) अपनाएं, यह आपके मूलांक {mulank} और भाग्यांक {bhagyank} का मित्र है।"
-                st.success(f"🌟 {msg}")
-                tab2_audio += f"Sujhav hai ki {msg} "
+                msg = f"{p['name']} पूरा करने हेतु **{target} ({t_grah})** अपनाएँ, यह आपके मूलांक {mulank} और भाग्यांक {bhagyank} का मित्र है।"
+                st.success(f"🌟 **राजयोग सुझाव:** {msg}")
+                tab2_audio += f" Sujhav hai ki {msg} "
                 राजयोग_मिला = True
-                break  # एक मुख्य राजयोग का सुझाव मिलने पर लूप रोकें
+                break
             else:
-                # अगर वह अंक शत्रु है, तो चेतावनी दें और दूसरा राजयोग चेक करें
+                # यदि वह अंक शत्रु है, तो चेतावनी देकर अगला चेक करें
                 shatru_of = "मूलांक" if target in m_en else "भाग्यांक"
                 t_grah = get_g_n(target)
-                msg = f"अंक {target} ({t_grah}) से आपका {p['name']} बन सकता है, पर यह आपके {shatru_of} का शत्रु है, अतः इसे न अपनाएं।"
+                msg = f"अंक {target} ({t_grah}) से आपका {p['name']} बन सकता है, पर यह आपके {shatru_of} का शत्रु है।"
                 st.warning(f"⚠️ {msg}")
-                tab2_audio += f"Chetavni! {msg} "
-                # यहाँ break नहीं करेंगे ताकि सिस्टम लिस्ट में अगला सुरक्षित राजयोग ढूंढ सके
+                tab2_audio += f" Chetavni! {msg} "
 
+    # -------------------------------------------------------------
+    # 🌟 २. यदि नामांक शत्रु है या ग्रिड में असंतुलित (Repeat) है, तो मित्र अंक का सुझाव दें
+    # -------------------------------------------------------------
     if not राजयोग_मिला:
-        st.info("ℹ️ वर्तमान में आपके लिए कोई नया विशेष राजयोग सुझाव उपलब्ध नहीं है।")
+        is_enemy = (name_num in m_en) or (name_num in b_en)
+        name_count = मौजूद_अंक_लिस्ट.count(name_num)
+        
+        if is_enemy or name_count > 1:
+            possible_targets = [1, 5, 6, 3]
+            best_target = None
+            
+            # मूलांक और भाग्यांक दोनों का मित्र अंक चुनना
+            for t in possible_targets:
+                if (t not in m_en) and (t not in b_en):
+                    best_target = t
+                    break
+                    
+            if best_target:
+                t_g = get_g_n(best_target)
+                msg = f"आपका वर्तमान नामांक **{name_num} ({n_g})** आपके मूलांक/भाग्यांक का शत्रु है या ग्रिड में असंतुलित ({name_count} बार) हो रहा है। **विशेष सुझाव:** अपने नाम की स्पेलिंग में संशोधन करके नामांक को मित्र अंक **{best_target} ({t_g})** पर सेट करें। यह आपके मूलांक {mulank} और भाग्यांक {bhagyank} दोनों के अनुकूल है।"
+                
+                st.warning(f"⚠️ **नाम परिवर्तन की आवश्यकता:** {msg}")
+                tab2_audio += f" Vishesh sujhav: {msg} "
+                राजयोग_मिला = True
+
+    # -------------------------------------------------------------
+    # 🌟 ३. यदि कोई विशेष स्थिति न बने तो सामान्य मित्र अंक का सुझाव
+    # -------------------------------------------------------------
+    if not राजयोग_मिला:
+        st.info("💡 **सामान्य सुझाव:** आपकी ग्रिड में मुख्य राजयोग पहले से संतुलित हैं। नामांक को मूलांक/भाग्यांक के मित्र अंक (1, 5 या 6) पर रखना ही सर्वोत्तम रहेगा।")
             # यूज़र के पास जितने भी असली अंक मौजूद हैं, उनकी एक शुद्ध लिस्ट
     मौजूद_अंक_लिस्ट = [int(char) for char in शुद्ध_अंक_स्ट्रिंग if char.isdigit()]
 
@@ -325,23 +464,7 @@ if name_sum > 1:
         # पूर्णतः हिंदी में सफलता का संदेश
         st.success("🎯 आपकी ग्रिड में सभी ग्रहों की ऊर्जा संतुलित है। कोई भी ग्रह दो से अधिक बार नहीं आया है।")
         tab2_audio += "Aapki grid mein sabhi grahon ki oorja santulit hai. "
-    # ==========================================
-
-    # ==========================================
-    # १. नामांक एवं मूलांक विवरण (UI Layout)
-    # ==========================================
-    col1, col2 = st.columns([1, 2])
-
-    with col1:
-        st.info(f"### 📘 आपका नामांक: **{name_num}**")
-        st.write(f"**मूलांक:** {mulank} | **भाग्यांक:** {bhagyank}")
-
-    with col2:
-        st.success(f"### ⭐ नामांक {name_num} की विशेषताएँ")
-        # यहाँ नामांक का विस्तृत फलादेश रहेगा
-
-    st.write("---")
-
+   
     # ==========================================
     # २. नामांक और मूलांक का संबंध (Compatibility)
     # ==========================================
@@ -353,6 +476,14 @@ if name_sum > 1:
         st.info("💡 **संतुलन:** आपका नामांक और मूलांक मिलकर आपके व्यक्तित्व को संतुलित करते हैं।")
 
     st.write("---")
+
+    # ==========================================
+    # 📣 पूरे फलादेश को ऑडियो में जनरेट करना
+    # ==========================================
+    tab2_audio += " सूक्ष्म गणना हेतु आचार्य विशाल विक्रम पांडे जी से संपर्क करें।"
+
+    # ऊपर बनाए गए audio_box में ऑडियो प्लेयर चालू करना
+    bol_web(tab2_audio, "tab2_voice", container=audio_box)
 
     # ==========================================
     # ४. मुख्य पृष्ठ पर लौटने का बटन
