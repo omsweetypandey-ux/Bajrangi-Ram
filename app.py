@@ -425,8 +425,6 @@ with col2:
     </a>
     '''
     st.markdown(call_html, unsafe_allow_html=True)
-    
-    st.markdown(call_html, unsafe_allow_html=True)
 
     if submit:
         st.balloons()
