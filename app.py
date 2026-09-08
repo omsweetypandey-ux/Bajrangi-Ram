@@ -404,9 +404,9 @@ if st.session_state.get('form_submitted') or st.session_state.get('user_name'):
 
 with col2:
     my_contact_number = "+916392311093"
-    
+
     call_html = f'''
-   <a href="tel:+916392311093" target="_self" style="
+    <a href="tel:{my_contact_number}" style="
         text-decoration: none;
         display: flex;
         align-items: center;
@@ -424,6 +424,7 @@ with col2:
         📞 सूक्ष्म गणना हेतु Call Now
     </a>
     '''
+    st.markdown(call_html, unsafe_allow_html=True)
     
     st.markdown(call_html, unsafe_allow_html=True)
 
