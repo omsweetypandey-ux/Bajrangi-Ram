@@ -374,13 +374,18 @@ if 'u_gender' not in st.session_state:
 
 # १. नाम के लिए (Placeholder के साथ)
 u_name = st.text_input("आपका शुभ नाम", value=st.session_state.get('u_name', ''))
-# २. आज की तारीख और रेंज सेट करना
+# २. आज की तारीख और 100 साल की सही रेंज (Date Objects) सेट करना
 today = datetime.date.today()
-hundred_years_ago = today.year - 100
-hundred_years_ahead = today.year + 100
+min_date = datetime.date(today.year - 100, 1, 1)
+max_date = datetime.date(today.year + 100, 12, 31)
 
-# इसे पेस्ट करें (लाइन 401-406 की जगह):
-u_dob = st.date_input("अपनी जन्मतिथि चुनें", value=st.session_state.get('u_dob', datetime.date.today()), min_value=datetime.date(hundred_years_ago, 1, 1), max_value=datetime.date(hundred_years_ahead, 12, 31))
+# तारीख का इनपुट - min_value और max_value के साथ
+u_dob = st.date_input(
+    "अपनी जन्मतिथि चुनें", 
+    value=st.session_state.get('u_dob', today),
+    min_value=min_date,
+    max_value=max_date
+)
 
 u_gender = st.selectbox("लिंग", ["Male", "Female"], index=0 if st.session_state.get('u_gender', 'Male') == 'Male' else 1)
 
