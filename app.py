@@ -379,13 +379,19 @@ today = datetime.date.today()
 min_date = datetime.date(today.year - 100, 1, 1)
 max_date = datetime.date(today.year + 100, 12, 31)
 
-# तारीख का इनपुट - min_value और max_value के साथ
+default_dob = st.session_state.get('u_dob', today)
+
+if default_dob < min_date or default_dob > max_date:
+    default_dob = today
+
 u_dob = st.date_input(
     "अपनी जन्मतिथि चुनें", 
-    value=st.session_state.get('u_dob', today),
+    value=default_dob,
     min_value=min_date,
-    max_value=max_date
+    max_value=max_date,
+    key="user_dob_input_picker"
 )
+st.session_state['u_dob'] = u_dob
 
 u_gender = st.selectbox("लिंग", ["Male", "Female"], index=0 if st.session_state.get('u_gender', 'Male') == 'Male' else 1)
 
