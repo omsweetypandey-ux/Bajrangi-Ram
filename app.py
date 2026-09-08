@@ -25,9 +25,17 @@ if "active_numerology_tab" not in st.session_state:
 # 📱 १. टॉप बैनर (एक ही बार लोड होगा)
 # ---------------------------------------------------------
 import os
+from PIL import Image
 
-if os.path.exists("banner.png"):
-    st.image("banner.png", use_container_width=True)
+banner_path = "banner.png"
+if os.path.exists(banner_path):
+    try:
+        img = Image.open(banner_path)
+        st.image(img, use_container_width=True)
+    except Exception:
+        st.markdown("<h1 style='text-align: center;'>🔱 बजरंग राम ज्योतिष 🔱</h1>", unsafe_allow_html=True)
+else:
+    st.markdown("<h1 style='text-align: center;'>🔱 बजरंग राम ज्योतिष 🔱</h1>", unsafe_allow_html=True)
 
 
 def bol_web(text, part_id):
