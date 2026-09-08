@@ -374,25 +374,26 @@ if 'u_gender' not in st.session_state:
 
 # १. नाम के लिए (Placeholder के साथ)
 u_name = st.text_input("आपका शुभ नाम", value=st.session_state.get('u_name', ''))
-# २. आज की तारीख और 100 साल की सही रेंज (Date Objects) सेट करना
+
+# तारीख, महीना और साल चुनने का सबसे आसान और सटीक तरीका
 today = datetime.date.today()
-min_date = datetime.date(today.year - 100, 1, 1)
-max_date = datetime.date(today.year + 100, 12, 31)
 
-default_dob = st.session_state.get('u_dob', today)
+col_d, col_m, col_y = st.columns(3)
 
-if default_dob < min_date or default_dob > max_date:
-    default_dob = today
+with col_d:
+    day = st.selectbox("दिन", list(range(1, 32)), index=today.day - 1)
 
-u_dob = st.date_input(
-    "अपनी जन्मतिथि चुनें", 
-    value=default_dob,
-    min_value=min_date,
-    max_value=max_date,
-    key="user_dob_input_picker"
-)
+with col_m:
+    month = st.selectbox("महीना", list(range(1, 13)), index=today.month - 1)
+
+with col_y:
+    # 1920 से लेकर 2026 तक के सारे साल एक ही क्लिक में मिलेंगे
+    years_list = list(range(today.year, 1920, -1))
+    year = st.selectbox("वर्ष", years_list, index=0)
+
+# चुनी हुई तारीख को u_dob में सेट करना
+u_dob = datetime.date(year, month, day)
 st.session_state['u_dob'] = u_dob
-
 u_gender = st.selectbox("लिंग", ["Male", "Female"], index=0 if st.session_state.get('u_gender', 'Male') == 'Male' else 1)
 
 # ====================================================================
