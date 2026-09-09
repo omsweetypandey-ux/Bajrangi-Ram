@@ -412,9 +412,9 @@ if st.session_state.get('form_submitted') or st.session_state.get('user_name'):
 
 with col2:
     my_contact_number = "+916392311093"
-
+        
     call_html = f'''
-    <a href="tel:{my_contact_number}" style="
+    <a href="tel:{my_contact_number}" target="_self" style="
         text-decoration: none;
         display: flex;
         align-items: center;
