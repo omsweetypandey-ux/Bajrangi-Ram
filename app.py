@@ -375,21 +375,33 @@ if 'u_gender' not in st.session_state:
 # १. नाम के लिए (Placeholder के साथ)
 u_name = st.text_input("आपका शुभ नाम", value=st.session_state.get('u_name', ''))
 
-today = datetime.date.today()
+# १. वर्ष, महीने और दिनों की सूची तैयार करना
+years = list(range(datetime.date.today().year, datetime.date.today().year - 101, -1))
+months = ["जनवरी", "फ़रवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"]
+days = list(range(1, 32))
 
-# 100 साल पुरानी और 100 साल आगे की पूरी डेट ऑब्जेक्ट्स
-min_date = datetime.date(today.year - 100, 1, 1)
-max_date = datetime.date(today.year + 100, 12, 31)
+st.markdown("##### 📅 अपनी जन्मतिथि चुनें")
 
-default_dob = st.session_state.get('u_dob', today)
+# ३ कॉलम (एक के बगल में दूसरा)
+col_d, col_m, col_y = st.columns(3)
 
-# Streamlit को साफ़ आदेश देना कि min_value और max_value 100 साल की है
-u_dob = st.date_input(
-    "अपनी जन्मतिथि चुनें", 
-    value=default_dob,
-    min_value=min_date,
-    max_value=max_date
-)
+with col_d:
+    selected_day = st.selectbox("दिन", days, index=0)
+
+with col_m:
+    selected_month_str = st.selectbox("महीना", months, index=0)
+    selected_month = months.index(selected_month_str) + 1
+
+with col_y:
+    selected_year = st.selectbox("वर्ष", years, index=30)
+
+# datetime.date ऑब्जेक्ट बनाना (ज्योतिषीय गणना हेतु)
+try:
+    u_dob = datetime.date(selected_year, selected_month, selected_day)
+except ValueError:
+    st.error("⚠️ कृपया सही तारीख चुनें!")
+    u_dob = datetime.date.today()
+
 st.session_state['u_dob'] = u_dob
 u_gender = st.selectbox("लिंग", ["Male", "Female"], index=0 if st.session_state.get('u_gender', 'Male') == 'Male' else 1)
 
