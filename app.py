@@ -432,30 +432,7 @@ if st.session_state.get('form_submitted') or st.session_state.get('user_name'):
     # -------------------------------------------------------------
 
 with col2:
-    my_contact_number = "+916392311093"
-        
-    call_button_html = f'''
-    <div style="width: 100%; text-align: center;">
-        <a href="tel:{my_contact_number}" target="_top" style="
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            background-color: #FF4B4B;
-            color: white;
-            padding: 12px 0px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 16px;
-            font-family: sans-serif;
-            box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
-        ">
-            📞 सूक्ष्म गणना हेतु Call Now
-        </a>
-    </div>
-    '''
-    st.components.v1.html(call_button_html, height=60)
+    st.link_button("📞 सूक्ष्म गणना हेतु Call Now", "tel:+916392311093", use_container_width=True)
     if submit:
         st.balloons()
         placeholder = st.empty()
