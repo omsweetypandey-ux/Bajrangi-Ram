@@ -376,11 +376,20 @@ if 'u_gender' not in st.session_state:
 u_name = st.text_input("आपका शुभ नाम", value=st.session_state.get('u_name', ''))
 
 today = datetime.date.today()
-hundred_years_ago = today.year - 100
-hundred_years_ahead = today.year + 100
 
-u_dob = st.date_input("अपनी जन्मतिथि चुनें", value=st.session_state.get('u_dob', today))
-st.session_state['u_dob'] = u_dob
+# 100 साल पुरानी और 100 साल आगे की पूरी डेट ऑब्जेक्ट्स
+min_date = datetime.date(today.year - 100, 1, 1)
+max_date = datetime.date(today.year + 100, 12, 31)
+
+default_dob = st.session_state.get('u_dob', today)
+
+# Streamlit को साफ़ आदेश देना कि min_value और max_value 100 साल की है
+u_dob = st.date_input(
+    "अपनी जन्मतिथि चुनें", 
+    value=default_dob,
+    min_value=min_date,
+    max_value=max_date
+)
 st.session_state['u_dob'] = u_dob
 u_gender = st.selectbox("लिंग", ["Male", "Female"], index=0 if st.session_state.get('u_gender', 'Male') == 'Male' else 1)
 
@@ -414,7 +423,7 @@ with col2:
     my_contact_number = "+916392311093"
         
     call_html = f'''
-    <a href="tel:{my_contact_number}" target="_self" style="
+    <a href="tel:{my_contact_number}" target="_top" style="
         text-decoration: none;
         display: flex;
         align-items: center;
