@@ -375,18 +375,16 @@ if 'u_gender' not in st.session_state:
 # १. नाम के लिए (Placeholder के साथ)
 u_name = st.text_input("आपका शुभ नाम", value=st.session_state.get('u_name', ''))
 
-# १. नाम के लिए (Placeholder के साथ)
-u_name = st.text_input("आपका शुभ नाम", value=st.session_state.get('u_name', ''))
-# २. आज की तारीख और रेंज सेट करना
-today = datetime.date.today()
-hundred_years_ago = today.year - 100
-hundred_years_ahead = today.year + 100
+# जन्मतिथि सीधे टाइप करने के लिए (DD/MM/YYYY)
+default_dob_str = st.session_state.get('u_dob', datetime.date(1995, 1, 1)).strftime("%d/%m/%Y")
+dob_text = st.text_input("अपनी जन्मतिथि दर्ज करें (DD/MM/YYYY)", value=default_dob_str, placeholder="DD/MM/YYYY")
 
-# इसे पेस्ट करें (लाइन 401-406 की जगह):
-u_dob = st.date_input("अपनी जन्मतिथि चुनें", value=st.session_state.get('u_dob', datetime.date.today()), min_value=datetime.date(hundred_years_ago, 1, 1), max_value=datetime.date(hundred_years_ahead, 12, 31))
-
-u_dob = datetime.date.today()
-
+try:
+    # टाइप की गई तारीख को datetime object में बदलना
+    u_dob = datetime.datetime.strptime(dob_text.strip(), "%d/%m/%Y").date()
+except ValueError:
+    st.error("⚠️ कृपया सही तिथि फॉर्मेट में दर्ज करें! (उदाहरण: 18/04/1986)")
+    u_dob = datetime.date(1995, 1, 1)
 st.session_state['u_dob'] = u_dob
 u_gender = st.selectbox("लिंग", ["Male", "Female"], index=0 if st.session_state.get('u_gender', 'Male') == 'Male' else 1)
 
