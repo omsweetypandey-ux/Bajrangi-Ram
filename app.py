@@ -375,32 +375,17 @@ if 'u_gender' not in st.session_state:
 # १. नाम के लिए (Placeholder के साथ)
 u_name = st.text_input("आपका शुभ नाम", value=st.session_state.get('u_name', ''))
 
-# १. वर्ष, महीने और दिनों की सूची तैयार करना
-years = list(range(datetime.date.today().year, datetime.date.today().year - 101, -1))
-months = ["जनवरी", "फ़रवरी", "मार्च", "अप्रैल", "मई", "जून", "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"]
-days = list(range(1, 32))
+# १. नाम के लिए (Placeholder के साथ)
+u_name = st.text_input("आपका शुभ नाम", value=st.session_state.get('u_name', ''))
+# २. आज की तारीख और रेंज सेट करना
+today = datetime.date.today()
+hundred_years_ago = today.year - 100
+hundred_years_ahead = today.year + 100
 
-st.markdown("##### 📅 अपनी जन्मतिथि चुनें")
+# इसे पेस्ट करें (लाइन 401-406 की जगह):
+u_dob = st.date_input("अपनी जन्मतिथि चुनें", value=st.session_state.get('u_dob', datetime.date.today()), min_value=datetime.date(hundred_years_ago, 1, 1), max_value=datetime.date(hundred_years_ahead, 12, 31))
 
-# ३ कॉलम (एक के बगल में दूसरा)
-col_d, col_m, col_y = st.columns(3)
-
-with col_d:
-    selected_day = st.selectbox("दिन", days, index=0)
-
-with col_m:
-    selected_month_str = st.selectbox("महीना", months, index=0)
-    selected_month = months.index(selected_month_str) + 1
-
-with col_y:
-    selected_year = st.selectbox("वर्ष", years, index=30)
-
-# datetime.date ऑब्जेक्ट बनाना (ज्योतिषीय गणना हेतु)
-try:
-    u_dob = datetime.date(selected_year, selected_month, selected_day)
-except ValueError:
-    st.error("⚠️ कृपया सही तारीख चुनें!")
-    u_dob = datetime.date.today()
+u_dob = datetime.date.today()
 
 st.session_state['u_dob'] = u_dob
 u_gender = st.selectbox("लिंग", ["Male", "Female"], index=0 if st.session_state.get('u_gender', 'Male') == 'Male' else 1)
