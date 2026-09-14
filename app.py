@@ -1,13 +1,23 @@
+import base64
 import streamlit as st
 import time
-# नीचे वाला कोड यहाँ पेस्ट करें:
-hide_streamlit_style = """
-              <style>
-              #MainMenu {visibility: hidden;}
-              footer {visibility: hidden;}
-              header {visibility: hidden;}
-              </style>
-              """
+
+# १. साइडबार और हेडर छिपाने का पक्का तरीका
+css_code = "[data-testid='stSidebar']{display:none !important;}[data-testid='stSidebarCollapsedControl']{display:none !important;}#MainMenu{visibility:hidden;}footer{visibility:hidden;}header{visibility:hidden;}"
+b64_css = base64.b64encode(css_code.encode()).decode()
+st.markdown(
+    f"",
+    unsafe_allow_html=True,
+)
+
+# २. सेफ़ ऑडियो कंटेनर
+audio_container = st.empty()
+
+
+def play_audio_safely(audio_file_path):
+    with open(audio_file_path, "rb") as f:
+        audio_bytes = f.read()
+    audio_container.audio(audio_bytes, format="audio/mp3", autoplay=True)
 import datetime  
 from gtts import gTTS
 from elevenlabs.client import ElevenLabs
