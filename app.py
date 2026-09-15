@@ -1208,3 +1208,8 @@ with col2:
     # Agar aap check-box par click karenge, tabhi dashboard screen par sabse niche khulega
     if show_admin:
         admin_control_board()
+    st.write("---")
+col_left, col_center, col_right = st.columns([1, 1, 1])
+with col_center:
+    if st.button("🔒 Only for Admin", use_container_width=True):
+        st.switch_page("pages/admin.py")
