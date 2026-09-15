@@ -425,7 +425,83 @@ if st.session_state.get('form_submitted') or st.session_state.get('user_name'):
     # -------------------------------------------------------------
 
 with col2:
-    st.link_button("📞 सूक्ष्म गणना हेतु Call Now", "tel:+916392311093", use_container_width=True)
+    # १. अपॉइंटमेंट बटन और इनपुट बॉक्स को प्रीमियम लुक देने के लिए CSS
+    st.markdown("""
+        <style>
+        /* Expander कार्ड का स्टाइल */
+        div[data-testid="stExpander"] {
+            border: none !important;
+            box-shadow: 0px 4px 12px rgba(255, 75, 75, 0.25) !important;
+            border-radius: 10px !important;
+            overflow: hidden !important;
+            background-color: #ffffff !important;
+        }
+        
+        /* हेडर (लाल रंग का बटन/पैनल) */
+        div[data-testid="stExpander"] > details > summary {
+            background: linear-gradient(135deg, #FF4B4B, #D32F2F) !important;
+            color: white !important;
+            font-weight: bold !important;
+            font-size: 1.05rem !important;
+            padding: 12px 16px !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+        }
+        
+        /* हेडर टेक्स्ट और आइकॉन का रंग सफेद रखना */
+        div[data-testid="stExpander"] > details > summary * {
+            color: white !important;
+        }
+        
+        /* अंदर के फॉर्म एरिया की पैडिंग */
+        div[data-testid="stExpander"] > details > div[role="region"] {
+            padding: 15px !important;
+            background-color: #FAFAFA !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # २. सुंदर स्लाइडिंग Expander (क्लिक करने पर नीचे फ़ॉर्म खुलेगा)
+    with st.expander("📅 Book Appointment / अपॉइंटमेंट बुक करें", expanded=False):
+        user_phone = st.text_input("अपना मोबाइल नंबर दर्ज करें", key="app_phone_input", placeholder="उदा. 9876543210")
+        
+        if st.button("🚀 Submit / अनुरोध भेजें", use_container_width=True, type="primary"):
+            if user_phone and len(user_phone) >= 10:
+                try:
+                    import sqlite3
+                    conn = sqlite3.connect("appointments.db")
+                    cursor = conn.cursor()
+                    
+                    cursor.execute('''
+                        CREATE TABLE IF NOT EXISTS appointments (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name TEXT,
+                            dob TEXT,
+                            gender TEXT,
+                            phone TEXT UNIQUE,
+                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                        )
+                    ''')
+                    
+                    cursor.execute('''
+                        INSERT INTO appointments (name, dob, gender, phone)
+                        VALUES (?, ?, ?, ?)
+                        ON CONFLICT(phone) DO UPDATE SET
+                            name=excluded.name,
+                            dob=excluded.dob,
+                            gender=excluded.gender
+                    ''', (u_name if u_name else "अज्ञात", str(u_dob), u_gender, user_phone))
+                    
+                    conn.commit()
+                    conn.close()
+                    
+                    st.success("🎉 आपका अपॉइंटमेंट अनुरोध सफलतापूर्वक दर्ज हो गया है!")
+                    st.balloons()
+                    
+                except Exception as e:
+                    st.error(f"⚠️ त्रुटि: {e}")
+            else:
+                st.warning("⚠️ कृपया सही 10 अंकों का मोबाइल नंबर दर्ज करें!")
     if submit:
         st.balloons()
         placeholder = st.empty()
