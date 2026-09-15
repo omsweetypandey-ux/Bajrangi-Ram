@@ -10,6 +10,20 @@ with col_back:
     if st.button("⬅️ होम पेज", use_container_width=True):
         st.switch_page("app.py")
 
+# -------------------------------------------------------------
+# सुरक्षा जांच (Security Check)
+# -------------------------------------------------------------
+if not st.session_state.get("user_logged_in", False) or not st.session_state.get("app_mulank"):
+    st.warning("⚠️ कृपया पहले मुख्य पृष्ठ (Home Page) पर जाकर अपना विवरण भरें और **'विवरण देखें'** बटन पर क्लिक करें!")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🏠 मुख्य पृष्ठ (Home Page) पर जाएं", use_container_width=True, type="primary"):
+            st.switch_page("app.py")
+            
+    st.stop()  # इसके आगे का कोड तब तक निष्पादित नहीं होगा जब तक विवरण दर्ज न हो
+# -------------------------------------------------------------
+
 # =========================================================
 # 1. ऑडियो (TTS) फ़ंक्शन - edge_tts का उपयोग
 # =========================================================
