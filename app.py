@@ -412,6 +412,8 @@ with col1:
             st.session_state['dob_str'] = str(u_dob)
             st.session_state['gender'] = u_gender
             st.session_state['form_submitted'] = True  # यह फ़्लैग बताएगा कि विवरण दर्ज हो चुका है
+            st.session_state['form_submitted'] = True
+            st.session_state['user_logged_in'] = True
         else:
             st.error("⚠️ कृपया अपना नाम दर्ज करें!")
 
