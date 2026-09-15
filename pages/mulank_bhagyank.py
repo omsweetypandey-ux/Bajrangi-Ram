@@ -6,6 +6,13 @@ try:
 except ImportError:
     pass
 
+# १. टॉप बार में बैक/होम बटन का सेटअप
+col_back, col_empty = st.columns([1, 5])
+
+with col_back:
+    if st.button("⬅️ होम पेज", use_container_width=True):
+        st.switch_page("app.py")
+
 # २. पेज का टाइटल या हेडिंग सेट करें
 st.title("📊 मूलांक एवं भाग्यांक फल")
 

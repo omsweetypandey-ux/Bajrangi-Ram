@@ -2,6 +2,14 @@ import streamlit as st
 import edge_tts
 import asyncio
 import datetime
+
+# १. टॉप बार में बैक/होम बटन का सेटअप
+col_back, col_empty = st.columns([1, 5])
+
+with col_back:
+    if st.button("⬅️ होम पेज", use_container_width=True):
+        st.switch_page("app.py")
+
 # =========================================================
 # 1. ऑडियो (TTS) फ़ंक्शन - edge_tts का उपयोग
 # =========================================================

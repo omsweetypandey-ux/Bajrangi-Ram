@@ -5,6 +5,13 @@ import re
 import asyncio
 import edge_tts
 
+# १. टॉप बार में बैक/होम बटन का सेटअप
+col_back, col_empty = st.columns([1, 5])
+
+with col_back:
+    if st.button("⬅️ होम पेज", use_container_width=True):
+        st.switch_page("app.py")
+
 PLANET_MAP = {
     '1': 'सूर्य', '2': 'चंद्र', '3': 'गुरु', 
     '4': 'राहु', '5': 'बुध', '6': 'शुक्र', 
