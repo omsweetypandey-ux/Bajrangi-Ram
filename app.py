@@ -50,7 +50,8 @@ else:
 
 def bol_web(text, part_id):
     try:
-        clean_text = text.replace("*", "").replace("#", "")
+        # ✅ नई लाइन (डैश की जगह कॉमा):
+        clean_text = text.replace("-", " , ").replace("*", "").replace("#", "")
         st.markdown("##### 🗣️ भविष्य रिपोर्ट सुनने के लिए यहाँ नीचे क्लिक करें:")
 
         # Edge-TTS (Madhur - Male Voice) से ऑडियो बनाना
