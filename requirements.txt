@@ -3,4 +3,4 @@ firebase-admin
 gTTS
 uuid
 elevenlabs
-edge-tts
+edge-tts>=6.1.10
